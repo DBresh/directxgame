@@ -9,4 +9,6 @@ namespace dx3d
 	class Window;
 	class Game;
 
+	class GraphicsEngine;
+	class RenderSystem;
 }
