@@ -1,0 +1,72 @@
+# Compiled Object Files and Libraries
+*.o
+*.obj
+*.lo
+*.slo
+*.a
+*.lib
+*.so
+*.so.*
+*.dll
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Build Directories
+build/
+bin/
+obj/
+debug/
+release/
+
+# IDE Specific Files (Common examples)
+# Visual Studio
+.vs/
+*.vcxproj.user
+*.suo
+*.sln.ide.suo
+*.opendb
+*.sdf
+*.cachefile
+*.VC.db
+ipch/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+CTestTestfile.cmake
+_CPack_Packages/
+
+# Qt Creator
+*.pro.user
+*.pro.user.*
+*.qbs.user
+*.qbs.user.*
+*.moc
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+ui_*.h
+*.qmlc
+*.jsc
+*.qm
+*.prl
+*.qmlproject.user
+*.qmlproject.user.*
+*.creator.user*
+
+# Temporary Files
+*~
+*.bak
+*.tmp
+*.swp
+*.sbr
+*.tlb
+*.tli
+*.tlh
