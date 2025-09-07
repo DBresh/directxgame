@@ -1,6 +1,6 @@
 #pragma once
 
-#include <DX3D/Core/Core.h>
+#include <DX3D/Core/Common.h>
 #include <DX3D/Core/Base.h>
 #include <d3d11.h>
 #include <wrl.h>
@@ -11,7 +11,7 @@ namespace dx3d
 	class RenderSystem final: public Base
 	{
 	public:
-		RenderSystem();
+		explicit RenderSystem(const RenderSystemDesc& desc);
 		virtual ~RenderSystem() override;
 	
 	private:
