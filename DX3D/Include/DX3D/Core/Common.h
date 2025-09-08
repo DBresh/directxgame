@@ -24,4 +24,8 @@ namespace dx3d
 		BaseDesc base;
 	};
 
+	struct GameDesc
+	{
+		Logger::LogLevel logLevel = Logger::LogLevel::Error;
+	};
 }

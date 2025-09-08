@@ -68,5 +68,8 @@
     <ClInclude Include="DX3D\Include\DX3D\Core\Common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DX3D\Source\DX3D\Graphics\GraphicsLogUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
