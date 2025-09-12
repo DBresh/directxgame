@@ -10,10 +10,10 @@ namespace dx3d
 	class Game;
 
 	class GraphicsEngine;
-	class RenderSystem;
+	class GraphicsDevice;
 	class SwapChain;
 	class Display;
-
+	class DeviceContext;
 	class Logger;
 
 	using i32 = int;
@@ -22,4 +22,5 @@ namespace dx3d
 	using d64 = double;
 
 	using SwapChainPtr = std::shared_ptr<SwapChain>;
+	using DeviceContextPtr = std::shared_ptr<DeviceContext>;
 }

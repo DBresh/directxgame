@@ -11,11 +11,12 @@ namespace dx3d
 		explicit GraphicsEngine(const GraphicsEngineDesc& desc);
 		virtual ~GraphicsEngine() override;
 
+		GraphicsDevice& getGraphicsDevice() noexcept;
 
-		RenderSystem& getRenderSystem() const noexcept;
+		void render(SwapChain& swapChain);
 	private:
-		std::shared_ptr<RenderSystem> m_renderSystem{};
-
+		std::shared_ptr<GraphicsDevice> m_graphicsDevice{};
+		DeviceContextPtr m_deviceContext{};
 	};
 
 }

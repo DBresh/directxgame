@@ -9,7 +9,7 @@ namespace dx3d
 	public:
 		explicit Base(const BaseDesc& desc);
 		virtual ~Base();
-		virtual Logger& getLogger() const noexcept final;
+		virtual Logger& getLogger() noexcept final;
 	protected:
 		Base(const Base&) = delete;
 		Base(Base&&) = delete;
