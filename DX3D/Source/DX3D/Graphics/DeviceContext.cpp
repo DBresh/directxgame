@@ -1,5 +1,6 @@
 #include <DX3D/Graphics/DeviceContext.h>
 #include <DX3D/Graphics/SwapChain.h>
+#include <DX3D/Graphics/GraphicsPipelineState.h>
 
 dx3d::DeviceContext::DeviceContext(const GraphicsResourceDesc& gDesc): GraphicsResource(gDesc)
 {
@@ -12,4 +13,10 @@ void dx3d::DeviceContext::clearAndSetBackBuffer(const SwapChain& swapChain, cons
 	auto rtv = swapChain.m_rtv.Get();
 	m_context->ClearRenderTargetView(swapChain.m_rtv.Get(), fColor);
 	m_context->OMSetRenderTargets(1, &rtv, NULL);
+}
+
+void dx3d::DeviceContext::setGraphicsPipelineState(const GraphicsPipelineState& pipeline)
+{
+	m_context->VSSetShader(pipeline.m_vs.Get(), nullptr, 0);
+	m_context->PSSetShader(pipeline.m_ps.Get(), nullptr, 0);
 }
