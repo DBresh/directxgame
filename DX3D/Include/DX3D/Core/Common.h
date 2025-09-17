@@ -65,6 +65,13 @@ namespace dx3d
 		size_t dataSize{};
 	};
 
+	struct VertexBufferDesc
+	{
+		const void* vertexList{};
+		ui32 vertexListSize{};
+		ui32 vertexSize{};
+	};
+
 	struct DisplayDesc
 	{
 		WindowDesc window;
