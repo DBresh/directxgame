@@ -1,7 +1,12 @@
+cbuffer TransformBuffer : register(b0)
+{
+    float4x4 worldViewProj;
+};
+
 struct VSInput
 {
-    float3 position: POSITION0;
-    float4 color: COLOR0;
+    float3 position : POSITION0;
+    float4 color : COLOR0;
 };
 
 struct VSOutput
@@ -13,7 +18,7 @@ struct VSOutput
 VSOutput VSMain(VSInput input)
 {
     VSOutput output;
-    output.position = float4(input.position, 1);
+    output.position = mul(worldViewProj, float4(input.position, 1));
     output.color = input.color;
     return output;
 }

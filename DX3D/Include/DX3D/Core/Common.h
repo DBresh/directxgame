@@ -77,6 +77,19 @@ namespace dx3d
 		const ShaderBinaryPtr& vsBinary;
 	};
 
+	struct IndexBufferDesc
+	{
+		const void* indexList{};
+		ui32 indexCount{};
+		bool use32Bit{};
+	};
+
+	struct ConstantBufferDesc
+	{
+		const void* data{};
+		size_t size{};
+	};
+
 	struct DisplayDesc
 	{
 		WindowDesc window;

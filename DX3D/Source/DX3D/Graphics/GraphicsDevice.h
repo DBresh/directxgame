@@ -21,6 +21,9 @@ namespace dx3d
 		GraphicsPipelineStatePtr createGraphicsPipelineState(const GraphicsPipelineStateDesc& desc);
 		VertexBufferPtr createVertexBuffer(const VertexBufferDesc& desc);
 		VertexShaderSignaturePtr createVertexShaderSignature(const VertexShaderSignatureDesc& desc);
+		IndexBufferPtr createIndexBuffer(const IndexBufferDesc& desc);
+		ConstantBufferPtr createConstantBuffer(const ConstantBufferDesc& desc);
+		void updateConstantBuffer(const ConstantBuffer& buffer, const void* data, size_t dataSize);
 
 		void executeCommandList(DeviceContext& context);
 	private:

@@ -6,6 +6,8 @@
 #include <DX3D/Graphics/GraphicsPipelineState.h>
 #include <DX3D/Graphics/VertexBuffer.h>
 #include <DX3D/Graphics/VertexShaderSignature.h>
+#include <DX3D/Graphics/IndexBuffer.h>
+#include <DX3D/Graphics/ConstantBuffer.h>
 
 using namespace dx3d;
 
@@ -60,6 +62,26 @@ VertexBufferPtr dx3d::GraphicsDevice::createVertexBuffer(const VertexBufferDesc&
 VertexShaderSignaturePtr dx3d::GraphicsDevice::createVertexShaderSignature(const VertexShaderSignatureDesc& desc)
 {
 	return std::make_shared<VertexShaderSignature>(desc, getGraphicsResourceDesc());
+}
+
+IndexBufferPtr dx3d::GraphicsDevice::createIndexBuffer(const IndexBufferDesc& desc)
+{
+	return std::make_shared<IndexBuffer>(desc, getGraphicsResourceDesc());
+}
+
+ConstantBufferPtr dx3d::GraphicsDevice::createConstantBuffer(const ConstantBufferDesc& desc)
+{
+	return std::make_shared<ConstantBuffer>(desc, getGraphicsResourceDesc());
+}
+
+void dx3d::GraphicsDevice::updateConstantBuffer(const ConstantBuffer& buffer, const void* data, size_t dataSize)
+{
+	if (data == nullptr || dataSize == 0) return;
+
+	if (dataSize > buffer.getBufferSize())
+		DX3DLogThrowError("updateConstantBuffer: dataSize > buffer size");
+
+	m_d3dContext->UpdateSubresource(buffer.m_buffer.Get(), 0, nullptr, data, 0, 0);
 }
 
 void dx3d::GraphicsDevice::executeCommandList(DeviceContext& context)

@@ -3,8 +3,11 @@
 #include <DX3D/Graphics/DeviceContext.h>
 #include <DX3D/Graphics/SwapChain.h>
 #include <DX3D/Graphics/VertexBuffer.h>
+#include <DX3D/Graphics/IndexBuffer.h>
+#include <DX3D/Graphics/ConstantBuffer.h>
 #include <DX3D/Math/Vec3.h>
 #include <fstream>
+#include <DirectXMath.h>
 using namespace dx3d;
 
 
@@ -33,18 +36,25 @@ dx3d::GraphicsEngine::GraphicsEngine(const GraphicsEngineDesc& desc) : Base(desc
 
 	m_pipeline = device.createGraphicsPipelineState({ *vsSig, *ps });
 
+	ConstantBufferDesc cbDesc{};
+	cbDesc.data = nullptr;
+	cbDesc.size = sizeof(DirectX::XMFLOAT4X4);
+	m_cb = device.createConstantBuffer(cbDesc);
+
 	const Vertex vertexList[] =
 	{
-		{{-0.5f, -0.5f, 0.0f},{1,0,0,1}},
-		{{-0.5f, 0.5f, 0.0f},{0,1,0,1}},
-		{{0.5f, 0.5f, 0.0f},{0,0,1,1}},
-
-		{{0.5f, 0.5f, 0.0f},{0,0,1,1}},
-		{{0.5f, -0.5f, 0.0f},{1,0,1,1}},
-		{{-0.5f, -0.5f, 0.0f},{1,0,0,1}},
+		{{-0.5f, -0.5f, 0.0f},{1,0,0,1}},  // bottom left
+		{{-0.5f,  0.5f, 0.0f},{0,1,0,1}},  // top left
+		{{ 0.5f,  0.5f, 0.0f},{0,0,1,1}},  // top right
+		{{ 0.5f, -0.5f, 0.0f},{1,0,1,1}},  // bottom right
 	};
 
-	m_vb = device.createVertexBuffer({ vertexList, std::size(vertexList), sizeof(Vertex)});
+	m_vb = device.createVertexBuffer({ vertexList, std::size(vertexList), sizeof(Vertex) });
+
+	// Define indices (two triangles ? 6 indices)
+	unsigned short indices[] = { 0, 1, 2, 2, 3, 0 };
+
+	m_ib = device.createIndexBuffer({ indices, (ui32)std::size(indices), false });
 }
 
 dx3d::GraphicsEngine::~GraphicsEngine()
@@ -61,14 +71,24 @@ void dx3d::GraphicsEngine::render(SwapChain& swapChain)
 	auto& context = *m_deviceContext;
 	context.clearAndSetBackBuffer(swapChain, { 1,1,1,1 });
 	context.setGraphicsPipelineState(*m_pipeline);
-
 	context.setViewportSize(swapChain.getSize());
 
-	auto& vb = *m_vb;
-	context.setVertexBuffer(vb);
-	context.drawTriangleList(vb.getVertexListSize(), 0u);
+	static float angle = 0.0f;
+	angle += 0.01f;
+
+	using namespace DirectX;
+	XMMATRIX world = XMMatrixRotationZ(angle);
+	XMMATRIX worldT = XMMatrixTranspose(world);
+
+	XMFLOAT4X4 cbData;
+	XMStoreFloat4x4(&cbData, worldT);
 
 	auto& device = *m_graphicsDevice;
+	device.updateConstantBuffer(*m_cb, &cbData, sizeof(cbData));
+	context.setVertexBuffer(*m_vb);
+	context.setIndexBuffer(*m_ib);
+	context.setVSConstantBuffer(*m_cb, 0);
+	context.drawIndexedTriangleList(m_ib->getIndexCount(), 0u, 0u);
 	device.executeCommandList(context);
 	swapChain.present();
 }
