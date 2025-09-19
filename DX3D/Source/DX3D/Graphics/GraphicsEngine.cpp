@@ -6,10 +6,10 @@
 #include <DX3D/Graphics/IndexBuffer.h>
 #include <DX3D/Graphics/ConstantBuffer.h>
 #include <DX3D/Math/Vec3.h>
+#include <DX3D/Core/Time.h>
 #include <fstream>
 #include <DirectXMath.h>
 using namespace dx3d;
-
 
 
 dx3d::GraphicsEngine::GraphicsEngine(const GraphicsEngineDesc& desc) : Base(desc.base)
@@ -73,8 +73,11 @@ void dx3d::GraphicsEngine::render(SwapChain& swapChain)
 	context.setGraphicsPipelineState(*m_pipeline);
 	context.setViewportSize(swapChain.getSize());
 
+	// Get deltaTime from Time singleton
+	float dt = static_cast<float>(dx3d::Time::Instance()->deltaTime());
+
 	static float angle = 0.0f;
-	angle += 0.01f;
+	angle += 0.1f * dt; // 1.0f - 1 radian per second
 
 	using namespace DirectX;
 	XMMATRIX world = XMMatrixRotationZ(angle);

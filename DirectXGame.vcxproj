@@ -148,6 +148,7 @@
     <ClCompile Include="DX3D\Source\DX3D\Graphics\VertexBuffer.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Graphics\VertexShaderSignature.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Graphics\IndexBuffer.cpp" />
+    <ClCompile Include="DX3D\Source\DX3D\Core\Time.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DX3D\Source\DX3D\Graphics\ConstantBuffer.h" />
@@ -174,6 +175,7 @@
     <ClInclude Include="DX3D\Source\DX3D\Graphics\VertexBuffer.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\VertexShaderSignature.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\IndexBuffer.h" />
+    <ClInclude Include="DX3D\Include\DX3D\Core\Time.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
