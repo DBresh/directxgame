@@ -1,6 +1,8 @@
 cbuffer TransformBuffer : register(b0)
 {
-    float4x4 worldViewProj;
+    row_major float4x4 world;
+    row_major float4x4 view;
+    row_major float4x4 projection;
 };
 
 struct VSInput
@@ -18,7 +20,11 @@ struct VSOutput
 VSOutput VSMain(VSInput input)
 {
     VSOutput output;
-    output.position = mul(worldViewProj, float4(input.position, 1));
+
+    float4 worldPos = mul(world, float4(input.position, 1.0f));
+    float4 viewPos = mul(view, worldPos);
+    output.position = mul(projection, viewPos);
+    
     output.color = input.color;
     return output;
 }

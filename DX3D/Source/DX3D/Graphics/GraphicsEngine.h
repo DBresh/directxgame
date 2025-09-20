@@ -31,6 +31,4 @@ namespace dx3d
 		IndexBufferPtr m_ib{};
 		ConstantBufferPtr m_cb{};
 	};
-
 }
-
