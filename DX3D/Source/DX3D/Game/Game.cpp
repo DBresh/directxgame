@@ -5,27 +5,31 @@
 #include <DX3D/Game/Display.h>
 #include <DX3D/Core/Time.h>
 
-dx3d::Game::Game(const GameDesc& desc):
-	Base({ *std::make_unique<Logger>(desc.logLevel).release()}),
-	m_loggerPtr(&m_logger)
+namespace dx3d
 {
-	m_graphicsEngine = std::make_unique<GraphicsEngine>(GraphicsEngineDesc{m_logger});
-	m_display = std::make_unique<Display>(DisplayDesc{ {m_logger, desc.windowSize}, m_graphicsEngine->getGraphicsDevice() });
 
-	dx3d::Time::Instance()->Update(0.0);
+	Game::Game(const GameDesc& desc) :
+		Base({ *std::make_unique<Logger>(desc.logLevel).release() }),
+		m_loggerPtr(&m_logger)
+	{
+		m_graphicsEngine = std::make_unique<GraphicsEngine>(GraphicsEngineDesc{ m_logger });
+		m_display = std::make_unique<Display>(DisplayDesc{ {m_logger, desc.windowSize}, m_graphicsEngine->getGraphicsDevice() });
 
-	DX3DLogInfo("Game initialized.");
-}
+		Time::Instance()->Update(0.0);
 
-dx3d::Game::~Game()
-{
-	DX3DLogInfo("Game is shutting down.")
-}
+		DX3DLogInfo("Game initialized.");
+	}
 
-void dx3d::Game::onInternalUpdate()
-{
-	auto dt = dx3d::Time::Instance()->deltaTime();        // for interpolation / animations
-	auto fdt = dx3d::Time::Instance()->fixedDeltaTime();  // for physics steps
+	Game::~Game()
+	{
+		DX3DLogInfo("Game is shutting down.")
+	}
 
-	m_graphicsEngine->render(m_display->getSwapChain());
+	void Game::onInternalUpdate()
+	{
+		auto dt = Time::Instance()->deltaTime();        // for interpolation / animations
+		auto fdt = Time::Instance()->fixedDeltaTime();  // for physics steps
+
+		m_graphicsEngine->render(m_display->getSwapChain());
+	}
 }

@@ -1,5 +1,6 @@
 #include <DX3D/Game/Game.h>
 #include <DX3D/Core/Time.h>
+#include <DX3D/InputSystem/InputSystem.h>
 #include <Windows.h>
 #include <string>
 
@@ -28,6 +29,8 @@ void dx3d::Game::run()
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
+
+		dx3d::InputSystem::get()->update();
 
 		// Compute delta time
 		LARGE_INTEGER now;

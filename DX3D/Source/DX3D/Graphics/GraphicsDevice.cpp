@@ -9,89 +9,90 @@
 #include <DX3D/Graphics/IndexBuffer.h>
 #include <DX3D/Graphics/ConstantBuffer.h>
 
-using namespace dx3d;
-
-dx3d::GraphicsDevice::GraphicsDevice(const GraphicsDeviceDesc& desc) : Base(desc.base)
+namespace dx3d
 {
-	D3D_FEATURE_LEVEL featureLevel{};
+	GraphicsDevice::GraphicsDevice(const GraphicsDeviceDesc& desc) : Base(desc.base)
+	{
+		D3D_FEATURE_LEVEL featureLevel{};
 
-	UINT createDeviceFlags{};
+		UINT createDeviceFlags{};
 
 #ifdef _DEBUG
-	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+		createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
 
-	DX3DGraphicsLogThrowOnFail(D3D11CreateDevice(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags, NULL, 0, D3D11_SDK_VERSION, &m_d3dDevice, &featureLevel, &m_d3dContext),
-		"Direct3D11 initialization failed.");
+		DX3DGraphicsLogThrowOnFail(D3D11CreateDevice(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags, NULL, 0, D3D11_SDK_VERSION, &m_d3dDevice, &featureLevel, &m_d3dContext),
+			"Direct3D11 initialization failed.");
 
-	DX3DGraphicsLogThrowOnFail(m_d3dDevice->QueryInterface(IID_PPV_ARGS(&m_dxgiDevice)), "QueryInterface failed to retrieve IDXGIDevice.");
-	DX3DGraphicsLogThrowOnFail(m_dxgiDevice->GetParent(IID_PPV_ARGS(&m_dxgiAdapter)), "GetParent failed to retrieve IDXGIAdapter.");
-	DX3DGraphicsLogThrowOnFail(m_dxgiAdapter->GetParent(IID_PPV_ARGS(&m_dxgiFactory)), "GetParent failed to retrieve IDXGIFactory.");
-}
+		DX3DGraphicsLogThrowOnFail(m_d3dDevice->QueryInterface(IID_PPV_ARGS(&m_dxgiDevice)), "QueryInterface failed to retrieve IDXGIDevice.");
+		DX3DGraphicsLogThrowOnFail(m_dxgiDevice->GetParent(IID_PPV_ARGS(&m_dxgiAdapter)), "GetParent failed to retrieve IDXGIAdapter.");
+		DX3DGraphicsLogThrowOnFail(m_dxgiAdapter->GetParent(IID_PPV_ARGS(&m_dxgiFactory)), "GetParent failed to retrieve IDXGIFactory.");
+	}
 
-dx3d::GraphicsDevice::~GraphicsDevice()
-{
-}
+	GraphicsDevice::~GraphicsDevice()
+	{
+	}
 
-SwapChainPtr dx3d::GraphicsDevice::createSwapChain(const SwapChainDesc& desc) const
-{
-	return std::make_shared<SwapChain>(desc, getGraphicsResourceDesc());
-}
+	SwapChainPtr GraphicsDevice::createSwapChain(const SwapChainDesc& desc) const
+	{
+		return std::make_shared<SwapChain>(desc, getGraphicsResourceDesc());
+	}
 
-DeviceContextPtr dx3d::GraphicsDevice::createDeviceContext()
-{
-	return std::make_shared<DeviceContext>(getGraphicsResourceDesc());
-}
+	DeviceContextPtr GraphicsDevice::createDeviceContext()
+	{
+		return std::make_shared<DeviceContext>(getGraphicsResourceDesc());
+	}
 
-ShaderBinaryPtr dx3d::GraphicsDevice::compileShader(const ShaderCompileDesc& desc)
-{
-	return std::make_shared<ShaderBinary>(desc, getGraphicsResourceDesc());
-}
+	ShaderBinaryPtr GraphicsDevice::compileShader(const ShaderCompileDesc& desc)
+	{
+		return std::make_shared<ShaderBinary>(desc, getGraphicsResourceDesc());
+	}
 
-GraphicsPipelineStatePtr dx3d::GraphicsDevice::createGraphicsPipelineState(const GraphicsPipelineStateDesc& desc)
-{
-	return std::make_shared<GraphicsPipelineState>(desc, getGraphicsResourceDesc());
-}
+	GraphicsPipelineStatePtr GraphicsDevice::createGraphicsPipelineState(const GraphicsPipelineStateDesc& desc)
+	{
+		return std::make_shared<GraphicsPipelineState>(desc, getGraphicsResourceDesc());
+	}
 
-VertexBufferPtr dx3d::GraphicsDevice::createVertexBuffer(const VertexBufferDesc& desc)
-{
-	return std::make_shared<VertexBuffer>(desc, getGraphicsResourceDesc());
-}
+	VertexBufferPtr GraphicsDevice::createVertexBuffer(const VertexBufferDesc& desc)
+	{
+		return std::make_shared<VertexBuffer>(desc, getGraphicsResourceDesc());
+	}
 
-VertexShaderSignaturePtr dx3d::GraphicsDevice::createVertexShaderSignature(const VertexShaderSignatureDesc& desc)
-{
-	return std::make_shared<VertexShaderSignature>(desc, getGraphicsResourceDesc());
-}
+	VertexShaderSignaturePtr GraphicsDevice::createVertexShaderSignature(const VertexShaderSignatureDesc& desc)
+	{
+		return std::make_shared<VertexShaderSignature>(desc, getGraphicsResourceDesc());
+	}
 
-IndexBufferPtr dx3d::GraphicsDevice::createIndexBuffer(const IndexBufferDesc& desc)
-{
-	return std::make_shared<IndexBuffer>(desc, getGraphicsResourceDesc());
-}
+	IndexBufferPtr GraphicsDevice::createIndexBuffer(const IndexBufferDesc& desc)
+	{
+		return std::make_shared<IndexBuffer>(desc, getGraphicsResourceDesc());
+	}
 
-ConstantBufferPtr dx3d::GraphicsDevice::createConstantBuffer(const ConstantBufferDesc& desc)
-{
-	return std::make_shared<ConstantBuffer>(desc, getGraphicsResourceDesc());
-}
+	ConstantBufferPtr GraphicsDevice::createConstantBuffer(const ConstantBufferDesc& desc)
+	{
+		return std::make_shared<ConstantBuffer>(desc, getGraphicsResourceDesc());
+	}
 
-void dx3d::GraphicsDevice::updateConstantBuffer(const ConstantBuffer& buffer, const void* data, size_t dataSize)
-{
-	if (data == nullptr || dataSize == 0) return;
+	void GraphicsDevice::updateConstantBuffer(const ConstantBuffer& buffer, const void* data, size_t dataSize)
+	{
+		if (data == nullptr || dataSize == 0) return;
 
-	if (dataSize > buffer.getBufferSize())
-		DX3DLogThrowError("updateConstantBuffer: dataSize > buffer size");
+		if (dataSize > buffer.getBufferSize())
+			DX3DLogThrowError("updateConstantBuffer: dataSize > buffer size");
 
-	m_d3dContext->UpdateSubresource(buffer.m_buffer.Get(), 0, nullptr, data, 0, 0);
-}
+		m_d3dContext->UpdateSubresource(buffer.m_buffer.Get(), 0, nullptr, data, 0, 0);
+	}
 
-void dx3d::GraphicsDevice::executeCommandList(DeviceContext& context)
-{
-	Microsoft::WRL::ComPtr<ID3D11CommandList> list{};
-	DX3DGraphicsLogThrowOnFail(context.m_context->FinishCommandList(false, &list), "FinishCommandList failed.");
-	m_d3dContext->ExecuteCommandList(list.Get(), false);
-}
+	void GraphicsDevice::executeCommandList(DeviceContext& context)
+	{
+		Microsoft::WRL::ComPtr<ID3D11CommandList> list{};
+		DX3DGraphicsLogThrowOnFail(context.m_context->FinishCommandList(false, &list), "FinishCommandList failed.");
+		m_d3dContext->ExecuteCommandList(list.Get(), false);
+	}
 
-GraphicsResourceDesc dx3d::GraphicsDevice::getGraphicsResourceDesc() const noexcept
-{
-	return { {m_logger}, shared_from_this(), *m_d3dDevice.Get(), *m_dxgiFactory.Get()};
+	GraphicsResourceDesc GraphicsDevice::getGraphicsResourceDesc() const noexcept
+	{
+		return { {m_logger}, shared_from_this(), *m_d3dDevice.Get(), *m_dxgiFactory.Get() };
+	}
 }

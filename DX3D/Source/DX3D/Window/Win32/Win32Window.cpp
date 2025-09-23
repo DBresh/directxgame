@@ -1,4 +1,5 @@
 #include <DX3D/Window/Window.h>
+#include <DX3D/InputSystem/InputSystem.h>
 #include <Windows.h>
 #include <stdexcept>
 
@@ -10,6 +11,16 @@ static LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPAR
 	case WM_CLOSE:
 	{
 		PostQuitMessage(0);
+		break;
+	}
+	case WM_KEYDOWN:
+	{
+		dx3d::InputSystem::get()->setKeyDown((int)wparam);
+		break;
+	}
+	case WM_KEYUP:
+	{
+		dx3d::InputSystem::get()->setKeyUp((int)wparam);
 		break;
 	}
 	default:
@@ -36,7 +47,7 @@ dx3d::Window::Window(const WindowDesc& desc) : Base(desc.base), m_size(desc.size
 	if (!windowClassId)
 		DX3DLogThrowError("RegisterClassEx failed.");
 
-	RECT rc{ 0,0, m_size.width, m_size.height};
+	RECT rc{ 0,0, m_size.width, m_size.height };
 	AdjustWindowRect(&rc, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, false);
 
 	m_handle = CreateWindowEx(NULL, MAKEINTATOM(windowClassId), L"DX3D Engine Tests",
