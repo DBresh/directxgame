@@ -79,6 +79,7 @@ namespace dx3d
 		m_ib = device.createIndexBuffer({ indices, (ui32)std::size(indices), false });
 
 		InputSystem::get()->addListener(this);
+
 	}
 
 	GraphicsEngine::~GraphicsEngine()
@@ -98,21 +99,16 @@ namespace dx3d
 		context.setGraphicsPipelineState(*m_pipeline);
 		context.setViewportSize(swapChain.getSize());
 
-		float dt = static_cast<float>(Time::Instance()->deltaTime());
-		if (m_keysPressed['W']) m_angleX -= m_rotationSpeed * dt;
-		if (m_keysPressed['S']) m_angleX += m_rotationSpeed * dt;
-		if (m_keysPressed['A']) m_angleY -= m_rotationSpeed * dt;
-		if (m_keysPressed['D']) m_angleY += m_rotationSpeed * dt;
-
 		Matrix4x4 view, projection;
 
 		Matrix4x4 rotY, rotX;
 		rotY.setRotationY(m_angleY);
 		rotX.setRotationX(m_angleX);
+
 		Matrix4x4 world = rotY * rotX;
 
 		view.setLookAtLH(
-			Vec3(0.0f, 0.0f, -3.0f),  // Eye position
+			Vec3(0.0f, 0.0f, m_eyePosition),  // Eye position
 			Vec3(0.0f, 0.0f, 0.0f),   // Focus position
 			Vec3(0.0f, 1.0f, 0.0f)    // Up direction
 		);
@@ -144,6 +140,48 @@ namespace dx3d
 		context.setVSConstantBuffer(*m_cb, 0);
 		context.drawIndexedTriangleList(m_ib->getIndexCount(), 0u, 0u);
 		device.executeCommandList(context);
-		swapChain.present();
+		swapChain.present(true);
 	}
+
+	void GraphicsEngine::onKeyDown(int key)
+	{
+	}
+
+	void GraphicsEngine::onKeyUp(int key)
+	{
+	}
+
+	void GraphicsEngine::onKeyPress(int key)
+	{
+		float dt = static_cast<float>(Time::Instance()->deltaTime());
+		if ((char)key == 'W') m_angleX += m_rotationSpeed * dt;
+		if ((char)key == 'S') m_angleX -= m_rotationSpeed * dt;
+		if ((char)key == 'A') m_angleY += m_rotationSpeed * dt;
+		if ((char)key == 'D') m_angleY -= m_rotationSpeed * dt;
+	}
+
+	void GraphicsEngine::onMouseMove(Point deltaMouse)
+	{
+		if (InputSystem::get()->getMouseState().leftButton) 
+		{
+			float dt = static_cast<float>(Time::Instance()->deltaTime());
+			m_angleX -= deltaMouse.y * m_rotationSpeed * dt * 0.3;
+			m_angleY -= deltaMouse.x * m_rotationSpeed * dt * 0.3;
+		}
+	}
+
+	void GraphicsEngine::onMouseUp(int button)
+	{
+	}
+
+	void GraphicsEngine::onMouseDown(int button)
+	{
+	}
+
+	void GraphicsEngine::onMouseWheel(int delta)
+	{
+		float dt = static_cast<float>(Time::Instance()->deltaTime());
+		m_eyePosition += delta * dt * 0.1;
+	}
+	
 }

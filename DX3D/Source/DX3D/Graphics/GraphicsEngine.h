@@ -3,13 +3,12 @@
 #include <DX3D/Core/Base.h>
 #include <DX3D/Math/Vec3.h>
 #include <DX3D/Math/Vec4.h>
-#include <DX3D/InputSystem/InputListener.h> // temp
-#include <unordered_map> // temp
+#include <DX3D/InputSystem/InputListener.h> //temp
 
 namespace dx3d
 {
 
-	class GraphicsEngine final: public Base, public InputListener // InputListener is temp
+	class GraphicsEngine final : public Base, public InputListener
 	{
 	public:
 		explicit GraphicsEngine(const GraphicsEngineDesc& desc);
@@ -18,15 +17,16 @@ namespace dx3d
 		GraphicsDevice& getGraphicsDevice() noexcept;
 		void render(SwapChain& swapChain);
 
-		void onKeyDown(int key) override
-		{
-			m_keysPressed[key] = true;
-		}
+		//temp
+		void onKeyDown(int key) override;
+		void onKeyUp(int key) override;
+		void onKeyPress(int key) override;
 
-		void onKeyUp(int key) override
-		{
-			m_keysPressed[key] = false;
-		}
+		void onMouseMove(Point deltaMouse) override;
+		void onMouseUp(int button) override;
+		void onMouseDown(int button) override;
+		void onMouseWheel(int delta) override;
+
 
 	private:
 		struct Vertex
@@ -42,10 +42,10 @@ namespace dx3d
 		IndexBufferPtr m_ib{};
 		ConstantBufferPtr m_cb{};
 
-	private:	// temp
+	private: // temp
 		float m_angleX{ 0.0f };
 		float m_angleY{ 0.0f };
 		float m_rotationSpeed{ 1.5f }; // radians per second
-		std::unordered_map<int, bool> m_keysPressed;
+		float m_eyePosition{ -3.0f };
 	};
 }
