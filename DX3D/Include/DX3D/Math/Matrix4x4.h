@@ -73,6 +73,26 @@ namespace dx3d
             mat[1][1] = cosA;
         }
 
+        Vec3 getXDirection()
+        {
+            return Vec3(mat[0][0], mat[0][1], mat[0][2]);
+        }
+
+        Vec3 getYDirection()
+        {
+            return Vec3(mat[1][0], mat[1][1], mat[1][2]);
+        }
+
+        Vec3 getZDirection()
+        {
+            return Vec3(mat[2][0], mat[2][1], mat[2][2]);
+        }
+
+        Vec3 getTranslation()
+        {
+            return Vec3(mat[3][0], mat[3][1], mat[3][2]);
+        }
+
         Matrix4x4& operator*=(const Matrix4x4& rhs)
         {
             Matrix4x4 result;
@@ -194,6 +214,59 @@ namespace dx3d
                 }
             }
             return result;
+        }
+
+        void inverse() 
+        {
+            int a, i, j;
+            Matrix4x4 out;
+            Vec4 v, vec[3];
+            float det = 0.0f;
+
+            det = this->getDeterminant();
+            if (!det) return;
+            for (i = 0; i < 4; i++)
+            {
+                for (j = 0; j < 4; j++)
+                {
+                    if (j != i)
+                    {
+                        a = j;
+                        if (j > i) a = a - 1;
+                        vec[a].x = this->mat[j][0];
+                        vec[a].y = this->mat[j][1];
+                        vec[a].z = this->mat[j][2];
+                        vec[a].w = this->mat[j][3];
+                    }
+                }
+                v.cross(vec[0], vec[1], vec[2]);
+
+                out.mat[0][i] = pow(-1.0f, i) * v.x / det;
+                out.mat[1][i] = pow(-1.0f, i) * v.y / det;
+                out.mat[2][i] = pow(-1.0f, i) * v.z / det;
+                out.mat[3][i] = pow(-1.0f, i) * v.w / det;
+            }
+
+            setMatrix(out);
+        }
+
+        void setMatrix(Matrix4x4 matrix)
+        {
+            ::memcpy(mat, matrix.mat, sizeof(float) * 16);
+        }
+
+        float getDeterminant()
+        {
+            Vec4 minor, v1, v2, v3;
+            float det;
+
+            v1 = Vec4(mat[0][0], mat[1][0], mat[2][0], mat[3][0]);
+            v2 = Vec4(mat[0][1], mat[1][1], mat[2][1], mat[3][1]);
+            v3 = Vec4(mat[0][2], mat[1][2], mat[2][2], mat[3][2]);
+
+            minor.cross(v1, v2, v3);
+            det = -(mat[0][3] * minor.x + mat[1][3] * minor.y + mat[2][3] * minor.z + mat[3][3] * minor.w);
+            return det;
         }
     };
 }

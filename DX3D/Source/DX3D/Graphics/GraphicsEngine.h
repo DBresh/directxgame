@@ -3,6 +3,7 @@
 #include <DX3D/Core/Base.h>
 #include <DX3D/Math/Vec3.h>
 #include <DX3D/Math/Vec4.h>
+#include <DX3D/Math/Matrix4x4.h>
 #include <DX3D/InputSystem/InputListener.h> //temp
 
 namespace dx3d
@@ -45,7 +46,12 @@ namespace dx3d
 	private: // temp
 		float m_angleX{ 0.0f };
 		float m_angleY{ 0.0f };
-		float m_rotationSpeed{ 1.5f }; // radians per second
+		float m_rotationSpeed{ 0.15f };
 		float m_eyePosition{ -3.0f };
+		
+		Matrix4x4 m_cameraPosition;
+		Matrix4x4 m_cameraRotation;
+		float m_forward;
+		float m_right;
 	};
 }

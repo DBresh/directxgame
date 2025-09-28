@@ -79,7 +79,11 @@ namespace dx3d
 		m_ib = device.createIndexBuffer({ indices, (ui32)std::size(indices), false });
 
 		InputSystem::get()->addListener(this);
-
+		m_cameraPosition.setIdentity();
+		m_cameraPosition.setTranslate(Vec3(0, 0, -3));
+		m_cameraPosition.setIdentity();
+		m_forward = 0;
+		m_right = 0;
 	}
 
 	GraphicsEngine::~GraphicsEngine()
@@ -99,24 +103,39 @@ namespace dx3d
 		context.setGraphicsPipelineState(*m_pipeline);
 		context.setViewportSize(swapChain.getSize());
 
-		Matrix4x4 view, projection;
+		Matrix4x4 projection, world, view;
 
-		Matrix4x4 rotY, rotX;
-		rotY.setRotationY(m_angleY);
-		rotX.setRotationX(m_angleX);
+		// Обчислюємо вектори напрямку камери на основі кутів
+		Vec3 forward;
+		forward.x = sin(m_angleY) * cos(m_angleX);
+		forward.y = sin(m_angleX);
+		forward.z = cos(m_angleY) * cos(m_angleX);
+		forward = forward.normalize();
 
-		Matrix4x4 world = rotY * rotX;
+		Vec3 right = cross(forward, Vec3(0, 1, 0)).normalize();
+		Vec3 up = cross(right, forward).normalize();
 
-		view.setLookAtLH(
-			Vec3(0.0f, 0.0f, m_eyePosition),  // Eye position
-			Vec3(0.0f, 0.0f, 0.0f),   // Focus position
-			Vec3(0.0f, 1.0f, 0.0f)    // Up direction
-		);
+		// Оновлюємо позицію камери на основі вводу
+		Vec3 cameraPos = m_cameraPosition.getTranslation();
 
+		// Рух відносно поточного обертання камери
+		cameraPos = cameraPos + forward * (m_forward * 0.1f);
+		cameraPos = cameraPos + right * (m_right * 0.1f);
+
+		// Створюємо матрицю виду (FPS камера)
+		Vec3 target = cameraPos + forward;
+
+		view.setLookAtLH(cameraPos, target, up);
+
+		// Світова матриця (куб на початку координат)
+		world.setIdentity();
+
+		// Проекція
 		auto size = swapChain.getSize();
 		float aspectRatio = static_cast<float>(size.width) / static_cast<float>(size.height);
 		projection.setPerspectiveFovLH(3.14159f / 4.0f, aspectRatio, 0.1f, 100.0f);
 
+		// Транспонуємо для HLSL (row_major)
 		Matrix4x4 worldT = world.transpose();
 		Matrix4x4 viewT = view.transpose();
 		Matrix4x4 projectionT = projection.transpose();
@@ -141,6 +160,8 @@ namespace dx3d
 		context.drawIndexedTriangleList(m_ib->getIndexCount(), 0u, 0u);
 		device.executeCommandList(context);
 		swapChain.present(true);
+
+		m_cameraPosition.setTranslate(cameraPos);
 	}
 
 	void GraphicsEngine::onKeyDown(int key)
@@ -149,25 +170,23 @@ namespace dx3d
 
 	void GraphicsEngine::onKeyUp(int key)
 	{
+		if ((char)key == 'W' || (char)key == 'S') m_forward = 0;
+		if ((char)key == 'D' || (char)key == 'A') m_right = 0;
 	}
 
 	void GraphicsEngine::onKeyPress(int key)
 	{
-		float dt = static_cast<float>(Time::Instance()->deltaTime());
-		if ((char)key == 'W') m_angleX += m_rotationSpeed * dt;
-		if ((char)key == 'S') m_angleX -= m_rotationSpeed * dt;
-		if ((char)key == 'A') m_angleY += m_rotationSpeed * dt;
-		if ((char)key == 'D') m_angleY -= m_rotationSpeed * dt;
+		if ((char)key == 'W') m_forward = 1.0f;
+		if ((char)key == 'S') m_forward = -1.0f;
+		if ((char)key == 'D') m_right = -1.0f;
+		if ((char)key == 'A') m_right = 1.0f;
 	}
 
 	void GraphicsEngine::onMouseMove(Point deltaMouse)
 	{
-		if (InputSystem::get()->getMouseState().leftButton) 
-		{
-			float dt = static_cast<float>(Time::Instance()->deltaTime());
-			m_angleX -= deltaMouse.y * m_rotationSpeed * dt * 0.3;
-			m_angleY -= deltaMouse.x * m_rotationSpeed * dt * 0.3;
-		}
+		float dt = static_cast<float>(Time::Instance()->deltaTime());
+		m_angleX -= deltaMouse.y * m_rotationSpeed * dt;
+		m_angleY += deltaMouse.x * m_rotationSpeed * dt;
 	}
 
 	void GraphicsEngine::onMouseUp(int button)
@@ -180,8 +199,6 @@ namespace dx3d
 
 	void GraphicsEngine::onMouseWheel(int delta)
 	{
-		float dt = static_cast<float>(Time::Instance()->deltaTime());
-		m_eyePosition += delta * dt * 0.1;
 	}
-	
+
 }
