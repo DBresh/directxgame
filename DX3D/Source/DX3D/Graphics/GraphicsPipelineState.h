@@ -14,6 +14,7 @@ namespace dx3d
 		Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vs{};
 		Microsoft::WRL::ComPtr<ID3D11PixelShader> m_ps{};
 		Microsoft::WRL::ComPtr<ID3D11InputLayout> m_layout{};
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilState{};
 
 		friend class DeviceContext;
 	};

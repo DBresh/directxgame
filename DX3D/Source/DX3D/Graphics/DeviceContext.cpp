@@ -15,9 +15,13 @@ namespace dx3d
 	void DeviceContext::clearAndSetBackBuffer(const SwapChain& swapChain, const Vec4& color)
 	{
 		f32 fColor[] = { color.x, color.y, color.z, color.w };
-		auto rtv = swapChain.m_rtv.Get();
+		
 		m_context->ClearRenderTargetView(swapChain.m_rtv.Get(), fColor);
-		m_context->OMSetRenderTargets(1, &rtv, NULL);
+		m_context->ClearDepthStencilView(swapChain.m_dsv.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+		auto rtv = swapChain.m_rtv.Get();
+		auto dsv = swapChain.m_dsv.Get();
+		m_context->OMSetRenderTargets(1, &rtv, dsv);
 	}
 
 	void DeviceContext::setGraphicsPipelineState(const GraphicsPipelineState& pipeline)
@@ -25,6 +29,7 @@ namespace dx3d
 		m_context->IASetInputLayout(pipeline.m_layout.Get());
 		m_context->VSSetShader(pipeline.m_vs.Get(), nullptr, 0);
 		m_context->PSSetShader(pipeline.m_ps.Get(), nullptr, 0);
+		m_context->OMSetDepthStencilState(pipeline.m_depthStencilState.Get(), 0);
 	}
 
 	void DeviceContext::setVertexBuffer(const VertexBuffer& buffer)
@@ -73,5 +78,25 @@ namespace dx3d
 	{
 		ID3D11Buffer* b = buffer.m_buffer.Get();
 		m_context->PSSetConstantBuffers(slot, 1, &b);
+	}
+
+	void DeviceContext::updateConstantBuffer(const ConstantBuffer& buffer, const void* data, size_t dataSize)
+	{
+		if (data == nullptr || dataSize == 0) return;
+
+		if (dataSize > buffer.getBufferSize())
+			DX3DLogThrowError("updateConstantBuffer: dataSize > buffer size");
+
+		D3D11_MAPPED_SUBRESOURCE mappedResource;
+		HRESULT hr = m_context->Map(buffer.m_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		if (SUCCEEDED(hr))
+		{
+			memcpy(mappedResource.pData, data, dataSize);
+			m_context->Unmap(buffer.m_buffer.Get(), 0);
+		}
+		else
+		{
+			DX3DGraphicsLogThrowOnFail(hr, "Map failed for constant buffer update.");
+		}
 	}
 }

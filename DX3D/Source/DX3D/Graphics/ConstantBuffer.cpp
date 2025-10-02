@@ -20,10 +20,10 @@ dx3d::ConstantBuffer::ConstantBuffer(const ConstantBufferDesc& desc, const Graph
     }
 
     D3D11_BUFFER_DESC bd{};
-    bd.Usage = D3D11_USAGE_DEFAULT;
+    bd.Usage = D3D11_USAGE_DYNAMIC;
     bd.ByteWidth = m_size;
     bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    bd.CPUAccessFlags = 0;
+    bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     bd.MiscFlags = 0;
     bd.StructureByteStride = 0;
 

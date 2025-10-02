@@ -3,8 +3,10 @@
 #include <DX3D/Graphics/GraphicsResource.h>
 #include <DX3D/Core/Common.h>
 #include <DX3D/Core/Base.h>
+#include <DX3D/Math/Vertex.h>
 #include <d3d11.h>
 #include <wrl.h>
+#include <vector>
 
 namespace dx3d
 {
@@ -23,7 +25,7 @@ namespace dx3d
 		VertexShaderSignaturePtr createVertexShaderSignature(const VertexShaderSignatureDesc& desc);
 		IndexBufferPtr createIndexBuffer(const IndexBufferDesc& desc);
 		ConstantBufferPtr createConstantBuffer(const ConstantBufferDesc& desc);
-		void updateConstantBuffer(const ConstantBuffer& buffer, const void* data, size_t dataSize);
+		MeshPtr createMesh(const std::vector<Vertex>& vertices, const std::vector<ui32>& indices);
 
 		void executeCommandList(DeviceContext& context);
 	private:

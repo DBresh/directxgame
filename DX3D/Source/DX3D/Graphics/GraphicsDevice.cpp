@@ -8,6 +8,9 @@
 #include <DX3D/Graphics/VertexShaderSignature.h>
 #include <DX3D/Graphics/IndexBuffer.h>
 #include <DX3D/Graphics/ConstantBuffer.h>
+#include <DX3D/Graphics/Mesh.h>
+#include <DX3D/Math/Vertex.h>
+#include <vector>
 
 namespace dx3d
 {
@@ -74,14 +77,9 @@ namespace dx3d
 		return std::make_shared<ConstantBuffer>(desc, getGraphicsResourceDesc());
 	}
 
-	void GraphicsDevice::updateConstantBuffer(const ConstantBuffer& buffer, const void* data, size_t dataSize)
+	MeshPtr GraphicsDevice::createMesh(const std::vector<Vertex>& vertices, const std::vector<ui32>& indices)
 	{
-		if (data == nullptr || dataSize == 0) return;
-
-		if (dataSize > buffer.getBufferSize())
-			DX3DLogThrowError("updateConstantBuffer: dataSize > buffer size");
-
-		m_d3dContext->UpdateSubresource(buffer.m_buffer.Get(), 0, nullptr, data, 0, 0);
+		return std::make_shared<Mesh>(vertices, indices, getGraphicsResourceDesc());
 	}
 
 	void GraphicsDevice::executeCommandList(DeviceContext& context)

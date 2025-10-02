@@ -21,6 +21,7 @@ namespace dx3d
 	class VertexShaderSignature;
 	class IndexBuffer;
 	class ConstantBuffer;
+	class Mesh;
 
 	using i32 = int;
 	using ui32 = unsigned int;
@@ -35,5 +36,5 @@ namespace dx3d
 	using VertexShaderSignaturePtr = std::shared_ptr<VertexShaderSignature>;
 	using IndexBufferPtr = std::shared_ptr<IndexBuffer>;
 	using ConstantBufferPtr = std::shared_ptr<ConstantBuffer>;
-
+	using MeshPtr = std::shared_ptr<Mesh>;
 }

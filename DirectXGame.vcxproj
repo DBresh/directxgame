@@ -74,6 +74,7 @@
     <OutDir>Bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>Intermediate\$(Platform)\$(Configuration)\</IntDir>
     <IncludePath>DX3D/Include;DX3D/Source;$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -150,12 +151,14 @@
     <ClCompile Include="DX3D\Source\DX3D\Graphics\IndexBuffer.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Core\Time.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\InputSystem\InputSystem.cpp" />
+    <ClCompile Include="DX3D\Source\DX3D\Graphics\Mesh.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DX3D\Include\DX3D\InputSystem\InputListener.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\Point.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\PointFloat.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\Matrix4x4.h" />
+    <ClInclude Include="DX3D\Include\DX3D\Math\Vec2.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\ConstantBuffer.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\Vec3.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\Vec4.h" />
@@ -177,11 +180,13 @@
     <ClInclude Include="DX3D\Source\DX3D\Graphics\SwapChain.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\ShaderBinary.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\GraphicsPipelineState.h" />
+    <ClInclude Include="DX3D\Include\DX3D\Math\Vertex.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\VertexBuffer.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\VertexShaderSignature.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\IndexBuffer.h" />
     <ClInclude Include="DX3D\Include\DX3D\Core\Time.h" />
     <ClInclude Include="DX3D\Include\DX3D\InputSystem\InputSystem.h" />
+    <ClInclude Include="DX3D\Source\DX3D\Graphics\Mesh.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

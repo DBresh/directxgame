@@ -1,57 +1,65 @@
 #pragma once
-#include <DX3D/Core/Core.h>
-#include <DX3D/Core/Base.h>
+#include <DX3D/Graphics/GraphicsEngine.h>
+#include <DX3D/Graphics/GraphicsDevice.h>
+#include <DX3D/Graphics/DeviceContext.h>
+#include <DX3D/Graphics/SwapChain.h>
+#include <DX3D/Graphics/ConstantBuffer.h>
+
+// temp 
 #include <DX3D/Math/Vec3.h>
-#include <DX3D/Math/Vec4.h>
+#include <fstream>
+#include <DX3D/Core/Time.h>
 #include <DX3D/Math/Matrix4x4.h>
-#include <DX3D/InputSystem/InputListener.h> //temp
+#include <DirectXMath.h>
+#include <DX3D/InputSystem/InputSystem.h>
+#include <DX3D/Graphics/Mesh.h>
+#include <vector>
 
 namespace dx3d
 {
 
-	class GraphicsEngine final : public Base, public InputListener
-	{
-	public:
-		explicit GraphicsEngine(const GraphicsEngineDesc& desc);
-		virtual ~GraphicsEngine() override;
+    class GraphicsEngine final : public Base, public InputListener
+    {
+    public:
+        explicit GraphicsEngine(const GraphicsEngineDesc& desc);
+        virtual ~GraphicsEngine() override;
 
-		GraphicsDevice& getGraphicsDevice() noexcept;
-		void render(SwapChain& swapChain);
+        GraphicsDevice& getGraphicsDevice() noexcept;
+        void render(SwapChain& swapChain);
 
-		//temp
-		void onKeyDown(int key) override;
-		void onKeyUp(int key) override;
-		void onKeyPress(int key) override;
+        void onKeyDown(int key) override;
+        void onKeyUp(int key) override;
+        void onKeyPress(int key) override;
+        void onMouseMove(Point deltaMouse) override;
+        void onMouseUp(int button) override;
+        void onMouseDown(int button) override;
+        void onMouseWheel(int delta) override;
 
-		void onMouseMove(Point deltaMouse) override;
-		void onMouseUp(int button) override;
-		void onMouseDown(int button) override;
-		void onMouseWheel(int delta) override;
+    private:
+        // temp
+        struct GameObject
+        {
+            Matrix4x4 worldMatrix{};
+            std::shared_ptr<Mesh> mesh;
+            ConstantBufferPtr constantBuffer;
+        };
 
+        void createCubeMesh();
 
-	private:
-		struct Vertex
-		{
-			Vec3 position;
-			Vec4 color;
-		};
-	private:
-		std::shared_ptr<GraphicsDevice> m_graphicsDevice{};
-		DeviceContextPtr m_deviceContext{};
-		GraphicsPipelineStatePtr m_pipeline{};
-		VertexBufferPtr m_vb{};
-		IndexBufferPtr m_ib{};
-		ConstantBufferPtr m_cb{};
+    private:
+        std::shared_ptr<GraphicsDevice> m_graphicsDevice{};
+        DeviceContextPtr m_deviceContext{};
+        GraphicsPipelineStatePtr m_pipeline{};
+        ConstantBufferPtr m_cb{};
 
-	private: // temp
-		float m_angleX{ 0.0f };
-		float m_angleY{ 0.0f };
-		float m_rotationSpeed{ 0.15f };
-		float m_eyePosition{ -3.0f };
-		
-		Matrix4x4 m_cameraPosition;
-		Matrix4x4 m_cameraRotation;
-		float m_forward;
-		float m_right;
-	};
+        // temp
+        std::vector<GameObject> m_objects{};
+        float m_angleX{ 0.0f };
+        float m_angleY{ 0.0f };
+        float m_rotationSpeed{ 0.15f };
+        Matrix4x4 m_cameraPosition;
+        float m_forward{ 0.0f };
+        float m_right{ 0.0f };
+    };
+
 }
