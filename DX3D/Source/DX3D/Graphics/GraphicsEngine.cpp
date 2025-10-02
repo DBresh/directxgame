@@ -89,26 +89,18 @@ namespace dx3d
 		cbDesc.data = nullptr;
 		cbDesc.size = sizeof(DirectX::XMFLOAT4X4) * 3;
 
-		GameObject cube1;
-		cube1.mesh = cubeMesh;
-		cube1.worldMatrix.setIdentity();
-		cube1.worldMatrix.setTranslate(Vec3(-2.0f, 0.0f, 0.0f));
-		cube1.constantBuffer = m_graphicsDevice->createConstantBuffer(cbDesc); // Each gets own CB
-		m_objects.push_back(cube1);
+		auto cube1 = m_scene.createObject("Cube1");
+		cube1->mesh = cubeMesh;
+		cube1->transform.setPosition(Vec3(-2.0f, 0.0f, 0.0f));
+		cube1->transform.setScale(Vec3(0.5f, 0.5f, 0.5f));
+		cube1->constantBuffer = m_graphicsDevice->createConstantBuffer(cbDesc);
 
-		GameObject cube2;
-		cube2.mesh = cubeMesh;
-		cube2.worldMatrix.setIdentity();
-		cube2.worldMatrix.setTranslate(Vec3(2.0f, 0.0f, 0.0f));
-		cube2.constantBuffer = m_graphicsDevice->createConstantBuffer(cbDesc);
-		m_objects.push_back(cube2);
+		auto cube2 = m_scene.createObject("Cube2");
+		cube2->mesh = cubeMesh;
+		cube2->transform.setPosition(Vec3(-0.5f, 0.0f, 0.0f));
+		cube2->constantBuffer = m_graphicsDevice->createConstantBuffer(cbDesc);
 
-		GameObject cube3;
-		cube3.mesh = cubeMesh;
-		cube3.worldMatrix.setIdentity();
-		cube3.worldMatrix.setTranslate(Vec3(0.0f, 2.0f, 0.0f));
-		cube3.constantBuffer = m_graphicsDevice->createConstantBuffer(cbDesc);
-		m_objects.push_back(cube3);
+		cube1->setParent(cube2);
 	}
 
 	GraphicsEngine::~GraphicsEngine()
@@ -153,11 +145,17 @@ namespace dx3d
 		Matrix4x4 viewT = view.transpose();
 		Matrix4x4 projectionT = projection.transpose();
 
-		for (const auto& object : m_objects)
+		for (const auto& object : m_scene.getAllObjects())
 		{
-			if (!object.mesh) continue;
+			if (!object->mesh) continue;
+			float dt = static_cast<float>(Time::Instance()->deltaTime());
 
-			Matrix4x4 worldT = object.worldMatrix.transpose();
+			if (object->name == "Cube2") {
+				object->transform.rotate(Vec3(0, 2.0f, 0) * dt);				
+			}
+
+			Matrix4x4 worldMatrix = object->getWorldTransform().getWorldMatrix();
+			Matrix4x4 worldT = worldMatrix.transpose();
 
 			struct TransformData
 			{
@@ -171,10 +169,10 @@ namespace dx3d
 			memcpy(&cbData.view, &viewT.mat, sizeof(float) * 16);
 			memcpy(&cbData.projection, &projectionT.mat, sizeof(float) * 16);
 
-			context.updateConstantBuffer(*object.constantBuffer, &cbData, sizeof(cbData));
-			context.setVSConstantBuffer(*object.constantBuffer, 0);
+			context.updateConstantBuffer(*object->constantBuffer, &cbData, sizeof(cbData));
+			context.setVSConstantBuffer(*object->constantBuffer, 0);
 
-			object.mesh->draw(context);
+			object->mesh->draw(context);
 		}
 
 		m_graphicsDevice->executeCommandList(context);

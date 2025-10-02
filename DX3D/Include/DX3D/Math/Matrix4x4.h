@@ -180,7 +180,28 @@ namespace dx3d
             mat[3][2] = -dot(zAxis, eye);
         }
 
-        // Helper functions for vector operations
+        Vec3 transformPoint(const Vec3& point) const {
+            float x = point.x * mat[0][0] + point.y * mat[1][0] + point.z * mat[2][0] + mat[3][0];
+            float y = point.x * mat[0][1] + point.y * mat[1][1] + point.z * mat[2][1] + mat[3][1];
+            float z = point.x * mat[0][2] + point.y * mat[1][2] + point.z * mat[2][2] + mat[3][2];
+            float w = point.x * mat[0][3] + point.y * mat[1][3] + point.z * mat[2][3] + mat[3][3];
+
+            if (w != 0.0f && w != 1.0f) {
+                x /= w;
+                y /= w;
+                z /= w;
+            }
+
+            return Vec3(x, y, z);
+        }
+
+        Vec3 transformVector(const Vec3& vector) const {
+            float x = vector.x * mat[0][0] + vector.y * mat[1][0] + vector.z * mat[2][0];
+            float y = vector.x * mat[0][1] + vector.y * mat[1][1] + vector.z * mat[2][1];
+            float z = vector.x * mat[0][2] + vector.y * mat[1][2] + vector.z * mat[2][2];
+            return Vec3(x, y, z);
+        }
+
         static Vec3 normalize(const Vec3& v)
         {
             float length = sqrt(v.x * v.x + v.y * v.y + v.z * v.z);

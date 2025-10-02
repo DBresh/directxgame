@@ -6,6 +6,8 @@
 #include <DX3D/Graphics/ConstantBuffer.h>
 
 // temp 
+#include <DX3D/Game/SceneManager.h>
+#include <DX3D/Math/Transform.h>
 #include <DX3D/Math/Vec3.h>
 #include <fstream>
 #include <DX3D/Core/Time.h>
@@ -37,13 +39,7 @@ namespace dx3d
 
     private:
         // temp
-        struct GameObject
-        {
-            Matrix4x4 worldMatrix{};
-            std::shared_ptr<Mesh> mesh;
-            ConstantBufferPtr constantBuffer;
-        };
-
+        SceneManager m_scene;
         void createCubeMesh();
 
     private:
@@ -53,7 +49,6 @@ namespace dx3d
         ConstantBufferPtr m_cb{};
 
         // temp
-        std::vector<GameObject> m_objects{};
         float m_angleX{ 0.0f };
         float m_angleY{ 0.0f };
         float m_rotationSpeed{ 0.15f };
