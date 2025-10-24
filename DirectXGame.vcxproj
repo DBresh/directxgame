@@ -154,6 +154,8 @@
     <ClCompile Include="DX3D\Source\DX3D\InputSystem\InputSystem.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Graphics\Mesh.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Game\SceneManager.cpp" />
+    <ClCompile Include="DX3D\Source\DX3D\Graphics\ModelImporter.cpp" />
+    <ClCompile Include="DX3D\Source\DX3D\Graphics\MaterialLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DX3D\Include\DX3D\InputSystem\InputListener.h" />
@@ -181,6 +183,8 @@
     <ClInclude Include="DX3D\Source\DX3D\Graphics\GraphicsDevice.h" />
     <ClInclude Include="DX3D\Include\DX3D\Core\Logger.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\GraphicsUtils.h" />
+    <ClInclude Include="DX3D\Source\DX3D\Graphics\Material.h" />
+    <ClInclude Include="DX3D\Source\DX3D\Graphics\ModelData.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\SwapChain.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\ShaderBinary.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\GraphicsPipelineState.h" />
@@ -193,6 +197,8 @@
     <ClInclude Include="DX3D\Source\DX3D\Graphics\Mesh.h" />
     <ClInclude Include="DX3D\Include\DX3D\Game\GameObject.h" />
     <ClInclude Include="DX3D\Include\DX3D\Game\SceneManager.h" />
+    <ClInclude Include="DX3D\Source\DX3D\Graphics\ModelImporter.h" />
+    <ClInclude Include="DX3D\Source\DX3D\Graphics\MaterialLoader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

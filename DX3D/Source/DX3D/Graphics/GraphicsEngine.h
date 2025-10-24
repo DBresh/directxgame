@@ -15,6 +15,8 @@
 #include <DirectXMath.h>
 #include <DX3D/InputSystem/InputSystem.h>
 #include <DX3D/Graphics/Mesh.h>
+#include <DX3D/Graphics/ModelImporter.h>
+#include <DX3D/Graphics/ModelData.h>
 #include <vector>
 
 namespace dx3d

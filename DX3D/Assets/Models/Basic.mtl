@@ -1,0 +1,21 @@
+# Simple material library
+newmtl BasicMaterial
+Kd 0.0 1.0 0.0      # diffuse color (white)
+Ka 0.1 0.1 0.1      # ambient
+Ks 0.0 0.0 0.0      # specular
+Ns 0.0
+d 1.0               # opacity
+illum 1
+
+newmtl red
+Kd 1.0 0.0 0.0   # red
+newmtl green
+Kd 0.0 1.0 0.0   # green
+newmtl blue
+Kd 0.0 0.0 1.0   # blue
+newmtl yellow
+Kd 1.0 1.0 0.0   # yellow
+newmtl magenta
+Kd 1.0 0.0 1.0   # magenta
+newmtl cyan
+Kd 0.0 1.0 1.0   # cyan

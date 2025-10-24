@@ -54,53 +54,62 @@ namespace dx3d
 
 	void GraphicsEngine::createCubeMesh()
 	{
-		std::vector<Vertex> vertices = {
-			// Front face
-			{{-0.5f, -0.5f,  0.5f}, {0, 0, 1}, {0, 0}, {1, 0, 0, 1}}, // 0
-			{{-0.5f,  0.5f,  0.5f}, {0, 0, 1}, {0, 1}, {0, 1, 0, 1}}, // 1
-			{{ 0.5f,  0.5f,  0.5f}, {0, 0, 1}, {1, 1}, {0, 0, 1, 1}}, // 2
-			{{ 0.5f, -0.5f,  0.5f}, {0, 0, 1}, {1, 0}, {1, 1, 0, 1}}, // 3
+		//std::vector<Vertex> vertices = {
+		//	// Front face
+		//	{{-0.5f, -0.5f,  0.5f}, {0, 0, 1}, {0, 0}, {1, 0, 0, 1}}, // 0
+		//	{{-0.5f,  0.5f,  0.5f}, {0, 0, 1}, {0, 1}, {0, 1, 0, 1}}, // 1
+		//	{{ 0.5f,  0.5f,  0.5f}, {0, 0, 1}, {1, 1}, {0, 0, 1, 1}}, // 2
+		//	{{ 0.5f, -0.5f,  0.5f}, {0, 0, 1}, {1, 0}, {1, 1, 0, 1}}, // 3
 
-			// Back face
-			{{-0.5f, -0.5f, -0.5f}, {0, 0, -1}, {1, 0}, {1, 0, 1, 1}}, // 4
-			{{-0.5f,  0.5f, -0.5f}, {0, 0, -1}, {1, 1}, {0, 1, 1, 1}}, // 5
-			{{ 0.5f,  0.5f, -0.5f}, {0, 0, -1}, {0, 1}, {1, 1, 1, 1}}, // 6
-			{{ 0.5f, -0.5f, -0.5f}, {0, 0, -1}, {0, 0}, {0, 1, 0, 1}}  // 7
-		};
+		//	// Back face
+		//	{{-0.5f, -0.5f, -0.5f}, {0, 0, -1}, {1, 0}, {1, 0, 1, 1}}, // 4
+		//	{{-0.5f,  0.5f, -0.5f}, {0, 0, -1}, {1, 1}, {0, 1, 1, 1}}, // 5
+		//	{{ 0.5f,  0.5f, -0.5f}, {0, 0, -1}, {0, 1}, {1, 1, 1, 1}}, // 6
+		//	{{ 0.5f, -0.5f, -0.5f}, {0, 0, -1}, {0, 0}, {0, 1, 0, 1}}  // 7
+		//};
 
-		std::vector<unsigned int> indices = {
-			// Front face
-			0,2,1, 0,3,2,
-			// Back face
-			4,5,6, 4,6,7,
-			// Left face
-			4,1,5, 4,0,1,
-			// Right face
-			3,6,2, 3,7,6,
-			// Top face
-			1,6,5, 1,2,6,
-			// Bottom face
-			4,7,0, 0,7,3
-		};
+		//std::vector<unsigned int> indices = {
+		//	// Front face
+		//	0,2,1, 0,3,2,
+		//	// Back face
+		//	4,5,6, 4,6,7,
+		//	// Left face
+		//	4,1,5, 4,0,1,
+		//	// Right face
+		//	3,6,2, 3,7,6,
+		//	// Top face
+		//	1,6,5, 1,2,6,
+		//	// Bottom face
+		//	4,7,0, 0,7,3
+		//};
 
-		auto cubeMesh = m_graphicsDevice->createMesh(vertices, indices);
 
 		ConstantBufferDesc cbDesc{};
 		cbDesc.data = nullptr;
 		cbDesc.size = sizeof(DirectX::XMFLOAT4X4) * 3;
 
-		auto cube1 = m_scene.createObject("Cube1");
-		cube1->mesh = cubeMesh;
-		cube1->transform.setPosition(Vec3(-2.0f, 0.0f, 0.0f));
-		cube1->transform.setScale(Vec3(0.5f, 0.5f, 0.5f));
-		cube1->constantBuffer = m_graphicsDevice->createConstantBuffer(cbDesc);
+		auto cubeModel = ModelImporter::loadOBJ("Models\\cube.obj");
+		auto cubeMesh = m_graphicsDevice->createMesh(cubeModel.vertices, cubeModel.indices);
+		auto cube = m_scene.createObject("Cube1");
+		cube->mesh = cubeMesh;
+		cube->transform.setPosition(Vec3(-2.0f, 0.0f, 0.0f));
+		cube->transform.setScale(Vec3(0.5f, 0.5f, 0.5f));
+		cube->constantBuffer = m_graphicsDevice->createConstantBuffer(cbDesc);
 
-		auto cube2 = m_scene.createObject("Cube2");
-		cube2->mesh = cubeMesh;
-		cube2->transform.setPosition(Vec3(-0.5f, 0.0f, 0.0f));
-		cube2->constantBuffer = m_graphicsDevice->createConstantBuffer(cbDesc);
 
-		cube1->setParent(cube2);
+		auto teapotModel = ModelImporter::loadOBJ("Models\\teapot.obj");
+		auto teapotMesh = m_graphicsDevice->createMesh(teapotModel.vertices, teapotModel.indices);
+		auto teapot = m_scene.createObject("Teapot");
+		teapot->mesh = teapotMesh;
+		teapot->transform.setPosition(Vec3(0, 0, 0));
+		teapot->transform.setScale(Vec3(0.1f, 0.1f, 0.1f));
+		teapot->transform.rotate(Vec3(-90,0,0));
+		teapot->constantBuffer = m_graphicsDevice->createConstantBuffer(cbDesc);
+
+
+
+
+
 	}
 
 	GraphicsEngine::~GraphicsEngine()
@@ -150,8 +159,8 @@ namespace dx3d
 			if (!object->mesh) continue;
 			float dt = static_cast<float>(Time::Instance()->deltaTime());
 
-			if (object->name == "Cube2") {
-				object->transform.rotate(Vec3(0, 2.0f, 0) * dt);				
+			if (object->name == "Teapot") {
+				object->transform.rotate(Vec3(0, 2.0f, 0) * dt);
 			}
 
 			Matrix4x4 worldMatrix = object->getWorldTransform().getWorldMatrix();

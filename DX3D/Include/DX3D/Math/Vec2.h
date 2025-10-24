@@ -37,6 +37,10 @@ namespace dx3d
 			return Vec2(x * scalar, y * scalar);
 		}
 
+		bool operator==(const Vec2& other) const {
+			return x == other.x && y == other.y;
+		}
+
 		float length() const
 		{
 			return sqrt(x * x + y * y);
