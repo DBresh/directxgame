@@ -7,12 +7,10 @@ namespace dx3d
 {
 	struct BaseDesc
 	{
-		Logger& logger;
 	};
 
 	struct WindowDesc
 	{
-		BaseDesc base;
 		Rect size{};
 	};
 
@@ -29,7 +27,6 @@ namespace dx3d
 	struct GameDesc
 	{
 		Rect windowSize{ 1280, 720 };
-		Logger::LogLevel logLevel = Logger::LogLevel::Error;
 	};
 
 	struct SwapChainDesc
@@ -68,8 +65,8 @@ namespace dx3d
 	struct VertexBufferDesc
 	{
 		const void* vertexList{};
-		ui32 vertexListSize{};
-		ui32 vertexSize{};
+		unsigned int vertexListSize{};
+		unsigned int vertexSize{};
 	};
 
 	struct VertexShaderSignatureDesc
@@ -80,7 +77,7 @@ namespace dx3d
 	struct IndexBufferDesc
 	{
 		const void* indexList{};
-		ui32 indexCount{};
+		unsigned int indexCount{};
 		bool use32Bit{};
 	};
 

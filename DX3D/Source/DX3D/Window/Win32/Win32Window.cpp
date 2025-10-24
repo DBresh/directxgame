@@ -1,5 +1,6 @@
 #include <DX3D/Window/Window.h>
 #include <DX3D/InputSystem/InputSystem.h>
+#include <DX3D/Graphics/GraphicsLogUtils.h>
 #include <Windows.h>
 #include <windowsx.h>
 #include <stdexcept>
@@ -77,7 +78,7 @@ static LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPAR
 }
 
 
-dx3d::Window::Window(const WindowDesc& desc) : Base(desc.base), m_size(desc.size)
+dx3d::Window::Window(const WindowDesc& desc) : Base(BaseDesc{}), m_size(desc.size)
 {
 
 	auto registerWindowClassFunction = []()
@@ -92,7 +93,7 @@ dx3d::Window::Window(const WindowDesc& desc) : Base(desc.base), m_size(desc.size
 	static const auto windowClassId = std::invoke(registerWindowClassFunction);
 
 	if (!windowClassId)
-		DX3DLogThrowError("RegisterClassEx failed.");
+		DX3D_LOG_THROW_ERROR("RegisterClassEx failed.");
 
 	RECT rc{ 0,0, m_size.width, m_size.height };
 	AdjustWindowRect(&rc, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, false);
@@ -103,7 +104,7 @@ dx3d::Window::Window(const WindowDesc& desc) : Base(desc.base), m_size(desc.size
 		NULL, NULL, NULL, NULL);
 
 	if (!m_handle)
-		DX3DLogThrowError("CreateWindowEx failed.");
+		DX3D_LOG_THROW_ERROR("CreateWindowEx failed.");
 
 	ShowWindow(static_cast<HWND>(m_handle), SW_SHOW);
 }

@@ -17,7 +17,6 @@ namespace dx3d
 		void onInternalUpdate();
 
 	private:
-		std::unique_ptr<Logger> m_loggerPtr{};
 		std::unique_ptr<GraphicsEngine> m_graphicsEngine{};
 		std::unique_ptr<Display> m_display{};
 		bool m_isRunning{ true };

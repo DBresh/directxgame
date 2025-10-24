@@ -13,11 +13,11 @@ namespace dx3d
 		void setGraphicsPipelineState(const GraphicsPipelineState& pipeline);
 		void setVertexBuffer(const VertexBuffer& buffer);
 		void setIndexBuffer(const IndexBuffer& buffer);
-		void drawIndexedTriangleList(ui32 indexCount, ui32 startIndexLocation, ui32 baseVertexLocation);
+		void drawIndexedTriangleList(unsigned int indexCount, unsigned int startIndexLocation, unsigned int baseVertexLocation);
 		void setViewportSize(const Rect& size);
-		void drawTriangleList(ui32 vertexCount, ui32 startVertexLocation);
-		void setVSConstantBuffer(const ConstantBuffer& buffer, ui32 slot);
-		void setPSConstantBuffer(const ConstantBuffer& buffer, ui32 slot);
+		void drawTriangleList(unsigned int vertexCount, unsigned int startVertexLocation);
+		void setVSConstantBuffer(const ConstantBuffer& buffer, unsigned int slot);
+		void setPSConstantBuffer(const ConstantBuffer& buffer, unsigned int slot);
 		void updateConstantBuffer(const ConstantBuffer& buffer, const void* data, size_t dataSize);
 
 	private:

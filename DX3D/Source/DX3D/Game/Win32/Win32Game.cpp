@@ -1,6 +1,8 @@
 #include <DX3D/Game/Game.h>
 #include <DX3D/Core/Time.h>
 #include <DX3D/InputSystem/InputSystem.h>
+#include <DX3D/Core/Logger.h>
+#include <DX3D/Graphics/GraphicsLogUtils.h>
 #include <Windows.h>
 #include <string>
 
@@ -49,9 +51,7 @@ void dx3d::Game::run()
 		if (elapsed >= 1.0)
 		{
 			double fps = frameCount / elapsed;
-			char buffer[64];
-			snprintf(buffer, sizeof(buffer), "FPS: %.2f", fps);
-			DX3DLogInfo(buffer);
+			DX3D_LOG_INFO("FPS: {:.2f}", fps);
 
 			frameCount = 0;
 			elapsed = 0.0;

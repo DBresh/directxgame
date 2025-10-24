@@ -9,20 +9,19 @@ namespace dx3d
 {
 
 	Game::Game(const GameDesc& desc) :
-		Base({ *std::make_unique<Logger>(desc.logLevel).release() }),
-		m_loggerPtr(&m_logger)
+		Base(BaseDesc{})
 	{
-		m_graphicsEngine = std::make_unique<GraphicsEngine>(GraphicsEngineDesc{ m_logger });
-		m_display = std::make_unique<Display>(DisplayDesc{ {m_logger, desc.windowSize}, m_graphicsEngine->getGraphicsDevice() });
+		m_graphicsEngine = std::make_unique<GraphicsEngine>(GraphicsEngineDesc{});
+		m_display = std::make_unique<Display>(DisplayDesc{ WindowDesc{desc.windowSize}, m_graphicsEngine->getGraphicsDevice() });
 
 		Time::Instance()->Update(0.0);
-
-		DX3DLogInfo("Game initialized.");
+		
+		DX3D_LOG_INFO("Game initialized.");
 	}
 
 	Game::~Game()
 	{
-		DX3DLogInfo("Game is shutting down.")
+		DX3D_LOG_INFO("Game is shutting down.");
 	}
 
 	void Game::onInternalUpdate()

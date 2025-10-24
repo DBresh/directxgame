@@ -6,7 +6,7 @@ namespace dx3d
 	SwapChain::SwapChain(const SwapChainDesc& desc, const GraphicsResourceDesc& gDesc) :
 		GraphicsResource(gDesc), m_size(desc.winSize)
 	{
-		if (!desc.winHandle) DX3DLogThrowInvalidArg("No window handle provided.");
+		if (!desc.winHandle) DX3D_LOG_THROW_ERROR("No window handle provided.");
 
 		DXGI_SWAP_CHAIN_DESC dxgiDesc{};
 		dxgiDesc.BufferDesc.Width = std::max(1, desc.winSize.width);
@@ -20,7 +20,9 @@ namespace dx3d
 		dxgiDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 		dxgiDesc.Windowed = TRUE;
 
-		DX3DGraphicsLogThrowOnFail(m_factory.CreateSwapChain(&m_device, &dxgiDesc, &m_swapChain), "CreateSwapChain failed.");
+		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(
+			m_factory.CreateSwapChain(&m_device, &dxgiDesc, &m_swapChain)
+			, "CreateSwapChain failed.");
 
 		reloadBuffers();
 	}
@@ -32,41 +34,46 @@ namespace dx3d
 
 	void SwapChain::present(bool vsync)
 	{
-		DX3DGraphicsLogThrowOnFail(m_swapChain->Present(vsync, 0), "Present failed.");
+		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(
+			m_swapChain->Present(vsync, 0)
+			, "Present failed.");
 	}
 
-    void SwapChain::reloadBuffers()
-    {
-        Microsoft::WRL::ComPtr<ID3D11Texture2D> backBuffer;
-        DX3DGraphicsLogThrowOnFail(m_swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer)),
-            "GetBuffer failed.");
+	void SwapChain::reloadBuffers()
+	{
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> backBuffer;
+		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(
+			m_swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer))
+			, "GetBuffer failed.");
 
-        DX3DGraphicsLogThrowOnFail(m_device.CreateRenderTargetView(backBuffer.Get(), nullptr, &m_rtv),
-            "CreateRenderTargetView failed.");
+		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(
+			m_device.CreateRenderTargetView(backBuffer.Get(), nullptr, &m_rtv)
+			, "CreateRenderTargetView failed.");
 
-        D3D11_TEXTURE2D_DESC depthDesc{};
-        depthDesc.Width = m_size.width;
-        depthDesc.Height = m_size.height;
-        depthDesc.MipLevels = 1;
-        depthDesc.ArraySize = 1;
-        depthDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-        depthDesc.SampleDesc.Count = 1;
-        depthDesc.SampleDesc.Quality = 0;
-        depthDesc.Usage = D3D11_USAGE_DEFAULT;
-        depthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-        depthDesc.CPUAccessFlags = 0;
-        depthDesc.MiscFlags = 0;
+		D3D11_TEXTURE2D_DESC depthDesc{};
+		depthDesc.Width = m_size.width;
+		depthDesc.Height = m_size.height;
+		depthDesc.MipLevels = 1;
+		depthDesc.ArraySize = 1;
+		depthDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		depthDesc.SampleDesc.Count = 1;
+		depthDesc.SampleDesc.Quality = 0;
+		depthDesc.Usage = D3D11_USAGE_DEFAULT;
+		depthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+		depthDesc.CPUAccessFlags = 0;
+		depthDesc.MiscFlags = 0;
 
-        Microsoft::WRL::ComPtr<ID3D11Texture2D> depthStencilTexture;
-        DX3DGraphicsLogThrowOnFail(m_device.CreateTexture2D(&depthDesc, nullptr, &depthStencilTexture),
-            "CreateTexture2D failed for depth-stencil.");
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> depthStencilTexture;
+		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(
+			m_device.CreateTexture2D(&depthDesc, nullptr, &depthStencilTexture)
+			, "CreateTexture2D failed for depth-stencil.");
 
-        D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
-        dsvDesc.Format = depthDesc.Format;
-        dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-        dsvDesc.Texture2D.MipSlice = 0;
+		D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
+		dsvDesc.Format = depthDesc.Format;
+		dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+		dsvDesc.Texture2D.MipSlice = 0;
 
-        DX3DGraphicsLogThrowOnFail(m_device.CreateDepthStencilView(depthStencilTexture.Get(), &dsvDesc, &m_dsv),
-            "CreateDepthStencilView failed.");
-    }
+		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(m_device.CreateDepthStencilView(depthStencilTexture.Get(), &dsvDesc, &m_dsv),
+			"CreateDepthStencilView failed.");
+	}
 }

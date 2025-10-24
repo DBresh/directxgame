@@ -1,37 +1,35 @@
 #pragma once
 #include <DX3D/Core/Logger.h>
+#include <DX3D/Graphics/GraphicsUtils.h>
 #include <d3d11.h>
-
+#include <stdexcept>
 
 namespace dx3d
 {
-	namespace GraphicsLogsUtils
-	{
-		inline void CheckShaderCompile(Logger& logger, HRESULT hr, ID3DBlob* errorBlob)
-		{
-			auto errorMsg = errorBlob ? static_cast<const char*>(errorBlob->GetBufferPointer()) : nullptr;
+	// Logs and throws a runtime error if the HRESULT indicates failure.
+#define DX3D_GRAPHICS_LOG_THROW_ON_FAIL(hr, fmt, ...) \
+        do { \
+            HRESULT __hr = (hr); \
+            if (FAILED(__hr)) { \
+                std::string hrMessage = dx3d::getHResultMessage(__hr); \
+                std::string fullMessage = std::format("{} - HRESULT: {} ({:#010x})", \
+                    dx3d::formatLog(fmt, ##__VA_ARGS__), \
+                    hrMessage, static_cast<unsigned int>(__hr)); \
+                DX3D_LOG_ERROR("{}", fullMessage); \
+                throw std::runtime_error(fullMessage); \
+            } \
+        } while(0)
 
-			if (FAILED(hr))
-				DX3DLogThrow(logger, std::runtime_error, Logger::LogLevel::Error, errorMsg ?
-					errorMsg : "Shader compilation failed.");
-
-			if (errorMsg)
-				DX3DLog(logger, Logger::LogLevel::Warning, errorMsg);
-		}
-	}
-
-
-#define DX3DGraphicsLogThrowOnFail(hr, message)\
-	{\
-	auto res = (hr);\
-	if (FAILED(res))\
-		DX3DLogThrowError("Direct3D11 initialization failed.");\
-	}
-}
-
-
-#define DX3DGraphicsCheckShaderCompile(hr, errorBlob)\
-{\
-auto res = (hr);\
-dx3d::GraphicsLogsUtils::CheckShaderCompile(getLogger(), res, errorBlob);\
+	// Logs a warning if the HRESULT indicates failure.
+#define DX3D_GRAPHICS_LOG_ON_FAIL(hr, fmt, ...) \
+        do { \
+            HRESULT __hr = (hr); \
+            if (FAILED(__hr)) { \
+                std::string hrMessage = dx3d::getHResultMessage(__hr); \
+                std::string fullMessage = std::format("{} - HRESULT: {} ({:#010x})", \
+                    dx3d::formatLog(fmt, ##__VA_ARGS__), \
+                    hrMessage, static_cast<unsigned int>(__hr)); \
+                DX3D_LOG_WARNING("{}", fullMessage); \
+            } \
+        } while(0)
 }

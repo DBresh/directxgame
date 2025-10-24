@@ -25,12 +25,12 @@ namespace dx3d
 #endif
 
 
-		DX3DGraphicsLogThrowOnFail(D3D11CreateDevice(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags, NULL, 0, D3D11_SDK_VERSION, &m_d3dDevice, &featureLevel, &m_d3dContext),
+		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(D3D11CreateDevice(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags, NULL, 0, D3D11_SDK_VERSION, &m_d3dDevice, &featureLevel, &m_d3dContext),
 			"Direct3D11 initialization failed.");
 
-		DX3DGraphicsLogThrowOnFail(m_d3dDevice->QueryInterface(IID_PPV_ARGS(&m_dxgiDevice)), "QueryInterface failed to retrieve IDXGIDevice.");
-		DX3DGraphicsLogThrowOnFail(m_dxgiDevice->GetParent(IID_PPV_ARGS(&m_dxgiAdapter)), "GetParent failed to retrieve IDXGIAdapter.");
-		DX3DGraphicsLogThrowOnFail(m_dxgiAdapter->GetParent(IID_PPV_ARGS(&m_dxgiFactory)), "GetParent failed to retrieve IDXGIFactory.");
+		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(m_d3dDevice->QueryInterface(IID_PPV_ARGS(&m_dxgiDevice)), "QueryInterface failed to retrieve IDXGIDevice.");
+		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(m_dxgiDevice->GetParent(IID_PPV_ARGS(&m_dxgiAdapter)), "GetParent failed to retrieve IDXGIAdapter.");
+		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(m_dxgiAdapter->GetParent(IID_PPV_ARGS(&m_dxgiFactory)), "GetParent failed to retrieve IDXGIFactory.");
 	}
 
 	GraphicsDevice::~GraphicsDevice()
@@ -77,7 +77,7 @@ namespace dx3d
 		return std::make_shared<ConstantBuffer>(desc, getGraphicsResourceDesc());
 	}
 
-	MeshPtr GraphicsDevice::createMesh(const std::vector<Vertex>& vertices, const std::vector<ui32>& indices)
+	MeshPtr GraphicsDevice::createMesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices)
 	{
 		return std::make_shared<Mesh>(vertices, indices, getGraphicsResourceDesc());
 	}
@@ -85,12 +85,12 @@ namespace dx3d
 	void GraphicsDevice::executeCommandList(DeviceContext& context)
 	{
 		Microsoft::WRL::ComPtr<ID3D11CommandList> list{};
-		DX3DGraphicsLogThrowOnFail(context.m_context->FinishCommandList(false, &list), "FinishCommandList failed.");
+		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(context.m_context->FinishCommandList(false, &list), "FinishCommandList failed.");
 		m_d3dContext->ExecuteCommandList(list.Get(), false);
 	}
 
 	GraphicsResourceDesc GraphicsDevice::getGraphicsResourceDesc() const noexcept
 	{
-		return { {m_logger}, shared_from_this(), *m_d3dDevice.Get(), *m_dxgiFactory.Get() };
+		return { BaseDesc{}, shared_from_this(), *m_d3dDevice.Get(), *m_dxgiFactory.Get() };
 	}
 }

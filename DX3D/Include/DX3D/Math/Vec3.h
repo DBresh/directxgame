@@ -8,11 +8,11 @@ namespace dx3d
     {
     public:
         Vec3() = default;
-        Vec3(f32 x, f32 y, f32 z) : x(x), y(y), z(z) {}
+        Vec3(float x, float y, float z) : x(x), y(y), z(z) {}
         Vec3(const Vec3& vec) : x(vec.x), y(vec.y), z(vec.z) {}
 
     public:
-        f32 x{}, y{}, z{};
+        float x{}, y{}, z{};
 
         Vec3 operator-(const Vec3& other) const
         {

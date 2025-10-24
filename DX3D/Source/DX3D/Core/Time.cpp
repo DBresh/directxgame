@@ -28,8 +28,6 @@ namespace dx3d
             m_fixedTotalTime += m_fixedDeltaTime;
             m_fixedAccumulator -= m_fixedDeltaTime;
 
-            // Call physics/solver step here if you want
-            // Example: Physics::Step(m_fixedDeltaTime);
         }
     }
 }

@@ -9,8 +9,8 @@ namespace dx3d
 	{
 	public:
 		Vec4() = default;
-		Vec4(f32 x, f32 y, f32 z, f32 w) : x(x), y(y), z(z), w(w) {}
-		Vec4(Vec3 vec, f32 w) : x(vec.x), y(vec.y), z(vec.z), w(w) {}
+		Vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
+		Vec4(Vec3 vec, float w) : x(vec.x), y(vec.y), z(vec.z), w(w) {}
 
 
 		void cross(const Vec4& v1, const Vec4& v2, const Vec4& v3)
@@ -33,6 +33,6 @@ namespace dx3d
 		}
 
 	public:
-		f32 x{}, y{}, z{}, w{};
+		float x{}, y{}, z{}, w{};
 	};
 }

@@ -23,11 +23,6 @@ namespace dx3d
 	class ConstantBuffer;
 	class Mesh;
 
-	using i32 = int;
-	using ui32 = unsigned int;
-	using f32 = float;
-	using d64 = double;
-
 	using SwapChainPtr = std::shared_ptr<SwapChain>;
 	using DeviceContextPtr = std::shared_ptr<DeviceContext>;
 	using ShaderBinaryPtr = std::shared_ptr<ShaderBinary>;

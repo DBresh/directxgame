@@ -16,14 +16,14 @@ namespace dx3d
 
 	GraphicsEngine::GraphicsEngine(const GraphicsEngineDesc& desc) : Base(desc.base)
 	{
-		m_graphicsDevice = std::make_shared<GraphicsDevice>(GraphicsDeviceDesc{ m_logger });
+		m_graphicsDevice = std::make_shared<GraphicsDevice>(GraphicsDeviceDesc{});
 
 		auto& device = *m_graphicsDevice;
 		m_deviceContext = device.createDeviceContext();
 
 		constexpr char shaderFilePath[] = "DX3D/Assets/Shaders/Basic.hlsl";
 		std::ifstream shaderStream(shaderFilePath);
-		if (!shaderStream) DX3DLogThrowError("Failed to open shader file.");
+		if (!shaderStream) DX3D_LOG_THROW_ERROR("Failed to open shader file.");
 		std::string shaderFileData{
 			std::istreambuf_iterator<char>(shaderStream),
 			std::istreambuf_iterator<char>()
@@ -68,7 +68,7 @@ namespace dx3d
 			{{ 0.5f, -0.5f, -0.5f}, {0, 0, -1}, {0, 0}, {0, 1, 0, 1}}  // 7
 		};
 
-		std::vector<ui32> indices = {
+		std::vector<unsigned int> indices = {
 			// Front face
 			0,2,1, 0,3,2,
 			// Back face

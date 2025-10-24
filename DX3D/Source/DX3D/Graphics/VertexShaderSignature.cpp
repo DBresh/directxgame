@@ -10,25 +10,25 @@ namespace dx3d
 	VertexShaderSignature::VertexShaderSignature(const VertexShaderSignatureDesc& desc, const GraphicsResourceDesc& gDesc) :
 		GraphicsResource(gDesc), m_vsBinary(desc.vsBinary)
 	{
-		if (!desc.vsBinary) DX3DLogThrowInvalidArg("No shader binary provided.");
-		if (desc.vsBinary->getType() != ShaderType::VertexShader) DX3DLogThrowInvalidArg("The 'vsBinary' is not a valid vertex shader binary");
+		if (!desc.vsBinary) DX3D_LOG_THROW_ERROR("No shader binary provided.");
+		if (desc.vsBinary->getType() != ShaderType::VertexShader) DX3D_LOG_THROW_ERROR("The 'vsBinary' is not a valid vertex shader binary");
 
 		auto vsData = m_vsBinary->getData();
-		DX3DGraphicsLogThrowOnFail(D3DReflect(
+		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(D3DReflect(
 			vsData.data,
 			vsData.dataSize,
 			IID_PPV_ARGS(&m_shaderReflection)
 		), "D3DReflect failed.");
 
 		D3D11_SHADER_DESC shaderDesc{};
-		DX3DGraphicsLogThrowOnFail(m_shaderReflection->GetDesc(&shaderDesc), "ID3D11ShaderReflection::GetDesc failed.");
+		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(m_shaderReflection->GetDesc(&shaderDesc), "ID3D11ShaderReflection::GetDesc failed.");
 
 		m_numElements = shaderDesc.InputParameters;
 		D3D11_SIGNATURE_PARAMETER_DESC params[D3D11_STANDARD_VERTEX_ELEMENT_COUNT]{};
 
 		for (auto i : std::views::iota(0u, m_numElements))
 		{
-			DX3DGraphicsLogThrowOnFail(m_shaderReflection->GetInputParameterDesc(i, &params[i]),
+			DX3D_GRAPHICS_LOG_THROW_ON_FAIL(m_shaderReflection->GetInputParameterDesc(i, &params[i]),
 				"ID3D11ShaderReflection::GetInputParameterDesc failed.");
 		}
 
@@ -44,7 +44,7 @@ namespace dx3d
 			m_elements[i] = {
 				param.SemanticName,
 				param.SemanticIndex,
-				GraphicsUtils::GetDXGIFormatFromMask(param.ComponentType, param.Mask),
+				getDXGIFormatFromMask(param.ComponentType, param.Mask),
 				0,
 				D3D11_APPEND_ALIGNED_ELEMENT,
 				D3D11_INPUT_PER_VERTEX_DATA,

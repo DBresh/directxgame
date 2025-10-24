@@ -9,12 +9,12 @@ namespace dx3d
 {
 	DeviceContext::DeviceContext(const GraphicsResourceDesc& gDesc) : GraphicsResource(gDesc)
 	{
-		DX3DGraphicsLogThrowOnFail(m_device.CreateDeferredContext(0, &m_context), "CreateDeferredContext failed.");
+		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(m_device.CreateDeferredContext(0, &m_context), "CreateDeferredContext failed.");
 	}
 
 	void DeviceContext::clearAndSetBackBuffer(const SwapChain& swapChain, const Vec4& color)
 	{
-		f32 fColor[] = { color.x, color.y, color.z, color.w };
+		float fColor[] = { color.x, color.y, color.z, color.w };
 		
 		m_context->ClearRenderTargetView(swapChain.m_rtv.Get(), fColor);
 		m_context->ClearDepthStencilView(swapChain.m_dsv.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
@@ -45,7 +45,7 @@ namespace dx3d
 		m_context->IASetIndexBuffer(buffer.m_buffer.Get(), buffer.m_format, 0);
 	}
 
-	void DeviceContext::drawIndexedTriangleList(ui32 indexCount, ui32 startIndexLocation, ui32 baseVertexLocation)
+	void DeviceContext::drawIndexedTriangleList(unsigned int indexCount, unsigned int startIndexLocation, unsigned int baseVertexLocation)
 	{
 		m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		m_context->DrawIndexed(indexCount, startIndexLocation, baseVertexLocation);
@@ -54,27 +54,27 @@ namespace dx3d
 	void DeviceContext::setViewportSize(const Rect& size)
 	{
 		D3D11_VIEWPORT vp{};
-		vp.Width = static_cast<f32>(size.width);
-		vp.Height = static_cast<f32>(size.height);
+		vp.Width = static_cast<float>(size.width);
+		vp.Height = static_cast<float>(size.height);
 		vp.MinDepth = 0.0f;
 		vp.MaxDepth = 1.0f;
 
 		m_context->RSSetViewports(1, &vp);
 	}
 
-	void DeviceContext::drawTriangleList(ui32 vertexCount, ui32 startVertexLocation)
+	void DeviceContext::drawTriangleList(unsigned int vertexCount, unsigned int startVertexLocation)
 	{
 		m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		m_context->Draw(vertexCount, startVertexLocation);
 	}
 
-	void DeviceContext::setVSConstantBuffer(const ConstantBuffer& buffer, ui32 slot)
+	void DeviceContext::setVSConstantBuffer(const ConstantBuffer& buffer, unsigned int slot)
 	{
 		ID3D11Buffer* b = buffer.m_buffer.Get();
 		m_context->VSSetConstantBuffers(slot, 1, &b);
 	}
 
-	void DeviceContext::setPSConstantBuffer(const ConstantBuffer& buffer, ui32 slot)
+	void DeviceContext::setPSConstantBuffer(const ConstantBuffer& buffer, unsigned int slot)
 	{
 		ID3D11Buffer* b = buffer.m_buffer.Get();
 		m_context->PSSetConstantBuffers(slot, 1, &b);
@@ -85,7 +85,7 @@ namespace dx3d
 		if (data == nullptr || dataSize == 0) return;
 
 		if (dataSize > buffer.getBufferSize())
-			DX3DLogThrowError("updateConstantBuffer: dataSize > buffer size");
+			DX3D_LOG_THROW_ERROR("updateConstantBuffer: dataSize > buffer size");
 
 		D3D11_MAPPED_SUBRESOURCE mappedResource;
 		HRESULT hr = m_context->Map(buffer.m_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -96,7 +96,7 @@ namespace dx3d
 		}
 		else
 		{
-			DX3DGraphicsLogThrowOnFail(hr, "Map failed for constant buffer update.");
+			DX3D_GRAPHICS_LOG_THROW_ON_FAIL(hr, "Map failed for constant buffer update.");
 		}
 	}
 }

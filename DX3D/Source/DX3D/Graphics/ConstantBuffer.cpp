@@ -35,7 +35,7 @@ dx3d::ConstantBuffer::ConstantBuffer(const ConstantBufferDesc& desc, const Graph
         pInit = &initData;
     }
 
-    DX3DGraphicsLogThrowOnFail(
+    DX3D_GRAPHICS_LOG_THROW_ON_FAIL(
         m_device.CreateBuffer(&bd, pInit, &m_buffer),
         "Failed to create ConstantBuffer."
     );

@@ -25,7 +25,7 @@ namespace dx3d
 		VertexShaderSignaturePtr createVertexShaderSignature(const VertexShaderSignatureDesc& desc);
 		IndexBufferPtr createIndexBuffer(const IndexBufferDesc& desc);
 		ConstantBufferPtr createConstantBuffer(const ConstantBufferDesc& desc);
-		MeshPtr createMesh(const std::vector<Vertex>& vertices, const std::vector<ui32>& indices);
+		MeshPtr createMesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices);
 
 		void executeCommandList(DeviceContext& context);
 	private:

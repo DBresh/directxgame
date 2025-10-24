@@ -7,17 +7,17 @@ namespace dx3d
 {
 
     Mesh::Mesh(const std::vector<Vertex>& vertices,
-        const std::vector<ui32>& indices,
+        const std::vector<unsigned int>& indices,
         const GraphicsResourceDesc& gDesc) :
         GraphicsResource(gDesc),
-        m_indexCount(static_cast<ui32>(indices.size()))
+        m_indexCount(static_cast<unsigned int>(indices.size()))
     {
-        if (vertices.empty()) DX3DLogThrowInvalidArg("Vertex list is empty.");
-        if (indices.empty()) DX3DLogThrowInvalidArg("Index list is empty.");
+        if (vertices.empty()) DX3D_LOG_THROW_ERROR("Vertex list is empty.");
+        if (indices.empty()) DX3D_LOG_THROW_ERROR("Index list is empty.");
 
         VertexBufferDesc vbDesc{};
         vbDesc.vertexList = vertices.data();
-        vbDesc.vertexListSize = static_cast<ui32>(vertices.size());
+        vbDesc.vertexListSize = static_cast<unsigned int>(vertices.size());
         vbDesc.vertexSize = sizeof(Vertex);
 
         auto graphicsDevice = std::const_pointer_cast<GraphicsDevice>(m_graphicsDevice);
@@ -25,7 +25,7 @@ namespace dx3d
  
         IndexBufferDesc ibDesc{};
         ibDesc.indexList = indices.data();
-        ibDesc.indexCount = static_cast<ui32>(indices.size());
+        ibDesc.indexCount = static_cast<unsigned int>(indices.size());
         ibDesc.use32Bit = true;
 
         m_indexBuffer = graphicsDevice->createIndexBuffer(ibDesc);

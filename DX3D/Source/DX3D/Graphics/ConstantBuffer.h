@@ -12,11 +12,11 @@ namespace dx3d
     public:
         ConstantBuffer(const ConstantBufferDesc& desc, const GraphicsResourceDesc& gDesc);
 
-        ui32 getBufferSize() const noexcept { return m_size; }
+        unsigned int getBufferSize() const noexcept { return m_size; }
 
     private:
         Microsoft::WRL::ComPtr<ID3D11Buffer> m_buffer{};
-        ui32 m_size{ 0 };
+        unsigned int m_size{ 0 };
 
         friend class DeviceContext;
         friend class GraphicsDevice;

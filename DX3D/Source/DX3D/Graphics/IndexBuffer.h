@@ -8,13 +8,13 @@ namespace dx3d
     public:
         IndexBuffer(const IndexBufferDesc& desc, const GraphicsResourceDesc& gDesc);
 
-        ui32 getIndexCount() const noexcept { return m_indexCount; }
+        unsigned int getIndexCount() const noexcept { return m_indexCount; }
         bool is32Bit() const noexcept { return m_format == DXGI_FORMAT_R32_UINT; }
 
     private:
         Microsoft::WRL::ComPtr<ID3D11Buffer> m_buffer{};
         DXGI_FORMAT m_format{ DXGI_FORMAT_UNKNOWN };
-        ui32 m_indexCount{};
+        unsigned int m_indexCount{};
 
         friend class DeviceContext;
     };

@@ -8,11 +8,11 @@ namespace dx3d
 	{
 	public:
 		Vec2() = default;
-		Vec2(f32 x, f32 y) : x(x), y(y) {}
+		Vec2(float x, float y) : x(x), y(y) {}
 		Vec2(const Vec2& vec) : x(vec.x), y(vec.y) {}
 
 	public:
-		f32 x{}, y{};
+		float x{}, y{};
 
 		static Vec2 lerp(const Vec2& start, const Vec2& end, float delta)
 		{

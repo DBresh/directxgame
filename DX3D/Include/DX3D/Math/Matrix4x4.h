@@ -10,7 +10,7 @@ namespace dx3d
     class Matrix4x4
     {
     public:
-        f32 mat[4][4];
+        float mat[4][4];
 
         Matrix4x4()
         {
