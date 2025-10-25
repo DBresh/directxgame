@@ -22,6 +22,9 @@ namespace dx3d
 	class IndexBuffer;
 	class ConstantBuffer;
 	class Mesh;
+	class Texture2D;
+	class ModelImporter;
+	class MaterialLoader;
 
 	using SwapChainPtr = std::shared_ptr<SwapChain>;
 	using DeviceContextPtr = std::shared_ptr<DeviceContext>;
@@ -32,4 +35,5 @@ namespace dx3d
 	using IndexBufferPtr = std::shared_ptr<IndexBuffer>;
 	using ConstantBufferPtr = std::shared_ptr<ConstantBuffer>;
 	using MeshPtr = std::shared_ptr<Mesh>;
+	using Texture2DPtr = std::shared_ptr<Texture2D>;
 }

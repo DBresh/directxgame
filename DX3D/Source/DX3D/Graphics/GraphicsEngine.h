@@ -51,6 +51,10 @@ namespace dx3d
         ConstantBufferPtr m_cb{};
 
         // temp
+        std::shared_ptr<ModelImporter> m_modelImporter{};
+
+        Microsoft::WRL::ComPtr<ID3D11SamplerState> m_linearSampler;
+
         float m_angleX{ 0.0f };
         float m_angleY{ 0.0f };
         float m_rotationSpeed{ 0.15f };

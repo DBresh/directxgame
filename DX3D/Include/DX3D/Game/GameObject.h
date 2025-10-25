@@ -2,6 +2,8 @@
 #include <DX3D/Math/Transform.h>
 #include <DX3D/Graphics/Mesh.h>
 #include <DX3D/Graphics/ConstantBuffer.h>
+#include <DX3D/Graphics/Material.h>
+#include <DX3D/Graphics/ModelData.h>
 #include <memory>
 #include <string>
 #include <vector>
@@ -12,6 +14,9 @@ namespace dx3d {
     public:
         std::string name;
         std::string tag;
+
+        std::vector<Material> materials;
+        std::vector<MaterialGroup> materialGroups;
 
         bool inheritPosition = true;
         bool inheritRotation = false;

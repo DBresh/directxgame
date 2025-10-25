@@ -156,6 +156,7 @@
     <ClCompile Include="DX3D\Source\DX3D\Game\SceneManager.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Graphics\ModelImporter.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Graphics\MaterialLoader.cpp" />
+    <ClCompile Include="DX3D\Source\DX3D\Graphics\Texture2D.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DX3D\Include\DX3D\InputSystem\InputListener.h" />
@@ -199,6 +200,7 @@
     <ClInclude Include="DX3D\Include\DX3D\Game\SceneManager.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\ModelImporter.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\MaterialLoader.h" />
+    <ClInclude Include="DX3D\Source\DX3D\Graphics\Texture2D.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

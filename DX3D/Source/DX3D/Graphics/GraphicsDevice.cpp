@@ -9,6 +9,7 @@
 #include <DX3D/Graphics/IndexBuffer.h>
 #include <DX3D/Graphics/ConstantBuffer.h>
 #include <DX3D/Graphics/Mesh.h>
+#include <DX3D/Graphics/Texture2D.h>
 #include <DX3D/Math/Vertex.h>
 #include <vector>
 
@@ -80,6 +81,30 @@ namespace dx3d
 	MeshPtr GraphicsDevice::createMesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices)
 	{
 		return std::make_shared<Mesh>(vertices, indices, getGraphicsResourceDesc());
+	}
+
+	Texture2DPtr GraphicsDevice::createTexture2D(const std::string& path)
+	{
+		return std::make_shared<Texture2D>(path, getGraphicsResourceDesc());
+	}
+
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> GraphicsDevice::createSampler()
+	{
+		D3D11_SAMPLER_DESC samplerDesc{};
+		samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+		samplerDesc.MinLOD = 0;
+		samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+		Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler;
+		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(
+			m_d3dDevice->CreateSamplerState(&samplerDesc, &sampler),
+			"Failed to create sampler state."
+		);
+		return sampler;
 	}
 
 	void GraphicsDevice::executeCommandList(DeviceContext& context)

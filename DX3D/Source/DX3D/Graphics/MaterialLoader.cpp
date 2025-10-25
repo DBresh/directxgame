@@ -1,4 +1,5 @@
 #include <DX3D/Graphics/MaterialLoader.h>
+#include <DX3D/Graphics/Texture2D.h>
 #include <DX3D/Core/Logger.h>
 #include <fstream>
 #include <sstream>
@@ -66,7 +67,7 @@ namespace dx3d
             }
             else if (prefix == "map_Kd")
             {
-                iss >> currentMat.diffuseTexture;
+                iss >> currentMat.diffuseTexturePath;
             }
         }
 

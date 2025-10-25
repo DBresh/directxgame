@@ -1,6 +1,6 @@
 # Simple material library
 newmtl BasicMaterial
-Kd 0.0 1.0 0.0      # diffuse color (white)
+Kd 1.0 1.0 1.0      # diffuse color
 Ka 0.1 0.1 0.1      # ambient
 Ks 0.0 0.0 0.0      # specular
 Ns 0.0
@@ -19,3 +19,7 @@ newmtl magenta
 Kd 1.0 0.0 1.0   # magenta
 newmtl cyan
 Kd 0.0 1.0 1.0   # cyan
+
+newmtl checker
+Kd 1.0 1.0 1.0          # diffuse color (used as multiplier)
+map_Kd checker.png   # diffuse/albedo texture

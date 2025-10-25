@@ -26,9 +26,12 @@ namespace dx3d
 		IndexBufferPtr createIndexBuffer(const IndexBufferDesc& desc);
 		ConstantBufferPtr createConstantBuffer(const ConstantBufferDesc& desc);
 		MeshPtr createMesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices);
+		Texture2DPtr createTexture2D(const std::string& path);
+		
+		Microsoft::WRL::ComPtr<ID3D11SamplerState> createSampler();
 
 		void executeCommandList(DeviceContext& context);
-	private:
+	protected:
 		GraphicsResourceDesc getGraphicsResourceDesc() const noexcept;
 
 	private:

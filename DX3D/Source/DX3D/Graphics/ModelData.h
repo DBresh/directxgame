@@ -6,6 +6,14 @@
 
 namespace dx3d
 {
+    struct MaterialGroup
+    {
+        std::string name;
+        unsigned int startIndex = 0;
+        unsigned int indexCount = 0;
+        int materialIndex = -1;
+    };
+
     struct ModelData
     {
         std::vector<Vertex> vertices;
@@ -13,5 +21,7 @@ namespace dx3d
         std::vector<std::string> materialNames;
         std::vector<Material> materials;
         std::string sourcePath;
+        std::vector<MaterialGroup> materialGroups;
     };
+
 }

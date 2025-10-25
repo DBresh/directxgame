@@ -4,6 +4,8 @@
 #include <DX3D/Graphics/SwapChain.h>
 #include <DX3D/Graphics/Mesh.h>
 #include <DX3D/Graphics/ConstantBuffer.h>
+#include <DX3D/Graphics/GraphicsLogUtils.h>
+#include <DX3D/Graphics/Texture2D.h>
 #include <DX3D/Math/Vec3.h>
 #include <DX3D/Math/Matrix4x4.h>
 #include <DX3D/Core/Time.h>
@@ -20,6 +22,12 @@ namespace dx3d
 
 		auto& device = *m_graphicsDevice;
 		m_deviceContext = device.createDeviceContext();
+
+		HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+		if (FAILED(hr) && hr != RPC_E_CHANGED_MODE)
+		{
+			DX3D_LOG_THROW_ERROR("Failed to initialize COM library. HRESULT: {:#010x}", static_cast<unsigned int>(hr));
+		}
 
 		constexpr char shaderFilePath[] = "DX3D/Assets/Shaders/Basic.hlsl";
 		std::ifstream shaderStream(shaderFilePath);
@@ -43,6 +51,8 @@ namespace dx3d
 		cbDesc.size = sizeof(DirectX::XMFLOAT4X4) * 3;
 		m_cb = device.createConstantBuffer(cbDesc);
 
+		m_modelImporter = std::make_shared<ModelImporter>(m_graphicsDevice);
+
 		createCubeMesh();
 
 		InputSystem::get()->addListener(this);
@@ -54,62 +64,19 @@ namespace dx3d
 
 	void GraphicsEngine::createCubeMesh()
 	{
-		//std::vector<Vertex> vertices = {
-		//	// Front face
-		//	{{-0.5f, -0.5f,  0.5f}, {0, 0, 1}, {0, 0}, {1, 0, 0, 1}}, // 0
-		//	{{-0.5f,  0.5f,  0.5f}, {0, 0, 1}, {0, 1}, {0, 1, 0, 1}}, // 1
-		//	{{ 0.5f,  0.5f,  0.5f}, {0, 0, 1}, {1, 1}, {0, 0, 1, 1}}, // 2
-		//	{{ 0.5f, -0.5f,  0.5f}, {0, 0, 1}, {1, 0}, {1, 1, 0, 1}}, // 3
-
-		//	// Back face
-		//	{{-0.5f, -0.5f, -0.5f}, {0, 0, -1}, {1, 0}, {1, 0, 1, 1}}, // 4
-		//	{{-0.5f,  0.5f, -0.5f}, {0, 0, -1}, {1, 1}, {0, 1, 1, 1}}, // 5
-		//	{{ 0.5f,  0.5f, -0.5f}, {0, 0, -1}, {0, 1}, {1, 1, 1, 1}}, // 6
-		//	{{ 0.5f, -0.5f, -0.5f}, {0, 0, -1}, {0, 0}, {0, 1, 0, 1}}  // 7
-		//};
-
-		//std::vector<unsigned int> indices = {
-		//	// Front face
-		//	0,2,1, 0,3,2,
-		//	// Back face
-		//	4,5,6, 4,6,7,
-		//	// Left face
-		//	4,1,5, 4,0,1,
-		//	// Right face
-		//	3,6,2, 3,7,6,
-		//	// Top face
-		//	1,6,5, 1,2,6,
-		//	// Bottom face
-		//	4,7,0, 0,7,3
-		//};
-
-
 		ConstantBufferDesc cbDesc{};
 		cbDesc.data = nullptr;
 		cbDesc.size = sizeof(DirectX::XMFLOAT4X4) * 3;
 
-		auto cubeModel = ModelImporter::loadOBJ("Models\\cube.obj");
+		auto cubeModel = m_modelImporter->loadOBJ("Models\\cube.obj");
 		auto cubeMesh = m_graphicsDevice->createMesh(cubeModel.vertices, cubeModel.indices);
 		auto cube = m_scene.createObject("Cube1");
 		cube->mesh = cubeMesh;
+		cube->materials = cubeModel.materials;
+		cube->materialGroups = cubeModel.materialGroups;
 		cube->transform.setPosition(Vec3(-2.0f, 0.0f, 0.0f));
 		cube->transform.setScale(Vec3(0.5f, 0.5f, 0.5f));
 		cube->constantBuffer = m_graphicsDevice->createConstantBuffer(cbDesc);
-
-
-		auto teapotModel = ModelImporter::loadOBJ("Models\\teapot.obj");
-		auto teapotMesh = m_graphicsDevice->createMesh(teapotModel.vertices, teapotModel.indices);
-		auto teapot = m_scene.createObject("Teapot");
-		teapot->mesh = teapotMesh;
-		teapot->transform.setPosition(Vec3(0, 0, 0));
-		teapot->transform.setScale(Vec3(0.1f, 0.1f, 0.1f));
-		teapot->transform.rotate(Vec3(-90,0,0));
-		teapot->constantBuffer = m_graphicsDevice->createConstantBuffer(cbDesc);
-
-
-
-
-
 	}
 
 	GraphicsEngine::~GraphicsEngine()
@@ -157,23 +124,19 @@ namespace dx3d
 		for (const auto& object : m_scene.getAllObjects())
 		{
 			if (!object->mesh) continue;
-			float dt = static_cast<float>(Time::Instance()->deltaTime());
-
-			if (object->name == "Teapot") {
-				object->transform.rotate(Vec3(0, 2.0f, 0) * dt);
-			}
 
 			Matrix4x4 worldMatrix = object->getWorldTransform().getWorldMatrix();
 			Matrix4x4 worldT = worldMatrix.transpose();
+			Matrix4x4 viewT = view.transpose();
+			Matrix4x4 projectionT = projection.transpose();
 
 			struct TransformData
 			{
 				float world[4][4];
 				float view[4][4];
 				float projection[4][4];
-			};
+			} cbData{};
 
-			TransformData cbData{};
 			memcpy(&cbData.world, &worldT.mat, sizeof(float) * 16);
 			memcpy(&cbData.view, &viewT.mat, sizeof(float) * 16);
 			memcpy(&cbData.projection, &projectionT.mat, sizeof(float) * 16);
@@ -181,7 +144,27 @@ namespace dx3d
 			context.updateConstantBuffer(*object->constantBuffer, &cbData, sizeof(cbData));
 			context.setVSConstantBuffer(*object->constantBuffer, 0);
 
-			object->mesh->draw(context);
+			// 2) Bind mesh once (VB/IB)
+			context.setVertexBuffer(object->mesh->getVertexBuffer());
+			context.setIndexBuffer(object->mesh->getIndexBuffer());
+
+			// 3) Bind sampler once (or per-group if you want different samplers)
+			context.setPSSampler(m_linearSampler.Get(), 0);
+
+			// 4) Draw each material group
+			for (const auto& group : object->materialGroups)
+			{
+				const Material* mat = nullptr;
+				if (group.materialIndex >= 0 && group.materialIndex < (int)object->materials.size())
+					mat = &object->materials[group.materialIndex];
+
+				if (mat && mat->diffuseTexture)
+					context.setPSTexture(mat->diffuseTexture->getSRV(), 0);
+				else
+					context.setPSTexture(nullptr, 0);
+
+				context.drawIndexedTriangleList(group.indexCount, group.startIndex, 0);
+			}
 		}
 
 		m_graphicsDevice->executeCommandList(context);

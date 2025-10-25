@@ -99,4 +99,14 @@ namespace dx3d
 			DX3D_GRAPHICS_LOG_THROW_ON_FAIL(hr, "Map failed for constant buffer update.");
 		}
 	}
+
+	void dx3d::DeviceContext::setPSTexture(ID3D11ShaderResourceView* srv, unsigned int slot)
+	{
+		m_context->PSSetShaderResources(slot, 1, &srv);
+	}
+
+	void dx3d::DeviceContext::setPSSampler(ID3D11SamplerState* sampler, unsigned int slot)
+	{
+		m_context->PSSetSamplers(slot, 1, &sampler);
+	}
 }

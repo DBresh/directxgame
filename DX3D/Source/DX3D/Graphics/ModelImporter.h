@@ -1,13 +1,19 @@
 #pragma once
-#include <DX3D/Core/Logger.h>
+#include <DX3D/Graphics/GraphicsResource.h>
 #include <DX3D/Graphics/ModelData.h>
-#include <string>
 
 namespace dx3d
 {
     class ModelImporter
     {
     public:
-        static ModelData loadOBJ(const std::string& relativePath);
+        explicit ModelImporter(std::shared_ptr<GraphicsDevice> device)
+            : m_graphicsDevice(std::move(device)) {
+        }
+
+        ModelData loadOBJ(const std::string& relativePath);
+
+    private:
+        std::shared_ptr<GraphicsDevice> m_graphicsDevice;
     };
 }
