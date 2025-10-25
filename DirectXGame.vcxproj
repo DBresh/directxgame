@@ -132,6 +132,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DX3D\Source\DX3D\InputSystem\Camera.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Graphics\ConstantBuffer.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Graphics\DeviceContext.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Game\Display.cpp" />
@@ -157,8 +158,10 @@
     <ClCompile Include="DX3D\Source\DX3D\Graphics\ModelImporter.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Graphics\MaterialLoader.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Graphics\Texture2D.cpp" />
+    <ClCompile Include="DX3D\Source\DX3D\Graphics\RenderSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DX3D\Include\DX3D\InputSystem\Camera.h" />
     <ClInclude Include="DX3D\Include\DX3D\InputSystem\InputListener.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\Point.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\PointFloat.h" />
@@ -201,6 +204,7 @@
     <ClInclude Include="DX3D\Source\DX3D\Graphics\ModelImporter.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\MaterialLoader.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\Texture2D.h" />
+    <ClInclude Include="DX3D\Source\DX3D\Graphics\RenderSystem.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -11,6 +11,12 @@ namespace dx3d
 	Game::Game(const GameDesc& desc) :
 		Base(BaseDesc{})
 	{
+		HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+		if (FAILED(hr) && hr != RPC_E_CHANGED_MODE)
+		{
+			DX3D_LOG_THROW_ERROR("Failed to initialize COM library. HRESULT: {:#010x}", static_cast<unsigned int>(hr));
+		}
+
 		m_graphicsEngine = std::make_unique<GraphicsEngine>(GraphicsEngineDesc{});
 		m_display = std::make_unique<Display>(DisplayDesc{ WindowDesc{desc.windowSize}, m_graphicsEngine->getGraphicsDevice() });
 

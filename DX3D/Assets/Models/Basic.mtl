@@ -23,3 +23,7 @@ Kd 0.0 1.0 1.0   # cyan
 newmtl checker
 Kd 1.0 1.0 1.0          # diffuse color (used as multiplier)
 map_Kd checker.png   # diffuse/albedo texture
+
+newmtl academic
+Kd 1.0 1.0 1.0          # diffuse color (used as multiplier)
+map_Kd academic.png   # diffuse/albedo texture

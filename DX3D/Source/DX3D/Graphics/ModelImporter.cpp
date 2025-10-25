@@ -60,6 +60,7 @@ namespace dx3d
         {
             Vec2 uv{};
             iss >> uv.x >> uv.y;
+            uv.x = 1.0f - uv.x;
             uv.y = 1.0f - uv.y; // Flip Y for DirectX
             texcoords.push_back(uv);
         }
