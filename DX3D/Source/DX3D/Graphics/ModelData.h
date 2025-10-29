@@ -14,6 +14,12 @@ namespace dx3d
         int materialIndex = -1;
     };
 
+    struct AABB
+    {
+        Vec3 min;
+        Vec3 max;
+    };
+
     struct ModelData
     {
         std::vector<Vertex> vertices;
@@ -22,6 +28,9 @@ namespace dx3d
         std::vector<Material> materials;
         std::string sourcePath;
         std::vector<MaterialGroup> materialGroups;
-    };
 
+        AABB boundingBox{};
+        bool hasNormals = false;
+        bool hasTexcoords = false;
+    };
 }

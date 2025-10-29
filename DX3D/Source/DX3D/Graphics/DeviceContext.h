@@ -14,6 +14,7 @@ namespace dx3d
 		void setVertexBuffer(const VertexBuffer& buffer);
 		void setIndexBuffer(const IndexBuffer& buffer);
 		void drawIndexedTriangleList(unsigned int indexCount, unsigned int startIndexLocation, unsigned int baseVertexLocation);
+		void drawIndexedLineList(unsigned int indexCount, unsigned int startIndexLocation, unsigned int baseVertexLocation);
 		void setViewportSize(const Rect& size);
 		void drawTriangleList(unsigned int vertexCount, unsigned int startVertexLocation);
 		void setVSConstantBuffer(const ConstantBuffer& buffer, unsigned int slot);

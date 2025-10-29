@@ -51,6 +51,12 @@ namespace dx3d
 		m_context->DrawIndexed(indexCount, startIndexLocation, baseVertexLocation);
 	}
 
+	void DeviceContext::drawIndexedLineList(unsigned int indexCount, unsigned int startIndexLocation, unsigned int baseVertexLocation)
+	{
+		m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+		m_context->DrawIndexed(indexCount, startIndexLocation, baseVertexLocation);
+	}
+
 	void DeviceContext::setViewportSize(const Rect& size)
 	{
 		D3D11_VIEWPORT vp{};
