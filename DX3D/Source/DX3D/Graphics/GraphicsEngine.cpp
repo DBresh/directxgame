@@ -8,6 +8,8 @@
 #include <DX3D/Math/Matrix4x4.h>
 #include <DX3D/Core/Time.h>
 #include <DX3D/InputSystem/InputSystem.h>
+#include <DX3D/Graphics/ModelCache.h>
+#include <DX3D/Graphics/AssetManager.h>
 #include <fstream>
 
 namespace dx3d
@@ -39,7 +41,11 @@ namespace dx3d
 
         m_pipeline = device.createGraphicsPipelineState({ *vsSig, *ps });
 
-        m_modelImporter = std::make_shared<ModelImporter>(m_graphicsDevice);
+        AssetManagerDesc aDesc{};
+        aDesc.graphicsDevice = m_graphicsDevice;
+        aDesc.assetsRoot = std::filesystem::path("DX3D/Assets/Models");
+        m_assets = std::make_shared<AssetManager>(aDesc);
+
         m_renderSystem = std::make_unique<RenderSystem>(m_graphicsDevice, m_deviceContext);
         m_renderSystem->setPipeline(m_pipeline);
 
@@ -60,20 +66,16 @@ namespace dx3d
 
     void GraphicsEngine::createCubeMesh()
     {
-        ConstantBufferDesc cbDesc{};
-        cbDesc.data = nullptr;
-        cbDesc.size = sizeof(DirectX::XMFLOAT4X4) * 3;
-
-        auto cubeModel = m_modelImporter->loadOBJ("Models\\cube.obj");
-        auto cubeMesh = m_graphicsDevice->createMesh(cubeModel.vertices, cubeModel.indices);
-
-        auto cube = m_scene.createObject("Cube1");
-        cube->mesh = cubeMesh;
-        cube->materials = cubeModel.materials;
-        cube->materialGroups = cubeModel.materialGroups;
-        cube->transform.setPosition(Vec3(0.0f, 0.0f, 0.0f));
-        cube->transform.setScale(Vec3(1, 1, 1));
-        cube->constantBuffer = m_graphicsDevice->createConstantBuffer(cbDesc);
+        auto model = m_assets->getModel("cube.obj");
+        for (int i = 1; i <= 10; i++) {
+            auto cubes = m_scene.createObject("cube");
+            cubes->mesh = model->mesh;
+            cubes->materials = model->materials;
+            cubes->materialGroups = model->materialGroups;
+            cubes->transform.setPosition(Vec3(i * 1.5f, 0.0f, 0.0f));
+            cubes->transform.setScale(Vec3(1, 1, 1));
+            cubes->constantBuffer = m_graphicsDevice->createConstantBuffer({ nullptr, sizeof(Matrix4x4) * 3 });
+        }
     }
 
     void GraphicsEngine::render(SwapChain& swapChain)

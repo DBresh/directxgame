@@ -1,9 +1,9 @@
 #pragma once
-
 #include <DX3D/Graphics/GraphicsResource.h>
 #include <DX3D/Core/Common.h>
 #include <DX3D/Core/Base.h>
 #include <DX3D/Math/Vertex.h>
+#include <DX3D/Graphics/ModelGPU.h>
 #include <d3d11.h>
 #include <wrl.h>
 #include <vector>
@@ -27,7 +27,8 @@ namespace dx3d
 		ConstantBufferPtr createConstantBuffer(const ConstantBufferDesc& desc);
 		MeshPtr createMesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices);
 		Texture2DPtr createTexture2D(const std::string& path);
-		
+		ModelGPU createModelGPU(const ModelData& data);
+
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> createSampler();
 
 		void executeCommandList(DeviceContext& context);

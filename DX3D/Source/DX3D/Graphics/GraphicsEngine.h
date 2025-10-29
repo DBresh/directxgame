@@ -5,12 +5,10 @@
 #include <DX3D/Graphics/SwapChain.h>
 #include <DX3D/Graphics/RenderSystem.h>
 #include <DX3D/InputSystem/Camera.h>
-
-// temp 
+#include <DX3D/Graphics/AssetManager.h>
 #include <DX3D/Game/SceneManager.h>
 #include <DirectXMath.h>
 #include <DX3D/InputSystem/InputSystem.h>
-#include <DX3D/Graphics/ModelImporter.h>
 #include <vector>
 
 namespace dx3d
@@ -25,7 +23,6 @@ namespace dx3d
         void render(SwapChain& swapChain);
 
     private:
-        // temp
         SceneManager m_scene;
         void createCubeMesh();
 
@@ -35,8 +32,6 @@ namespace dx3d
         GraphicsPipelineStatePtr m_pipeline{};
         std::unique_ptr<RenderSystem> m_renderSystem;
         std::unique_ptr<Camera> m_camera;
-
-        // temp
-        std::shared_ptr<ModelImporter> m_modelImporter{};
+        std::shared_ptr<AssetManager>  m_assets;
     };
 }

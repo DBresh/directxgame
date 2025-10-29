@@ -2,7 +2,6 @@
 #include <memory>
 #include <vector>
 #include <wrl.h>
-
 #include <DX3D/Core/Core.h>
 #include <DX3D/Core/Common.h>
 #include <DX3D/Math/Matrix4x4.h>
@@ -12,7 +11,7 @@
 #include <DX3D/Graphics/GraphicsPipelineState.h>
 #include <DX3D/Graphics/Mesh.h>
 #include <DX3D/Graphics/ConstantBuffer.h>
-#include <DX3D/Graphics/ModelData.h> // for Material + MaterialGroup
+#include <DX3D/Graphics/ModelData.h>
 
 namespace dx3d
 {
@@ -25,7 +24,6 @@ namespace dx3d
         void setPipeline(GraphicsPipelineStatePtr pipeline) noexcept;
         void setPSSampler(ID3D11SamplerState* sampler) noexcept;
 
-        // Frame stages
         void beginFrame(SwapChain& swapChain, const Vec4& clearColor);
         void drawMesh(const Mesh& mesh,
             const ConstantBuffer& objectCB,

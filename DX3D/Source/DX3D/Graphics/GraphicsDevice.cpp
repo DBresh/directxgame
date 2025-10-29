@@ -118,4 +118,19 @@ namespace dx3d
 	{
 		return { BaseDesc{}, shared_from_this(), *m_d3dDevice.Get(), *m_dxgiFactory.Get() };
 	}
+
+	ModelGPU GraphicsDevice::createModelGPU(const ModelData& data)
+	{
+		ModelGPU gpuModel;
+		gpuModel.materials = data.materials;
+		gpuModel.boundingBox = data.boundingBox;
+
+		auto mesh = createMesh(data.vertices, data.indices);
+		gpuModel.mesh = mesh;
+
+		DX3D_LOG_INFO("Created GPU model: 1 mesh, {} vertices, {} indices",
+			data.vertices.size(), data.indices.size());
+
+		return gpuModel;
+	}
 }
