@@ -1,5 +1,6 @@
 #include <DX3D/InputSystem/Camera.h>
 #include <cmath>
+#include <Windows.h>
 
 namespace dx3d
 {
@@ -36,6 +37,7 @@ namespace dx3d
 
         m_position += forward * (m_moveForward * moveStep);
         m_position += right * (m_moveRight * moveStep);
+        m_position += m_up * (m_moveUp * moveStep);
 
         m_forward = forward;
         updateViewMatrix();
@@ -52,6 +54,7 @@ namespace dx3d
     {
         if ((char)key == 'W' || (char)key == 'S') m_moveForward = 0;
         if ((char)key == 'A' || (char)key == 'D') m_moveRight = 0;
+        if (key == VK_SHIFT || key == VK_CONTROL) m_moveUp = 0;
     }
 
     void Camera::onKeyPress(int key)
@@ -62,6 +65,9 @@ namespace dx3d
         if ((char)key == 'S') m_moveForward = -1;
         if ((char)key == 'D') m_moveRight = -1;
         if ((char)key == 'A') m_moveRight = 1;
+
+        if (key == VK_SHIFT)   m_moveUp = 1;
+        if (key == VK_CONTROL) m_moveUp = -1;
 
         if ((char)key == 'I') m_pitch += m_sensitivity * 10 * dt;
         if ((char)key == 'K') m_pitch -= m_sensitivity * 10 * dt;

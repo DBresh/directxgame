@@ -19,6 +19,8 @@ newmtl magenta
 Kd 1.0 0.0 1.0   # magenta
 newmtl cyan
 Kd 0.0 1.0 1.0   # cyan
+newmtl white
+Kd 1.0 1.0 1.0   # white
 
 newmtl checker
 Kd 1.0 1.0 1.0          # diffuse color (used as multiplier)

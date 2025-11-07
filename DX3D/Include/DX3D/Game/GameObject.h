@@ -4,6 +4,7 @@
 #include <DX3D/Graphics/ConstantBuffer.h>
 #include <DX3D/Graphics/Material.h>
 #include <DX3D/Graphics/ModelData.h>
+#include <DX3D/Graphics/ModelGPU.h>
 #include <memory>
 #include <string>
 #include <vector>
@@ -15,15 +16,12 @@ namespace dx3d {
         std::string name;
         std::string tag;
 
-        std::vector<Material> materials;
-        std::vector<MaterialGroup> materialGroups;
-
         bool inheritPosition = true;
         bool inheritRotation = false;
         bool inheritScale = true;
 
         Transform transform{};
-        std::shared_ptr<Mesh> mesh;
+        std::shared_ptr<ModelGPU> model;
         ConstantBufferPtr constantBuffer;
 
         std::weak_ptr<GameObject> parent;
@@ -37,7 +35,7 @@ namespace dx3d {
 
         Transform getWorldTransform() const;
 
-        bool hasMesh() const { return mesh != nullptr; }
+        bool hasMesh() const { return model != nullptr; }
         bool hasParent() const { return !parent.expired(); }
         void setParent(const std::shared_ptr<GameObject>& newParent);
 

@@ -28,6 +28,15 @@ namespace dx3d
 		MeshPtr createMesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices);
 		Texture2DPtr createTexture2D(const std::string& path);
 		ModelGPU createModelGPU(const ModelData& data);
+		StructuredBufferPtr createStructuredBuffer(const void* data, size_t elementSize, size_t elementCount);
+
+		template<typename T>
+		StructuredBufferPtr createStructuredBuffer(const std::vector<T>& elements)
+		{
+			if (elements.empty())
+				return nullptr;
+			return createStructuredBuffer(elements.data(), sizeof(T), elements.size());
+		}
 
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> createSampler();
 

@@ -119,18 +119,72 @@ namespace dx3d
                     return sp;
         }
 
-        std::shared_ptr<ModelGPU> gpuModel;
+        std::shared_ptr<ModelGPU> gpuModel = std::make_shared<ModelGPU>();
+
         try
         {
-            auto mesh = m_device->createMesh(cpuData->vertices, cpuData->indices);
-            if (!mesh)
-                DX3D_LOG_THROW_ERROR("AssetManager: createMesh returned null for '{}'", key);
+            auto wholeMesh = m_device->createMesh(cpuData->vertices, cpuData->indices);
+            if (!wholeMesh)
+                DX3D_LOG_THROW_ERROR("AssetManager: createMesh (whole) returned null for '{}'", key);
 
-            gpuModel = std::make_shared<ModelGPU>();
-            gpuModel->mesh = std::move(mesh);
+            gpuModel->mesh = std::move(wholeMesh);
             gpuModel->materials = cpuData->materials;
             gpuModel->boundingBox = cpuData->boundingBox;
             gpuModel->materialGroups = cpuData->materialGroups;
+
+            gpuModel->submeshes.clear();
+            gpuModel->submeshes.reserve(cpuData->materialGroups.size());
+
+            for (const auto& group : cpuData->materialGroups)
+            {
+                if (group.indexCount == 0) continue;
+
+                const unsigned start = group.startIndex;
+                const unsigned end = group.startIndex + group.indexCount;
+
+                std::unordered_map<uint32_t, uint32_t> remap;
+                remap.reserve(group.indexCount);
+
+                std::vector<Vertex> subVertices;
+                subVertices.reserve(group.indexCount);
+
+                std::vector<unsigned> subIndices;
+                subIndices.reserve(group.indexCount);
+
+                for (unsigned i = start; i < end; ++i)
+                {
+                    uint32_t oldIndex = cpuData->indices[i];
+
+                    auto it = remap.find(oldIndex);
+                    if (it == remap.end())
+                    {
+                        uint32_t newIndex = static_cast<uint32_t>(subVertices.size());
+                        remap.emplace(oldIndex, newIndex);
+                        subVertices.push_back(cpuData->vertices[oldIndex]);
+                        subIndices.push_back(newIndex);
+                    }
+                    else
+                    {
+                        subIndices.push_back(it->second);
+                    }
+                }
+
+                auto subMesh = m_device->createMesh(subVertices, subIndices);
+                if (!subMesh)
+                    DX3D_LOG_THROW_ERROR("AssetManager: createMesh (sub) returned null for '{}' group '{}'",
+                        key, group.name);
+
+                SubMesh sm{};
+                sm.mesh = std::move(subMesh);
+                sm.materialIndex = group.materialIndex;
+                sm.startIndex = group.startIndex;
+                sm.indexCount = group.indexCount;
+
+                gpuModel->submeshes.push_back(std::move(sm));
+
+                DX3D_LOG_DEBUG("AssetManager: built submesh '{}' (verts: {}, idx: {}, mat: {})",
+                    group.name, subVertices.size(), subIndices.size(), group.materialIndex);
+            }
         }
         catch (const std::exception& e)
         {
@@ -143,7 +197,9 @@ namespace dx3d
             m_gpuCache[key] = gpuModel;
         }
 
-        DX3D_LOG_DEBUG("AssetManager: cached GPU model '{}'", key);
+        DX3D_LOG_DEBUG("AssetManager: cached GPU model '{}' (whole+{} submeshes)",
+            key, gpuModel->submeshes.size());
+
         return gpuModel;
     }
 }

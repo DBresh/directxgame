@@ -4,6 +4,7 @@
 #include <DX3D/Graphics/VertexBuffer.h>
 #include <DX3D/Graphics/IndexBuffer.h>
 #include <DX3D/Graphics/ConstantBuffer.h>
+#include <DX3D/Graphics/StructuredBuffer.h>
 
 namespace dx3d
 {
@@ -114,5 +115,11 @@ namespace dx3d
 	void dx3d::DeviceContext::setPSSampler(ID3D11SamplerState* sampler, unsigned int slot)
 	{
 		m_context->PSSetSamplers(slot, 1, &sampler);
+	}
+
+	void DeviceContext::setStructuredBuffer(const StructuredBuffer& buffer, unsigned int slot)
+	{
+		ID3D11ShaderResourceView* srv = buffer.getSRV();
+		m_context->PSSetShaderResources(slot, 1, &srv);
 	}
 }

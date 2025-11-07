@@ -12,6 +12,8 @@
 #include <DX3D/Graphics/Mesh.h>
 #include <DX3D/Graphics/ConstantBuffer.h>
 #include <DX3D/Graphics/ModelData.h>
+#include <DX3D/Graphics/LightManager.h>
+#include <DX3D/Graphics/StructuredBuffer.h>
 
 namespace dx3d
 {
@@ -25,19 +27,27 @@ namespace dx3d
         void setPSSampler(ID3D11SamplerState* sampler) noexcept;
 
         void beginFrame(SwapChain& swapChain, const Vec4& clearColor);
-        void drawMesh(const Mesh& mesh,
+        void endFrame(GraphicsDevice& device, SwapChain& swapChain, bool vsync);
+
+        void drawModel(
+            const ModelGPU& model,
             const ConstantBuffer& objectCB,
             const Matrix4x4& worldT,
             const Matrix4x4& viewT,
-            const Matrix4x4& projT,
-            const std::vector<MaterialGroup>& groups,
-            const std::vector<Material>& materials);
-        void endFrame(GraphicsDevice& device, SwapChain& swapChain, bool vsync);
+            const Matrix4x4& projT);
+
+        void setCameraPosition(const Vec3& pos) noexcept { m_cameraPosition = pos; }
+
+        LightManager* getLightManager() const noexcept { return m_lightManager.get(); }
 
     private:
         std::shared_ptr<GraphicsDevice> m_device;
         DeviceContextPtr                m_context;
         GraphicsPipelineStatePtr        m_pipeline;
+        std::unique_ptr<LightManager>   m_lightManager;
+        ConstantBufferPtr m_cameraBuffer;
+        Vec3 m_cameraPosition{ 0, 0, 0 };
+
         Microsoft::WRL::ComPtr<ID3D11SamplerState> m_psSampler;
 
         struct TransformData

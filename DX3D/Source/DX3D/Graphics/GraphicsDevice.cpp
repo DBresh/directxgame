@@ -11,6 +11,7 @@
 #include <DX3D/Graphics/Mesh.h>
 #include <DX3D/Graphics/Texture2D.h>
 #include <DX3D/Math/Vertex.h>
+#include <DX3D/Graphics/StructuredBuffer.h>
 #include <vector>
 
 namespace dx3d
@@ -132,5 +133,10 @@ namespace dx3d
 			data.vertices.size(), data.indices.size());
 
 		return gpuModel;
+	}
+
+	StructuredBufferPtr GraphicsDevice::createStructuredBuffer(const void* data, size_t elementSize, size_t elementCount)
+	{
+		return std::make_shared<StructuredBuffer>(data, elementSize, elementCount, getGraphicsResourceDesc());
 	}
 }

@@ -45,6 +45,7 @@ namespace dx3d
 
         int m_moveForward{ 0 };
         int m_moveRight{ 0 };
+        int m_moveUp{ 0 };
 
         Matrix4x4 m_viewMatrix;
         Matrix4x4 m_projMatrix;

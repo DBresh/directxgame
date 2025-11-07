@@ -22,6 +22,7 @@ namespace dx3d
 		void updateConstantBuffer(const ConstantBuffer& buffer, const void* data, size_t dataSize);
 		void setPSTexture(ID3D11ShaderResourceView* srv, unsigned int slot = 0);
 		void setPSSampler(ID3D11SamplerState* sampler, unsigned int slot = 0);
+		void setStructuredBuffer(const StructuredBuffer& buffer, unsigned int slot);
 
 	private:
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_context{};
