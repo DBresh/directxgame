@@ -262,10 +262,10 @@ namespace dx3d
                 }
                 v.cross(vec[0], vec[1], vec[2]);
 
-                out.mat[0][i] = pow(-1.0f, i) * v.x / det;
-                out.mat[1][i] = pow(-1.0f, i) * v.y / det;
-                out.mat[2][i] = pow(-1.0f, i) * v.z / det;
-                out.mat[3][i] = pow(-1.0f, i) * v.w / det;
+                out.mat[0][i] = static_cast<float>(pow(-1.0f, i)) * v.x / det;
+                out.mat[1][i] = static_cast<float>(pow(-1.0f, i)) * v.y / det;
+                out.mat[2][i] = static_cast<float>(pow(-1.0f, i)) * v.z / det;
+                out.mat[3][i] = static_cast<float>(pow(-1.0f, i)) * v.w / det;
             }
 
             setMatrix(out);

@@ -23,11 +23,17 @@ namespace dx3d
 		void setPSTexture(ID3D11ShaderResourceView* srv, unsigned int slot = 0);
 		void setPSSampler(ID3D11SamplerState* sampler, unsigned int slot = 0);
 		void setStructuredBuffer(const StructuredBuffer& buffer, unsigned int slot);
+		
+		void setDepthTarget(ID3D11DepthStencilView* dsv);
+		void clearDepth(ID3D11DepthStencilView& dsv);
 
+		void setVertexShader(ID3D11VertexShader* vs);
+		void setPixelShader(ID3D11PixelShader* ps);
 	private:
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_context{};
 
 		friend class GraphicsDevice;
+		friend class RenderSystem;
 	};
 }
 

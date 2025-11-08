@@ -87,18 +87,30 @@ namespace dx3d
 		auto lights = m_renderSystem->getLightManager();
 		lights->clear();
 
-		for (int i = -32; i <= 16; i += 2) {
-			for (int j = -24; j <= 16; j += 2) {
-				float r = 0.5f + 0.5f * sinf(i * 0.3f);
-				float g = 0.5f + 0.5f * sinf(j * 0.4f);
-				float b = 0.5f + 0.5f * sinf((i + j) * 0.25f);
+		//for (int i = -32; i <= 16; i += 2)
+		//{
+		//	for (int j = -24; j <= 16; j += 2)
+		//	{
+		//		float r = (i + 32) / 48.0f;
+		//		float g = (j + 24) / 40.0f;
+		//		float b = 1.0f - 0.5f * (r + g);
 
-				lights->addPoint(Vec3(i, -2.2f, j), Vec3(r, g, b), 1.0f, 1.0f);
-			}
-		}
+		//		lights->addPoint(Vec3((float)i, -2.2f, (float)j), Vec3(r, g, b), 1.0f, 1.0f);
+		//	}
+		//}
 
-		lights->addPoint(Vec3(5, 0, -2), Vec3(0.2f, 0.4f, 1.0f), 55.0f, 2.9f);
-		lights->addPoint(Vec3(7, 0, -2), Vec3(0.8f, 0.4f, 0.2f), 55.0f, 2.9f);
+		//lights->addPoint(Vec3(5, 0, -2), Vec3(0.2f, 0.4f, 1.0f), 55.0f, 2.9f);
+		lights->addSpot(
+			Vec3(1.5f, 5.f, 0.f),        // позиція
+			Vec3(0.0f, -1.0f, 0.f),       // напрям
+			50.0f,                      // кут
+			Vec3(1.f, 0.95f, 0.85f),    // колір
+			30.0f,                      // range
+			8.0f,                        // інтенсивність
+			true						// тіні
+		);
+
+		//lights->addPoint(Vec3(7, 0, -2), Vec3(0.8f, 0.4f, 0.2f), 55.0f, 2.9f);
 	}
 
 	void GraphicsEngine::render(SwapChain& swapChain)
@@ -112,6 +124,7 @@ namespace dx3d
 		Matrix4x4 viewT = m_camera->getViewMatrix().transpose();
 		Matrix4x4 projT = m_camera->getProjectionMatrix().transpose();
 
+		m_renderSystem->renderShadows(m_scene);
 		m_renderSystem->beginFrame(swapChain, { 0.2f, 0.2f, 0.2f, 1.0f });
 
 		for (const auto& object : m_scene.getAllObjects())

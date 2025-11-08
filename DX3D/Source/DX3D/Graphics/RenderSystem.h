@@ -14,6 +14,7 @@
 #include <DX3D/Graphics/ModelData.h>
 #include <DX3D/Graphics/LightManager.h>
 #include <DX3D/Graphics/StructuredBuffer.h>
+#include <DX3D/Game/SceneManager.h>
 
 namespace dx3d
 {
@@ -40,6 +41,8 @@ namespace dx3d
 
         LightManager* getLightManager() const noexcept { return m_lightManager.get(); }
 
+        void renderShadows(SceneManager& scene);
+
     private:
         std::shared_ptr<GraphicsDevice> m_device;
         DeviceContextPtr                m_context;
@@ -48,7 +51,12 @@ namespace dx3d
         ConstantBufferPtr m_cameraBuffer;
         Vec3 m_cameraPosition{ 0, 0, 0 };
 
+        Microsoft::WRL::ComPtr<ID3D11VertexShader> m_depthVS;
+        ConstantBufferPtr m_depthCB;
+        ConstantBufferPtr m_lightMatrixBuffer;
+
         Microsoft::WRL::ComPtr<ID3D11SamplerState> m_psSampler;
+        Microsoft::WRL::ComPtr<ID3D11SamplerState> m_shadowSampler;
 
         struct TransformData
         {

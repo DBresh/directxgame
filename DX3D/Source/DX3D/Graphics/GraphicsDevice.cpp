@@ -10,6 +10,7 @@
 #include <DX3D/Graphics/ConstantBuffer.h>
 #include <DX3D/Graphics/Mesh.h>
 #include <DX3D/Graphics/Texture2D.h>
+#include <DX3D/Graphics/DepthTexture2D.h>
 #include <DX3D/Math/Vertex.h>
 #include <DX3D/Graphics/StructuredBuffer.h>
 #include <vector>
@@ -89,6 +90,11 @@ namespace dx3d
 		return std::make_shared<Texture2D>(path, getGraphicsResourceDesc());
 	}
 
+	DepthTexture2DPtr GraphicsDevice::createDepthTexture2D(UINT width, UINT height)
+	{
+		return std::make_shared<DepthTexture2D>(width, height, getGraphicsResourceDesc());
+	}
+
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> GraphicsDevice::createSampler()
 	{
 		D3D11_SAMPLER_DESC samplerDesc{};
@@ -139,4 +145,44 @@ namespace dx3d
 	{
 		return std::make_shared<StructuredBuffer>(data, elementSize, elementCount, getGraphicsResourceDesc());
 	}
+
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> GraphicsDevice::createVertexShaderFromFile(const std::string& path, const char* entry)
+	{
+		std::ifstream file(path, std::ios::binary);
+		std::string src((std::istreambuf_iterator<char>(file)), {});
+		ShaderCompileDesc desc{};
+		desc.shaderSourceName = path.c_str();
+		desc.shaderSourceCode = src.data();
+		desc.shaderSourceCodeSize = src.size();
+		desc.shaderEntryPoint = entry;
+		desc.shaderType = ShaderType::VertexShader;
+		auto blob = compileShader(desc);
+		auto data = blob->getData();
+
+		Microsoft::WRL::ComPtr<ID3D11VertexShader> vs;
+		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(
+			m_d3dDevice->CreateVertexShader(data.data, data.dataSize, nullptr, &vs),
+			"Failed to create vertex shader from file: {}", path
+		);
+		return vs;
+	}
+
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> GraphicsDevice::createShadowSampler()
+	{
+		D3D11_SAMPLER_DESC desc{};
+		desc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+		desc.AddressU = desc.AddressV = desc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+		desc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+		desc.BorderColor[0] = desc.BorderColor[1] = desc.BorderColor[2] = desc.BorderColor[3] = 1.0f;
+		desc.MinLOD = 0;
+		desc.MaxLOD = D3D11_FLOAT32_MAX;
+
+		Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler;
+		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(
+			m_d3dDevice->CreateSamplerState(&desc, &sampler),
+			"Failed to create shadow comparison sampler."
+		);
+		return sampler;
+	}
+
 }

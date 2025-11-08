@@ -29,6 +29,7 @@ namespace dx3d
 		Texture2DPtr createTexture2D(const std::string& path);
 		ModelGPU createModelGPU(const ModelData& data);
 		StructuredBufferPtr createStructuredBuffer(const void* data, size_t elementSize, size_t elementCount);
+		DepthTexture2DPtr createDepthTexture2D(UINT width, UINT height);
 
 		template<typename T>
 		StructuredBufferPtr createStructuredBuffer(const std::vector<T>& elements)
@@ -39,6 +40,8 @@ namespace dx3d
 		}
 
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> createSampler();
+		Microsoft::WRL::ComPtr<ID3D11SamplerState> createShadowSampler();
+		Microsoft::WRL::ComPtr<ID3D11VertexShader> createVertexShaderFromFile(const std::string& path, const char* entry);
 
 		void executeCommandList(DeviceContext& context);
 	protected:
@@ -49,7 +52,7 @@ namespace dx3d
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_d3dContext{};
 		Microsoft::WRL::ComPtr<IDXGIDevice> m_dxgiDevice{};
 		Microsoft::WRL::ComPtr<IDXGIAdapter> m_dxgiAdapter{};
-		Microsoft::WRL::ComPtr<IDXGIFactory> m_dxgiFactory{};
+		Microsoft::WRL::ComPtr<IDXGIFactory> m_dxgiFactory{};	
 	};
 }
 

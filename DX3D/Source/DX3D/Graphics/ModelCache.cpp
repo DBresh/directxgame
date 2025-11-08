@@ -27,15 +27,11 @@ namespace dx3d
         {
             std::lock_guard<std::mutex> lock(s_mutex);
             if (auto it = s_cache.find(key); it != s_cache.end())
-            {
                 if (auto existing = it->second.lock())
-                {
                     return existing;
-                }
-            }
         }
 
-        auto importer = std::make_shared<ModelImporter>(device);
+        auto importer = std::make_shared<ModelImporter>(device, nullptr);
         auto loaded = std::make_shared<ModelData>(importer->loadOBJ(relativePath));
 
         {
@@ -48,6 +44,7 @@ namespace dx3d
 
         return loaded;
     }
+
 
     void ModelCache::clear()
     {
@@ -67,7 +64,7 @@ namespace dx3d
             else
                 ++it;
         }
-        DX3D_LOG_INFO("ModelCache pruned: {} → {}", before, s_cache.size());
+        DX3D_LOG_INFO("ModelCache pruned: {} - {}", before, s_cache.size());
     }
 
     size_t ModelCache::size()

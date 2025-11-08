@@ -132,6 +132,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DX3D\Source\DX3D\Graphics\DepthTexture2D.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Graphics\AssetManager.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\InputSystem\Camera.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Graphics\ConstantBuffer.cpp" />
@@ -164,6 +165,8 @@
     <ClCompile Include="DX3D\Source\DX3D\Graphics\LightManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DX3D\Include\DX3D\Math\Utils.h" />
+    <ClInclude Include="DX3D\Source\DX3D\Graphics\DepthTexture2D.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\AssetManager.h" />
     <ClInclude Include="DX3D\Include\DX3D\InputSystem\Camera.h" />
     <ClInclude Include="DX3D\Include\DX3D\InputSystem\InputListener.h" />

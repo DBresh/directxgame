@@ -26,6 +26,7 @@ namespace dx3d
 	class ModelImporter;
 	class MaterialLoader;
 	class StructuredBuffer;
+	class DepthTexture2D;
 
 	using SwapChainPtr = std::shared_ptr<SwapChain>;
 	using DeviceContextPtr = std::shared_ptr<DeviceContext>;
@@ -37,5 +38,6 @@ namespace dx3d
 	using ConstantBufferPtr = std::shared_ptr<ConstantBuffer>;
 	using MeshPtr = std::shared_ptr<Mesh>;
 	using Texture2DPtr = std::shared_ptr<Texture2D>;
+	using DepthTexture2DPtr = std::shared_ptr<DepthTexture2D>;
 	using StructuredBufferPtr = std::shared_ptr<StructuredBuffer>;
 }

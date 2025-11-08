@@ -122,4 +122,24 @@ namespace dx3d
 		ID3D11ShaderResourceView* srv = buffer.getSRV();
 		m_context->PSSetShaderResources(slot, 1, &srv);
 	}
+
+	void DeviceContext::setDepthTarget(ID3D11DepthStencilView* dsv)
+	{
+		m_context->OMSetRenderTargets(0, nullptr, dsv);
+	}
+
+	void DeviceContext::clearDepth(ID3D11DepthStencilView& dsv)
+	{
+		m_context->ClearDepthStencilView(&dsv, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	}
+
+	void DeviceContext::setVertexShader(ID3D11VertexShader* vs)
+	{
+		m_context->VSSetShader(vs, nullptr, 0);
+	}
+
+	void DeviceContext::setPixelShader(ID3D11PixelShader* ps)
+	{
+		m_context->PSSetShader(ps, nullptr, 0);
+	}
 }

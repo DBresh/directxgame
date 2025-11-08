@@ -2,6 +2,7 @@
 #include <DX3D/Graphics/MaterialLoader.h>
 #include <DX3D/Graphics/Texture2D.h>
 #include <DX3D/Graphics/GraphicsDevice.h>
+#include <DX3D/Graphics/AssetManager.h>
 #include <DX3D/Core/Logger.h>
 #include <DX3D/Math/Vec2.h>
 #include <DX3D/Math/Vec3.h>
@@ -17,7 +18,6 @@ namespace dx3d
 {
 	namespace
 	{
-
 		struct VertexKey
 		{
 			Vec3 position{};
@@ -45,31 +45,27 @@ namespace dx3d
 
 		inline void parseVertexLine(std::istringstream& iss, std::vector<Vec3>& positions)
 		{
-			Vec3 pos{};
-			iss >> pos.x >> pos.y >> pos.z;
+			Vec3 pos{}; iss >> pos.x >> pos.y >> pos.z;
 			positions.push_back(pos);
 		}
 
 		inline void parseNormalLine(std::istringstream& iss, std::vector<Vec3>& normals)
 		{
-			Vec3 n{};
-			iss >> n.x >> n.y >> n.z;
+			Vec3 n{}; iss >> n.x >> n.y >> n.z;
 			normals.push_back(n);
 		}
 
 		inline void parseTexcoordLine(std::istringstream& iss, std::vector<Vec2>& texcoords)
 		{
-			Vec2 uv{};
-			iss >> uv.x >> uv.y;
+			Vec2 uv{}; iss >> uv.x >> uv.y;
 			uv.x = 1.0f - uv.x;
-			uv.y = 1.0f - uv.y; // Flip Y for DirectX
+			uv.y = 1.0f - uv.y;
 			texcoords.push_back(uv);
 		}
 
 		inline void parseFaceToken(const std::string_view token, unsigned& vi, unsigned& ti, unsigned& ni)
 		{
 			vi = ti = ni = 0;
-
 			size_t pos1 = token.find('/');
 			size_t pos2 = token.find('/', pos1 + 1);
 
@@ -92,22 +88,33 @@ namespace dx3d
 			std::istringstream& iss,
 			const std::filesystem::path& fullPath,
 			ModelData& model,
-			const std::shared_ptr<GraphicsDevice>& graphicsDevice)
+			const std::shared_ptr<GraphicsDevice>& graphicsDevice,
+			AssetManager* assets)
 		{
 			std::string mtlFile;
 			iss >> mtlFile;
+			const std::filesystem::path mtlPath = fullPath.parent_path() / mtlFile;
 
-			model.materials = MaterialLoader::loadMTL(fullPath.string(), mtlFile);
-
-			for (auto& mat : model.materials)
+			if (assets)
 			{
-				if (!mat.diffuseTexturePath.empty())
+				model.materials = assets->getMaterialsFromFile(fullPath.string(), mtlFile);
+			}
+			else
+			{
+				DX3D_LOG_INFO("Loading materials (no cache) from: {}", mtlPath.string());
+				model.materials = MaterialLoader::loadMTL(fullPath.string(), mtlFile, nullptr);
+				for (auto& mat : model.materials)
 				{
-					auto texPath = fullPath.parent_path() / mat.diffuseTexturePath;
-					mat.diffuseTexture = graphicsDevice->createTexture2D(texPath.string());
+					if (!mat.diffuseTexturePath.empty())
+					{
+						auto texPath = fullPath.parent_path() / mat.diffuseTexturePath;
+						mat.diffuseTexture = graphicsDevice->createTexture2D(texPath.string());
+					}
 				}
 			}
 		}
+
+
 
 		inline void handleUseMaterial(std::istringstream& iss, ModelData& model, Material& currentMaterial)
 		{
@@ -116,18 +123,13 @@ namespace dx3d
 
 			if (model.materialGroups.empty())
 			{
-				model.materialGroups.push_back({
-					"default",
-					0u,
-					static_cast<unsigned>(model.indices.size()),
-					-1
-					});
+				model.materialGroups.push_back({ "default", 0u,
+					static_cast<unsigned>(model.indices.size()), -1 });
 			}
 			else
 			{
 				model.materialGroups.back().indexCount =
-					static_cast<unsigned>(model.indices.size()) -
-					model.materialGroups.back().startIndex;
+					static_cast<unsigned>(model.indices.size()) - model.materialGroups.back().startIndex;
 			}
 
 			auto it = std::find_if(model.materials.begin(), model.materials.end(),
@@ -136,12 +138,8 @@ namespace dx3d
 			if (it != model.materials.end())
 			{
 				int matIndex = static_cast<int>(std::distance(model.materials.begin(), it));
-				model.materialGroups.push_back({
-					matName,
-					static_cast<unsigned>(model.indices.size()),
-					0,
-					matIndex
-					});
+				model.materialGroups.push_back({ matName,
+					static_cast<unsigned>(model.indices.size()), 0, matIndex });
 
 				currentMaterial = *it;
 			}
@@ -162,11 +160,9 @@ namespace dx3d
 			while (iss >> token) tokens.push_back(token);
 			if (tokens.size() < 3) return;
 
-			// triangulate (fan)
 			for (size_t i = 1; i + 1 < tokens.size(); ++i)
 			{
 				std::array<std::string, 3> tri = { tokens[0], tokens[i], tokens[i + 1] };
-
 				for (int j = 0; j < 3; ++j)
 				{
 					unsigned vi = 0, ti = 0, ni = 0;
@@ -190,17 +186,13 @@ namespace dx3d
 						uint32_t newIndex = static_cast<uint32_t>(model.vertices.size());
 						vertexLookup[key] = newIndex;
 
-						Vec4 color(
-							currentMaterial.diffuseColor.x,
+						Vec4 color(currentMaterial.diffuseColor.x,
 							currentMaterial.diffuseColor.y,
-							currentMaterial.diffuseColor.z,
-							1.0f
-						);
+							currentMaterial.diffuseColor.z, 1.0f);
 
 						model.vertices.emplace_back(key.position, key.normal, key.texcoord, color);
 						model.indices.push_back(newIndex);
 
-						// Update AABB
 						bbMin.x = std::min(bbMin.x, key.position.x);
 						bbMin.y = std::min(bbMin.y, key.position.y);
 						bbMin.z = std::min(bbMin.z, key.position.z);
@@ -211,7 +203,6 @@ namespace dx3d
 				}
 			}
 		}
-
 	}
 
 	ModelData ModelImporter::loadOBJ(const std::string& relativePath)
@@ -229,13 +220,11 @@ namespace dx3d
 
 		DX3D_LOG_INFO("Loading model: {}", fullPath.string());
 
-		std::vector<Vec3> positions;
-		std::vector<Vec3> normals;
+		std::vector<Vec3> positions, normals;
 		std::vector<Vec2> texcoords;
 		std::unordered_map<VertexKey, uint32_t, VertexKeyHasher> vertexLookup;
 		Material currentMaterial;
-
-		Vec3 bbMin{ FLT_MAX,  FLT_MAX,  FLT_MAX };
+		Vec3 bbMin{ FLT_MAX, FLT_MAX, FLT_MAX };
 		Vec3 bbMax{ -FLT_MAX, -FLT_MAX, -FLT_MAX };
 
 		std::string line;
@@ -246,33 +235,28 @@ namespace dx3d
 			std::istringstream iss(line);
 			std::string prefix; iss >> prefix;
 
-			if (prefix == "v")      parseVertexLine(iss, positions);
-			else if (prefix == "vn")     parseNormalLine(iss, normals);
-			else if (prefix == "vt")     parseTexcoordLine(iss, texcoords);
-			else if (prefix == "mtllib") handleMaterialLib(iss, fullPath, model, m_graphicsDevice);
+			if (prefix == "v") parseVertexLine(iss, positions);
+			else if (prefix == "vn") parseNormalLine(iss, normals);
+			else if (prefix == "vt") parseTexcoordLine(iss, texcoords);
+			else if (prefix == "mtllib") handleMaterialLib(iss, fullPath, model, m_graphicsDevice, m_assets);
 			else if (prefix == "usemtl") handleUseMaterial(iss, model, currentMaterial);
-			else if (prefix == "f")
-				handleFaceLine(iss, positions, normals, texcoords,
-					vertexLookup, currentMaterial, model, bbMin, bbMax);
+			else if (prefix == "f") handleFaceLine(iss, positions, normals, texcoords,
+				vertexLookup, currentMaterial, model, bbMin, bbMax);
 		}
 		file.close();
 
-		// Finalize last material group
 		if (!model.materialGroups.empty())
 		{
 			model.materialGroups.back().indexCount =
 				static_cast<unsigned>(model.indices.size()) - model.materialGroups.back().startIndex;
 		}
 
-		// Store AABB (if we got any vertices)
 		if (!model.vertices.empty())
 			model.boundingBox = { bbMin, bbMax };
 
-		// ---- Auto-generate normals if missing ----
 		if (!model.hasNormals && !model.indices.empty())
 		{
 			DX3D_LOG_WARNING("Model has no normals, generating smooth normals...");
-			// zero-out normals first
 			for (auto& v : model.vertices) v.normal = Vec3{ 0,0,0 };
 
 			for (size_t i = 0; i < model.indices.size(); i += 3)
@@ -280,29 +264,21 @@ namespace dx3d
 				uint32_t i0 = model.indices[i + 0];
 				uint32_t i1 = model.indices[i + 1];
 				uint32_t i2 = model.indices[i + 2];
-
 				const Vec3& p0 = model.vertices[i0].position;
 				const Vec3& p1 = model.vertices[i1].position;
 				const Vec3& p2 = model.vertices[i2].position;
-
 				Vec3 n = cross(p1 - p0, p2 - p0).normalize();
 				model.vertices[i0].normal += n;
 				model.vertices[i1].normal += n;
 				model.vertices[i2].normal += n;
 			}
-			for (auto& v : model.vertices)
-				v.normal = v.normal.normalize();
-
+			for (auto& v : model.vertices) v.normal = v.normal.normalize();
 			model.hasNormals = true;
 		}
 
-		DX3D_LOG_INFO("Loaded {} vertices, {} indices ({} triangles) from {} | Normals:{} UVs:{}",
-			model.vertices.size(),
-			model.indices.size(),
-			model.indices.size() / 3,
-			fullPath.string(),
-			model.hasNormals ? "Y" : "N",
-			model.hasTexcoords ? "Y" : "N");
+		DX3D_LOG_INFO("Loaded {} vertices, {} indices ({} tris) from {} | Normals:{} UVs:{}",
+			model.vertices.size(), model.indices.size(), model.indices.size() / 3,
+			fullPath.string(), model.hasNormals ? "Y" : "N", model.hasTexcoords ? "Y" : "N");
 
 		return model;
 	}

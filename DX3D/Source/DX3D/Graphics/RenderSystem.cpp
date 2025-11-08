@@ -20,7 +20,11 @@ namespace dx3d
         : m_device(std::move(device)), m_context(std::move(context))
     {
         m_cameraBuffer = m_device->createConstantBuffer({ nullptr, sizeof(CameraData) });
-        m_lightManager = std::make_unique<LightManager>();
+        m_lightManager = std::make_unique<LightManager>(m_device);
+        m_depthCB = m_device->createConstantBuffer({ nullptr, sizeof(Matrix4x4) });
+        m_depthVS = m_device->createVertexShaderFromFile("DX3D/Assets/Shaders/ShadowDepthVS.hlsl", "VSMain");
+        m_lightMatrixBuffer = m_device->createConstantBuffer({ nullptr, sizeof(Matrix4x4) * 64 });
+        m_shadowSampler = m_device->createShadowSampler();
     }
 
     void RenderSystem::setPipeline(GraphicsPipelineStatePtr pipeline) noexcept
@@ -36,7 +40,16 @@ namespace dx3d
     void RenderSystem::beginFrame(SwapChain& swapChain, const Vec4& clearColor)
     {
         m_context->clearAndSetBackBuffer(swapChain, clearColor);
+
         if (m_pipeline) m_context->setGraphicsPipelineState(*m_pipeline);
+
+        if (m_psSampler)
+            m_context->setPSSampler(m_psSampler.Get(), 0);
+
+        if (m_shadowSampler)
+            m_context->setPSSampler(m_shadowSampler.Get(), 1);
+
+
         m_context->setViewportSize(swapChain.getSize());
         CameraData cam{};
         cam.cameraPos = m_cameraPosition;
@@ -49,8 +62,43 @@ namespace dx3d
 
         if (m_lightManager)
         {
-            m_lightManager->uploadToGPU(*m_device);
+            const int max_lights = 64;
+            Matrix4x4 lightMatrices[max_lights];
+            int i = 0;
+
+            for (const auto& light : m_lightManager->getLights())
+            {
+                if (i >= max_lights) break;
+
+                if (light.castShadows && light.shadow)
+                {
+                    lightMatrices[i] = light.shadow->viewProj.transpose();
+                }
+                else
+                {
+                    lightMatrices[i].setIdentity();
+                }
+                i++;
+            }
+
+            m_context->updateConstantBuffer(*m_lightMatrixBuffer, lightMatrices, sizeof(lightMatrices));
+            m_context->setPSConstantBuffer(*m_lightMatrixBuffer, 2);
+            m_context->setVSConstantBuffer(*m_lightMatrixBuffer, 2);
+
+            m_lightManager->uploadToGPU();
             m_lightManager->bind(*m_context, 1);
+
+            for (const auto& light : m_lightManager->getLights())
+            {
+                if (light.castShadows && light.shadow && light.shadow->shadowMap)
+                {
+                    m_context->setPSTexture(light.shadow->shadowMap->getSRV(), 2);
+                    DX3D_LOG_DEBUG("Bound shadow SRV for spot at {}, {}, {}",
+                        light.position.x, light.position.y, light.position.z);
+
+                    break;
+                }
+            }
         }
     }
 
@@ -109,6 +157,58 @@ namespace dx3d
 
             m_context->drawIndexedTriangleList(group.indexCount, group.startIndex, 0);
         }
+    }
+
+    void RenderSystem::renderShadows(SceneManager& scene)
+    {
+        for (auto& light : m_lightManager->getLights())
+        {
+            if (!light.castShadows || !light.shadow)
+                continue;
+
+            auto& shadow = light.shadow;
+            auto depthTex = shadow->shadowMap;
+            if (!depthTex)
+                continue;
+
+            Rect vp;
+            vp.width = depthTex->getWidth();
+            vp.height = depthTex->getHeight();
+            m_context->setViewportSize(vp);
+
+            m_context->setDepthTarget(depthTex->getDSV());
+            m_context->clearDepth(*depthTex->getDSV());
+
+            m_context->setVertexShader(m_depthVS.Get());
+            m_context->setPixelShader(nullptr);
+
+            for (auto& objPtr : scene.getAllObjects())
+            {
+                auto& obj = *objPtr.get();
+                const auto& model = obj.model;
+                if (!model) continue;
+
+                Matrix4x4 worldT = obj.transform.getWorldMatrix().transpose();
+                Matrix4x4 viewT = shadow->view.transpose();
+                Matrix4x4 projT = shadow->proj.transpose();
+                Matrix4x4 worldViewProjT = worldT * viewT * projT;
+
+                m_context->updateConstantBuffer(*m_depthCB, &worldViewProjT, sizeof(Matrix4x4));
+                m_context->setVSConstantBuffer(*m_depthCB, 0);
+
+                if (!model->mesh) continue;
+                m_context->setVertexBuffer(model->mesh->getVertexBuffer());
+                m_context->setIndexBuffer(model->mesh->getIndexBuffer());
+                m_context->drawIndexedTriangleList(
+                    model->mesh->getIndexBuffer().getIndexCount(), 0, 0);
+            }
+
+            DX3D_LOG_DEBUG("Rendered shadow map for SpotLight at ({:.1f}, {:.1f}, {:.1f})",
+                light.position.x, light.position.y, light.position.z);
+            
+        }
+
+        m_context->setDepthTarget(nullptr);
     }
 
 

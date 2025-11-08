@@ -1,5 +1,7 @@
 #include <DX3D/Graphics/MaterialLoader.h>
 #include <DX3D/Graphics/Texture2D.h>
+#include <DX3D/Graphics/GraphicsDevice.h>
+#include <DX3D/Graphics/AssetManager.h>
 #include <DX3D/Core/Logger.h>
 #include <fstream>
 #include <sstream>
@@ -7,7 +9,10 @@
 
 namespace dx3d
 {
-    std::vector<Material> MaterialLoader::loadMTL(const std::string& objFilePath, const std::string& mtlFileName)
+    std::vector<Material> MaterialLoader::loadMTL(
+        const std::string& objFilePath,
+        const std::string& mtlFileName,
+        AssetManager* assets)
     {
         std::vector<Material> materials;
         std::filesystem::path objPath(objFilePath);
@@ -20,7 +25,12 @@ namespace dx3d
             return materials;
         }
 
-        DX3D_LOG_INFO("Loading materials from: {}", mtlPath.string());
+        bool fromCache = false;
+        if (assets && assets->hasMaterial(mtlPath.string()))
+        {
+            //DX3D_LOG_INFO("Using cached materials from '{}'", mtlPath.string());
+            fromCache = true;
+        }
 
         Material currentMat;
         std::string line;
@@ -68,17 +78,30 @@ namespace dx3d
             else if (prefix == "map_Kd")
             {
                 iss >> currentMat.diffuseTexturePath;
+
+                if (assets && !currentMat.diffuseTexturePath.empty())
+                {
+                    auto texPath = mtlPath.parent_path() / currentMat.diffuseTexturePath;
+                    if (assets->hasTexture(texPath.string()))
+                    {
+                        DX3D_LOG_INFO("  Using cached texture '{}'", texPath.string());
+                    }
+                    currentMat.diffuseTexture = assets->getTexture(texPath.string());
+                }
             }
         }
 
         if (!currentMat.name.empty())
             materials.push_back(currentMat);
 
-        DX3D_LOG_INFO("Loaded {} materials from {}", materials.size(), mtlPath.string());
-        for (const auto& mat : materials)
+        if (!fromCache)
         {
-            DX3D_LOG_INFO("  Material [{}]: Kd({:.2f}, {:.2f}, {:.2f})",
-                mat.name, mat.diffuseColor.x, mat.diffuseColor.y, mat.diffuseColor.z);
+            DX3D_LOG_INFO("Loaded {} materials from {}", materials.size(), mtlPath.string());
+            for (const auto& mat : materials)
+            {
+                DX3D_LOG_INFO("  Material [{}]: Kd({:.2f}, {:.2f}, {:.2f})",
+                    mat.name, mat.diffuseColor.x, mat.diffuseColor.y, mat.diffuseColor.z);
+            }
         }
         return materials;
     }
