@@ -153,32 +153,18 @@ namespace dx3d
 
         void setLookAtLH(const Vec3& eye, const Vec3& target, const Vec3& up)
         {
-            Vec3 zAxis = (target - eye);
-            zAxis = normalize(zAxis);
-
-            Vec3 xAxis = cross(up, zAxis);
-            xAxis = normalize(xAxis);
-
-            Vec3 yAxis = cross(zAxis, xAxis);
+            Vec3 zAxis = normalize(target - eye);        // вперед
+            Vec3 xAxis = normalize(cross(up, zAxis));    // вправо
+            Vec3 yAxis = cross(zAxis, xAxis);            // вгору
 
             setIdentity();
 
-            mat[0][0] = xAxis.x;
-            mat[0][1] = yAxis.x;
-            mat[0][2] = zAxis.x;
-
-            mat[1][0] = xAxis.y;
-            mat[1][1] = yAxis.y;
-            mat[1][2] = zAxis.y;
-
-            mat[2][0] = xAxis.z;
-            mat[2][1] = yAxis.z;
-            mat[2][2] = zAxis.z;
-
-            mat[3][0] = -dot(xAxis, eye);
-            mat[3][1] = -dot(yAxis, eye);
-            mat[3][2] = -dot(zAxis, eye);
+            mat[0][0] = xAxis.x; mat[1][0] = xAxis.y; mat[2][0] = xAxis.z; mat[3][0] = -dot(xAxis, eye);
+            mat[0][1] = yAxis.x; mat[1][1] = yAxis.y; mat[2][1] = yAxis.z; mat[3][1] = -dot(yAxis, eye);
+            mat[0][2] = zAxis.x; mat[1][2] = zAxis.y; mat[2][2] = zAxis.z; mat[3][2] = -dot(zAxis, eye);
+            mat[0][3] = 0;        mat[1][3] = 0;        mat[2][3] = 0;        mat[3][3] = 1;
         }
+
 
         Vec3 transformPoint(const Vec3& point) const {
             float x = point.x * mat[0][0] + point.y * mat[1][0] + point.z * mat[2][0] + mat[3][0];

@@ -34,7 +34,7 @@ namespace dx3d
         void updateViewMatrix();
 
     private:
-        Vec3 m_position{ 0.3f, 0.0f, -2.0f };
+        Vec3 m_position{ 0.0f, 0.0f, 0.0f };
         Vec3 m_forward{ 0.0f, 0.0f, 1.0f };
         Vec3 m_up{ 0.0f, 1.0f, 0.0f };
 

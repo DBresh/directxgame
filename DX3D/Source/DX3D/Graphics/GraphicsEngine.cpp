@@ -77,6 +77,8 @@ namespace dx3d
 			cubes->constantBuffer = m_graphicsDevice->createConstantBuffer({ nullptr, sizeof(Matrix4x4) * 3 });
 		}
 
+		m_scene.findObject("cube")->transform.setPosition(Vec3(0, 0, 0));
+
 		auto planeModel = m_assets->getModel("plane.obj");
 		auto plane = m_scene.createObject("plane");
 		plane->model = planeModel;
@@ -87,19 +89,19 @@ namespace dx3d
 		auto lights = m_renderSystem->getLightManager();
 		lights->clear();
 
-		//for (int i = -32; i <= 16; i += 2)
-		//{
-		//	for (int j = -24; j <= 16; j += 2)
-		//	{
-		//		float r = (i + 32) / 48.0f;
-		//		float g = (j + 24) / 40.0f;
-		//		float b = 1.0f - 0.5f * (r + g);
+		for (int i = -32; i <= 16; i += 2)
+		{
+			for (int j = -24; j <= 16; j += 2)
+			{
+				float r = (i + 32) / 48.0f;
+				float g = (j + 24) / 40.0f;
+				float b = 1.0f - 0.5f * (r + g);
 
-		//		lights->addPoint(Vec3((float)i, -2.2f, (float)j), Vec3(r, g, b), 1.0f, 1.0f);
-		//	}
-		//}
+				lights->addPoint(Vec3((float)i, -2.2f, (float)j), Vec3(r, g, b), 1.0f, 1.0f);
+			}
+		}
 
-		//lights->addPoint(Vec3(5, 0, -2), Vec3(0.2f, 0.4f, 1.0f), 55.0f, 2.9f);
+		lights->addPoint(Vec3(5, 0, -2), Vec3(0.2f, 0.4f, 1.0f), 55.0f, 2.9f);
 		lights->addSpot(
 			Vec3(1.5f, 5.f, 0.f),        // позиція
 			Vec3(0.0f, -1.0f, 0.f),       // напрям
@@ -110,19 +112,20 @@ namespace dx3d
 			true						// тіні
 		);
 
-		//lights->addPoint(Vec3(7, 0, -2), Vec3(0.8f, 0.4f, 0.2f), 55.0f, 2.9f);
+		lights->addPoint(Vec3(7, 0, -2), Vec3(0.8f, 0.4f, 0.2f), 55.0f, 2.9f);
 	}
 
 	void GraphicsEngine::render(SwapChain& swapChain)
 	{
 		m_camera->update();
 		auto cameraPos = m_camera->getPosition();
+		auto cameraView = m_camera->getViewMatrix();
 		m_renderSystem->setCameraPosition(cameraPos);
 
 		//DX3D_LOG_INFO("POS: x={}, y={}, z={}", cameraPos.x, cameraPos.y, cameraPos.z);
 
-		Matrix4x4 viewT = m_camera->getViewMatrix().transpose();
-		Matrix4x4 projT = m_camera->getProjectionMatrix().transpose();
+		Matrix4x4 viewT = m_camera->getViewMatrix();
+		Matrix4x4 projT = m_camera->getProjectionMatrix();
 
 		m_renderSystem->renderShadows(m_scene);
 		m_renderSystem->beginFrame(swapChain, { 0.2f, 0.2f, 0.2f, 1.0f });
@@ -130,7 +133,7 @@ namespace dx3d
 		for (const auto& object : m_scene.getAllObjects())
 		{
 			if (!object->model) continue;
-			Matrix4x4 worldT = object->getWorldTransform().getWorldMatrix().transpose();
+			Matrix4x4 worldT = object->getWorldTransform().getWorldMatrix();
 
 			m_renderSystem->drawModel(
 				*object->model,

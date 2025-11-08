@@ -1,12 +1,13 @@
 cbuffer TransformBuffer : register(b0)
 {
-    row_major float4x4 worldViewProj; // <- сюди CPU кладе worldT*viewT*projT
+    row_major float4x4 worldViewProj;
 };
 
 struct VSInput
 {
     float3 position : POSITION;
 };
+
 struct VSOutput
 {
     float4 position : SV_Position;
@@ -15,6 +16,6 @@ struct VSOutput
 VSOutput VSMain(VSInput input)
 {
     VSOutput o;
-    o.position = mul(worldViewProj, float4(input.position, 1.0f));
+    o.position = mul(float4(input.position, 1.0f), worldViewProj);
     return o;
 }

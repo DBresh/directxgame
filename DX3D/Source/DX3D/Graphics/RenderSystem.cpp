@@ -72,7 +72,7 @@ namespace dx3d
 
                 if (light.castShadows && light.shadow)
                 {
-                    lightMatrices[i] = light.shadow->viewProj.transpose();
+                    lightMatrices[i] = light.shadow->viewProj;
                 }
                 else
                 {
@@ -188,9 +188,9 @@ namespace dx3d
                 const auto& model = obj.model;
                 if (!model) continue;
 
-                Matrix4x4 worldT = obj.transform.getWorldMatrix().transpose();
-                Matrix4x4 viewT = shadow->view.transpose();
-                Matrix4x4 projT = shadow->proj.transpose();
+                Matrix4x4 worldT = obj.transform.getWorldMatrix();
+                Matrix4x4 viewT = shadow->view;
+                Matrix4x4 projT = shadow->proj;
                 Matrix4x4 worldViewProjT = worldT * viewT * projT;
 
                 m_context->updateConstantBuffer(*m_depthCB, &worldViewProjT, sizeof(Matrix4x4));

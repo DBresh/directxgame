@@ -1,4 +1,3 @@
-
 //#define DEBUG_NL
 #define USE_GAMMA 0
 #define MAX_LIGHTS 64
@@ -64,17 +63,12 @@ struct VSOutput
 VSOutput VSMain(VSInput input)
 {
     VSOutput o;
-
-    float4 wp = mul(world, float4(input.position, 1.0f));
+    float4 wp = mul(float4(input.position, 1.0f), world);
+    o.normal = normalize(mul(input.normal, (float3x3) world));
+    float4 vp = mul(wp, view);
+    o.position = mul(vp, projection);
+    o.posLight = mul(wp, lightViewProj[0]);
     o.worldPos = wp.xyz;
-    o.normal = normalize(mul((float3x3) world, input.normal));
-
-    float4 vp = mul(view, wp);
-    o.position = mul(projection, vp);
-
-    // Для тіней беремо перший світильник, що кидає тінь
-    o.posLight = mul(lightViewProj[0], wp);
-
     o.texcoord = input.texcoord;
     o.color = input.color;
     return o;
@@ -82,22 +76,14 @@ VSOutput VSMain(VSInput input)
 
 float ComputeShadow(float4 worldPosLightSpace)
 {
-    // clip -> NDC
     float3 p = worldPosLightSpace.xyz / max(worldPosLightSpace.w, 1e-6f);
-
-    // відсікти поза пірамідою світла
     if (p.x < -1.0f || p.x > 1.0f ||
         p.y < -1.0f || p.y > 1.0f ||
         p.z < 0.0f || p.z > 1.0f)
         return 1.0f;
-
-    // тільки x,y в [0..1]
-    float2 uv = p.xy * 0.5f + 0.5f;
-
-    // невеликий зсув по глибині
+    float2 uv = p.xy * float2(0.5f, -0.5f) + 0.5f;
     const float depthBias = 0.0015f;
     float refZ = p.z - depthBias;
-
     return shadowMap.SampleCmpLevelZero(shadowSampler, uv, refZ);
 }
 
@@ -117,7 +103,7 @@ float3 ComputeLighting(float3 baseColor, float3 N, float3 V, float3 worldPos, fl
         {
             L = normalize(-l.dirSpot.xyz);
         }
-        else
+        else // Point або Spot
         {
             float3 toL = l.posRange.xyz - worldPos;
             float dist = length(toL);
@@ -154,8 +140,10 @@ float3 ComputeLighting(float3 baseColor, float3 N, float3 V, float3 worldPos, fl
 
         float shadow = 1.0f;
         if (l.type == 2 && i == 0)
+        {
             shadow = ComputeShadow(posLight);
-
+        }
+           
         sum += shadow * (diffuse + specular) * l.colInt.w * atten;
     }
 
