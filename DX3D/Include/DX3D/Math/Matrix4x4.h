@@ -68,8 +68,8 @@ namespace dx3d
             float cosA = cos(angle);
             float sinA = sin(angle);
             mat[0][0] = cosA;
-            mat[0][1] = sinA;
-            mat[1][0] = -sinA;
+            mat[0][1] = -sinA;
+            mat[1][0] = sinA;
             mat[1][1] = cosA;
         }
 
@@ -114,15 +114,15 @@ namespace dx3d
         Matrix4x4 operator*(const Matrix4x4& rhs) const
         {
             Matrix4x4 result;
-            for (int i = 0; i < 4; ++i)
+            for (int r = 0; r < 4; ++r)
             {
-                for (int j = 0; j < 4; ++j)
+                for (int c = 0; c < 4; ++c)
                 {
-                    result.mat[i][j] = 0.0f;
-                    for (int k = 0; k < 4; ++k)
-                    {
-                        result.mat[i][j] += mat[i][k] * rhs.mat[k][j];
-                    }
+                    result.mat[r][c] =
+                        mat[r][0] * rhs.mat[0][c] +
+                        mat[r][1] * rhs.mat[1][c] +
+                        mat[r][2] * rhs.mat[2][c] +
+                        mat[r][3] * rhs.mat[3][c];
                 }
             }
             return result;
@@ -137,10 +137,10 @@ namespace dx3d
             mat[3][2] = -znear / (zfar - znear);
         }
 
-        void setPerspectiveFovLH(float fov, float aspect, float znear, float zfar)
+        void setPerspectiveFovLH(float fovY, float aspect, float znear, float zfar)
         {
             setIdentity();
-            float yScale = 1.0f / tan(fov / 2.0f);
+            float yScale = 1.0f / tanf(fovY * 0.5f);
             float xScale = yScale / aspect;
 
             mat[0][0] = xScale;
@@ -153,18 +153,17 @@ namespace dx3d
 
         void setLookAtLH(const Vec3& eye, const Vec3& target, const Vec3& up)
         {
-            Vec3 zAxis = normalize(target - eye);        // вперед
-            Vec3 xAxis = normalize(cross(up, zAxis));    // вправо
-            Vec3 yAxis = cross(zAxis, xAxis);            // вгору
+            Vec3 zAxis = normalize(target - eye);
+            Vec3 xAxis = normalize(cross(up, zAxis));
+            Vec3 yAxis = cross(zAxis, xAxis);
 
             setIdentity();
 
             mat[0][0] = xAxis.x; mat[1][0] = xAxis.y; mat[2][0] = xAxis.z; mat[3][0] = -dot(xAxis, eye);
             mat[0][1] = yAxis.x; mat[1][1] = yAxis.y; mat[2][1] = yAxis.z; mat[3][1] = -dot(yAxis, eye);
             mat[0][2] = zAxis.x; mat[1][2] = zAxis.y; mat[2][2] = zAxis.z; mat[3][2] = -dot(zAxis, eye);
-            mat[0][3] = 0;        mat[1][3] = 0;        mat[2][3] = 0;        mat[3][3] = 1;
+            mat[0][3] = 0.0f;    mat[1][3] = 0.0f;    mat[2][3] = 0.0f;    mat[3][3] = 1.0f;
         }
-
 
         Vec3 transformPoint(const Vec3& point) const {
             float x = point.x * mat[0][0] + point.y * mat[1][0] + point.z * mat[2][0] + mat[3][0];

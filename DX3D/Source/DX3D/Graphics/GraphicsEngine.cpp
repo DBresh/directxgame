@@ -67,7 +67,7 @@ namespace dx3d
 	void GraphicsEngine::createCubeMesh()
 	{
 		auto model = m_assets->getModel("cube.obj");
-		for (int i = 1; i <= 10; i++) {
+		for (int i = 1; i <= 1; i++) {
 			auto cubes = m_scene.createObject("cube");
 
 			cubes->model = model;
@@ -77,49 +77,53 @@ namespace dx3d
 			cubes->constantBuffer = m_graphicsDevice->createConstantBuffer({ nullptr, sizeof(Matrix4x4) * 3 });
 		}
 
-		m_scene.findObject("cube")->transform.setPosition(Vec3(0, 0, 0));
-
 		auto planeModel = m_assets->getModel("plane.obj");
 		auto plane = m_scene.createObject("plane");
 		plane->model = planeModel;
-		plane->transform.setPosition(Vec3(0, -4, 0));
+		plane->transform.setPosition(Vec3(0, -2, 0));
 		plane->transform.setScale(Vec3(5, 5, 5));
 		plane->constantBuffer = m_graphicsDevice->createConstantBuffer({ nullptr, sizeof(Matrix4x4) * 3 });
+
+		auto plane1 = m_scene.createObject("plane");
+		plane1->model = planeModel;
+		plane1->transform.setPosition(Vec3(0, 10, 0));
+		plane1->transform.setScale(Vec3(5, 5, 5));
+		plane1->constantBuffer = m_graphicsDevice->createConstantBuffer({ nullptr, sizeof(Matrix4x4) * 3 });
 
 		auto lights = m_renderSystem->getLightManager();
 		lights->clear();
 
-		for (int i = -32; i <= 16; i += 2)
-		{
-			for (int j = -24; j <= 16; j += 2)
-			{
-				float r = (i + 32) / 48.0f;
-				float g = (j + 24) / 40.0f;
-				float b = 1.0f - 0.5f * (r + g);
+		//for (int i = -32; i <= 16; i += 2)
+		//{
+		//	for (int j = -24; j <= 16; j += 2)
+		//	{
+		//		float r = (i + 32) / 48.0f;
+		//		float g = (j + 24) / 40.0f;
+		//		float b = 1.0f - 0.5f * (r + g);
 
-				lights->addPoint(Vec3((float)i, -2.2f, (float)j), Vec3(r, g, b), 1.0f, 1.0f);
-			}
-		}
+		//		lights->addPoint(Vec3((float)i, -2.2f, (float)j), Vec3(r, g, b), 1.0f, 1.0f);
+		//	}
+		//}
 
-		lights->addPoint(Vec3(5, 0, -2), Vec3(0.2f, 0.4f, 1.0f), 55.0f, 2.9f);
+		//lights->addPoint(Vec3(5, 0, -2), Vec3(0.2f, 0.4f, 1.0f), 55.0f, 2.9f);
+		//m_scene.getAllObjects()[1]->transform.setPosition(Vec3(4, 0, 0));
 		lights->addSpot(
-			Vec3(1.5f, 5.f, 0.f),        // позиція
+			Vec3(1.5f, 3.0f, 0.f),        // позиція
 			Vec3(0.0f, -1.0f, 0.f),       // напрям
-			50.0f,                      // кут
+			55.0f,                      // кут
 			Vec3(1.f, 0.95f, 0.85f),    // колір
-			30.0f,                      // range
+			25.0f,                      // range
 			8.0f,                        // інтенсивність
 			true						// тіні
 		);
 
-		lights->addPoint(Vec3(7, 0, -2), Vec3(0.8f, 0.4f, 0.2f), 55.0f, 2.9f);
+		lights->addPoint(Vec3(1.5f, 0.2, 0), Vec3(0.8f, 0.4f, 0.2f), 55.0f, 2.9f);
 	}
 
 	void GraphicsEngine::render(SwapChain& swapChain)
 	{
 		m_camera->update();
 		auto cameraPos = m_camera->getPosition();
-		auto cameraView = m_camera->getViewMatrix();
 		m_renderSystem->setCameraPosition(cameraPos);
 
 		//DX3D_LOG_INFO("POS: x={}, y={}, z={}", cameraPos.x, cameraPos.y, cameraPos.z);

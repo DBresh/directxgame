@@ -25,31 +25,23 @@ namespace dx3d
         updateViewMatrix();
     }
 
-    void Camera::update()
-    {
-        float dt = static_cast<float>(Time::Instance()->deltaTime());
-        float moveStep = m_speed * dt;
-
-        Vec3 forward = m_forward.normalize();
-        Vec3 right = cross(Vec3(0, 1, 0), forward).normalize();
-
-        m_position += forward * (m_moveForward * moveStep);
-        m_position += right * (m_moveRight * moveStep);
-        m_position += Vec3(0, 1, 0) * (m_moveUp * moveStep);
-
-        updateViewMatrix();
-    }
-
     void Camera::updateViewMatrix()
     {
+        float cosPitch = cosf(m_pitch);
+        float sinPitch = sinf(m_pitch);
+        float cosYaw = cosf(m_yaw);
+        float sinYaw = sinf(m_yaw);
+
+        // row-major версія: дивимось по -Z при yaw=0,pitch=0
         Vec3 forward{
-            sin(m_yaw) * cos(m_pitch),
-            sin(m_pitch),
-            cos(m_yaw) * cos(m_pitch)
+            cosPitch * sinYaw,
+            sinPitch,
+            -cosPitch * cosYaw
         };
         forward = forward.normalize();
 
-        Vec3 right = cross(Vec3(0, 1, 0), forward).normalize();
+        Vec3 upWorld(0, 1, 0);
+        Vec3 right = cross(upWorld, forward).normalize();
         Vec3 up = cross(forward, right).normalize();
 
         m_forward = forward;
@@ -57,6 +49,25 @@ namespace dx3d
         Vec3 target = m_position + forward;
         m_viewMatrix.setLookAtLH(m_position, target, up);
     }
+
+    void Camera::update()
+    {
+        float dt = static_cast<float>(Time::Instance()->deltaTime());
+        float moveStep = m_speed * dt;
+
+        Vec3 forward = m_forward.normalize();
+
+        // Узгоджено з updateViewMatrix()
+        Vec3 right = Vec3(forward.z, 0.0f, -forward.x).normalize();
+        Vec3 up(0, 1, 0);
+
+        m_position += forward * (m_moveForward * moveStep);
+        m_position += right * (m_moveRight * moveStep);
+        m_position += up * (m_moveUp * moveStep);
+
+        updateViewMatrix();
+    }
+
 
     void Camera::onKeyDown(int key) {
         if (key == VK_SHIFT) m_speed *= 5;
@@ -85,13 +96,13 @@ namespace dx3d
 
         if ((char)key == 'I') m_pitch += m_sensitivity * 10 * dt;
         if ((char)key == 'K') m_pitch -= m_sensitivity * 10 * dt;
-        if ((char)key == 'J') m_yaw -= m_sensitivity * 10 * dt;
-        if ((char)key == 'L') m_yaw += m_sensitivity * 10 * dt;
+        if ((char)key == 'J') m_yaw += m_sensitivity * 10 * dt;
+        if ((char)key == 'L') m_yaw -= m_sensitivity * 10 * dt;
     }
 
     void Camera::onMouseMove(Point deltaMouse)
     {
-        m_yaw += deltaMouse.x * m_sensitivity * 0.01f;
+        m_yaw -= deltaMouse.x * m_sensitivity * 0.01f;
         m_pitch -= deltaMouse.y * m_sensitivity * 0.01f;
 
         const float limit = 1.55f; // ~89°

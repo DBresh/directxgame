@@ -63,19 +63,23 @@ namespace dx3d
         l.shadow = std::make_shared<LightShadowData>();
         l.shadow->shadowMap = m_device->createDepthTexture2D(shadowSize, shadowSize);
 
-        l.shadow->view.setLookAtLH(l.position, l.position + l.direction, Vec3(0, 1, 0));
+        Vec3 fwd = l.direction.normalize();
+        Vec3 up = (std::abs(fwd.y) > 0.99f) ? Vec3(0, 0, 1) : Vec3(0, 1, 0);
+        l.shadow->view.setLookAtLH(l.position, l.position + fwd, up);
 
-        l.shadow->proj.setPerspectiveFovLH(
-            deg2rad(l.spotAngle * 2.0f),
-            1.0f,  // aspect
-            0.1f,  // znear
-            l.range // zfar
-        );
+        float fovRadFull = deg2rad(l.spotAngle * 0.5f);
+
+        float aspect = 1.0f;
+        float znear = 0.1f;
+        float zfar = l.range;
+        l.shadow->proj.setPerspectiveFovLH(fovRadFull, aspect, znear, zfar);
 
         l.shadow->viewProj = l.shadow->view * l.shadow->proj;
 
-        DX3D_LOG_INFO("Created shadow map for spot light ({:.1f},{:.1f},{:.1f}) - angle {:.1f}",
-            l.position.x, l.position.y, l.position.z, l.spotAngle);
+        l.shadow->bias = 0.0065f;
+
+        DX3D_LOG_INFO("Created spot shadow: pos({:.2f},{:.2f},{:.2f}) dir({:.2f},{:.2f},{:.2f}) fovDeg={:.1f}",
+            l.position.x, l.position.y, l.position.z, fwd.x, fwd.y, fwd.z, l.spotAngle);
     }
 
     void LightManager::uploadToGPU()

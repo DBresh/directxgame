@@ -18,7 +18,7 @@ namespace dx3d
         Matrix4x4 view;
         Matrix4x4 proj;
         Matrix4x4 viewProj;
-        float bias = 0.002f;
+        float bias = 0.005f;
     };
 
     struct Light

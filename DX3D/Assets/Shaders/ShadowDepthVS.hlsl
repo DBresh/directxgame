@@ -5,9 +5,8 @@ cbuffer TransformBuffer : register(b0)
 
 struct VSInput
 {
-    float3 position : POSITION;
+    float3 position : POSITION0;
 };
-
 struct VSOutput
 {
     float4 position : SV_Position;
