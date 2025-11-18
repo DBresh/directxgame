@@ -1,22 +1,24 @@
 #include <DX3D/Game/GameObject.h>
 #include <algorithm>
+#include <DirectXMath.h>
 
-namespace dx3d {
+using namespace DirectX;
 
-    void GameObject::addChild(const std::shared_ptr<GameObject>& child) {
-        if (!child || child.get() == this) {
-            return;
-        }
+namespace dx3d
+{
+    void GameObject::addChild(const std::shared_ptr<GameObject>& child)
+    {
+        if (!child || child.get() == this) return;
 
-        if (auto currentParent = child->parent.lock()) {
+        if (auto currentParent = child->parent.lock())
             currentParent->removeChild(child);
-        }
 
         children.push_back(child);
         child->parent = shared_from_this();
     }
 
-    void GameObject::removeChild(const std::shared_ptr<GameObject>& child) {
+    void GameObject::removeChild(const std::shared_ptr<GameObject>& child)
+    {
         auto it = std::find(children.begin(), children.end(), child);
         if (it != children.end()) {
             children.erase(it);
@@ -24,55 +26,79 @@ namespace dx3d {
         }
     }
 
-    void GameObject::setParent(const std::shared_ptr<GameObject>& newParent) {
-        if (newParent.get() == this) {
-            return;
-        }
+    void GameObject::setParent(const std::shared_ptr<GameObject>& newParent)
+    {
+        if (newParent.get() == this) return;
 
-        if (auto currentParent = parent.lock()) {
+        if (auto currentParent = parent.lock())
             currentParent->removeChild(shared_from_this());
-        }
 
-        if (newParent) {
+        if (newParent)
             newParent->addChild(shared_from_this());
-        }
-        else {
+        else
             parent.reset();
-        }
     }
 
-    Transform GameObject::getWorldTransform() const {
-        Transform worldTransform = transform;
+    Transform GameObject::getWorldTransform() const
+    {
+        Transform result = transform;
 
-        if (auto parentPtr = parent.lock()) {
-            Transform parentWorldTransform = parentPtr->getWorldTransform();
-            Matrix4x4 parentWorldMatrix = parentWorldTransform.getWorldMatrix();
+        auto parentPtr = parent.lock();
+        if (!parentPtr)
+            return result;
 
-            Vec3 worldPosition = transform.getPosition();
-            Vec3 worldScale = transform.getScale();
-            Quaternion worldRotation = Quaternion::fromEuler(transform.getRotation());
+        Transform parentWorld = parentPtr->getWorldTransform();
 
-            if (inheritPosition) {
-                worldPosition = parentWorldMatrix.transformPoint(transform.getPosition());
-            }
-            else {
-                worldPosition = parentWorldTransform.getPosition() + transform.getPosition();
-            }
+        // Load components
+        XMFLOAT3 localPos = transform.getPosition();
+        XMFLOAT3 localScale = transform.getScale();
+        XMFLOAT4 localQuat = transform.getQuaternion();
 
-            if (inheritRotation) {
-                Quaternion parentRot = Quaternion::fromEuler(parentWorldTransform.getRotation());
-                worldRotation = parentRot * Quaternion::fromEuler(transform.getRotation());
-            }
+        XMFLOAT3 parentPos = parentWorld.getPosition();
+        XMFLOAT3 parentScale = parentWorld.getScale();
+        XMFLOAT4 parentQuat = parentWorld.getQuaternion();
 
-            if (inheritScale) {
-                worldScale = parentWorldTransform.getScale() * transform.getScale();
-            }
-
-            worldTransform.setPosition(worldPosition);
-            worldTransform.setScale(worldScale);
-            worldTransform.setRotation(worldRotation.toEuler());
+        // ---------------- SCALE ----------------
+        XMFLOAT3 worldScale = localScale;
+        if (inheritScale) {
+            worldScale.x *= parentScale.x;
+            worldScale.y *= parentScale.y;
+            worldScale.z *= parentScale.z;
         }
 
-        return worldTransform;
+        // ---------------- ROTATION ----------------
+        XMVECTOR qLocal = XMLoadFloat4(&localQuat);
+        XMVECTOR qParent = XMLoadFloat4(&parentQuat);
+
+        XMVECTOR qWorld = qLocal;
+        if (inheritRotation)
+            qWorld = XMQuaternionMultiply(qLocal, qParent);
+
+        XMFLOAT4 worldQuat;
+        XMStoreFloat4(&worldQuat, qWorld);
+
+        // ---------------- POSITION ----------------
+        XMFLOAT3 worldPos = localPos;
+
+        if (inheritPosition)
+        {
+            XMMATRIX parentM = XMLoadFloat4x4(&parentWorld.getWorldMatrix());
+            XMVECTOR pos = XMVectorSet(localPos.x, localPos.y, localPos.z, 1.0f);
+            pos = XMVector3Transform(pos, parentM);
+            XMStoreFloat3(&worldPos, pos);
+        }
+        else
+        {
+            worldPos.x += parentPos.x;
+            worldPos.y += parentPos.y;
+            worldPos.z += parentPos.z;
+        }
+
+        // ---------------- WRITE TO RESULT ----------------
+        result.setScale(worldScale);
+        result.setPosition(worldPos);
+        result.setQuaternion(worldQuat);
+
+        return result;
     }
 }

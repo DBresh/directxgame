@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <memory>
-#include <DX3D/Math/Vec3.h>
+#include <DirectXMath.h>
 
 namespace dx3d
 {
@@ -11,13 +11,16 @@ namespace dx3d
     {
         std::string name;
 
-        Vec3 diffuseColor{ 1.0f, 1.0f, 1.0f };   // Kd
-        Vec3 ambientColor{ 0.0f, 0.0f, 0.0f };   // Ka
-        Vec3 specularColor{ 0.0f, 0.0f, 0.0f };  // Ks
-        float shininess{ 0.0f };                 // Ns
-        float opacity{ 1.0f };                   // d
+        DirectX::XMFLOAT3 diffuseColor{ 1.0f, 1.0f, 1.0f };   // Kd
+        float              shininess = 0.0f;                // Ns
 
-        std::string diffuseTexturePath;          // file 
-        std::shared_ptr<Texture2D> diffuseTexture; // GPU texture resource
+        DirectX::XMFLOAT3 ambientColor{ 0.0f, 0.0f, 0.0f };   // Ka
+        float              opacity = 1.0f;                // d
+
+        DirectX::XMFLOAT3 specularColor{ 0.0f, 0.0f, 0.0f };   // Ks
+        float              _pad = 0.0f;                // align to 16 bytes
+
+        std::string diffuseTexturePath;
+        std::shared_ptr<Texture2D> diffuseTexture;
     };
 }

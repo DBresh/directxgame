@@ -2,9 +2,10 @@
 #include <memory>
 #include <vector>
 #include <wrl.h>
+#include <DirectXMath.h>
+
 #include <DX3D/Core/Core.h>
 #include <DX3D/Core/Common.h>
-#include <DX3D/Math/Matrix4x4.h>
 #include <DX3D/Graphics/GraphicsDevice.h>
 #include <DX3D/Graphics/DeviceContext.h>
 #include <DX3D/Graphics/SwapChain.h>
@@ -18,6 +19,8 @@
 
 namespace dx3d
 {
+    using namespace DirectX;
+
     class RenderSystem
     {
     public:
@@ -27,17 +30,19 @@ namespace dx3d
         void setPipeline(GraphicsPipelineStatePtr pipeline) noexcept;
         void setPSSampler(ID3D11SamplerState* sampler) noexcept;
 
-        void beginFrame(SwapChain& swapChain, const Vec4& clearColor);
+        // clearColor тепер XMFLOAT4
+        void beginFrame(SwapChain& swapChain, const XMFLOAT4& clearColor);
         void endFrame(GraphicsDevice& device, SwapChain& swapChain, bool vsync);
 
+        // Матриці тепер XMFLOAT4X4 (матриці трансформу, камери, проєкції)
         void drawModel(
             const ModelGPU& model,
             const ConstantBuffer& objectCB,
-            const Matrix4x4& worldT,
-            const Matrix4x4& viewT,
-            const Matrix4x4& projT);
+            const XMFLOAT4X4& world,
+            const XMFLOAT4X4& view,
+            const XMFLOAT4X4& proj);
 
-        void setCameraPosition(const Vec3& pos) noexcept { m_cameraPosition = pos; }
+        void setCameraPosition(const XMFLOAT3& pos) noexcept { m_cameraPosition = pos; }
 
         LightManager* getLightManager() const noexcept { return m_lightManager.get(); }
 
@@ -48,21 +53,22 @@ namespace dx3d
         DeviceContextPtr                m_context;
         GraphicsPipelineStatePtr        m_pipeline;
         std::unique_ptr<LightManager>   m_lightManager;
+
         ConstantBufferPtr m_cameraBuffer;
-        Vec3 m_cameraPosition{ 0, 0, 0 };
+        XMFLOAT3          m_cameraPosition{ 0, 0, 0 };
 
         Microsoft::WRL::ComPtr<ID3D11VertexShader> m_depthVS;
-        ConstantBufferPtr m_depthCB;
-        ConstantBufferPtr m_lightMatrixBuffer;
+        ConstantBufferPtr m_depthCB;           // worldViewProj для shadow pass
+        ConstantBufferPtr m_lightMatrixBuffer; // масив матриць світла (viewProj)
 
         Microsoft::WRL::ComPtr<ID3D11SamplerState> m_psSampler;
         Microsoft::WRL::ComPtr<ID3D11SamplerState> m_shadowSampler;
 
         struct TransformData
         {
-            float world[4][4];
-            float view[4][4];
-            float projection[4][4];
+            XMFLOAT4X4 world;
+            XMFLOAT4X4 view;
+            XMFLOAT4X4 projection;
         };
     };
 }

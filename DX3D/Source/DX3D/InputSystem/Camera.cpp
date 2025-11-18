@@ -1,27 +1,25 @@
 #include <DX3D/InputSystem/Camera.h>
-#include <cmath>
 #include <Windows.h>
+
+using namespace DirectX;
 
 namespace dx3d
 {
     Camera::Camera()
     {
         updateViewMatrix();
-        m_forward = Vec3(0, 0, 1);
-        m_yaw = 0.0f;
-        m_pitch = 0.0f;
-
-        setPerspective(degToRad(90), 16.0f / 9.0f, 0.1f, 100.0f);
+        setPerspective(degToRad(90.0f), 16.0f / 9.0f, 0.1f, 100.0f);
     }
 
     void Camera::setPerspective(float fov, float aspect, float zNear, float zFar)
     {
-        m_projMatrix.setPerspectiveFovLH(fov, aspect, zNear, zFar);
+        XMMATRIX P = XMMatrixPerspectiveFovLH(fov, aspect, zNear, zFar);
+        XMStoreFloat4x4(&m_proj, P);
     }
 
-    void Camera::setPosition(const Vec3& pos)
+    void Camera::setPosition(float x, float y, float z)
     {
-        m_position = pos;
+        m_position = XMFLOAT3(x, y, z);
         updateViewMatrix();
     }
 
@@ -32,45 +30,46 @@ namespace dx3d
         float cosYaw = cosf(m_yaw);
         float sinYaw = sinf(m_yaw);
 
-        // row-major версія: дивимось по -Z при yaw=0,pitch=0
-        Vec3 forward{
+        XMVECTOR forward = XMVectorSet(
             cosPitch * sinYaw,
             sinPitch,
-            -cosPitch * cosYaw
-        };
-        forward = forward.normalize();
+            -cosPitch * cosYaw,
+            0.0f
+        );
+        forward = XMVector3Normalize(forward);
+        XMStoreFloat3(&m_forward, forward);
 
-        Vec3 upWorld(0, 1, 0);
-        Vec3 right = cross(upWorld, forward).normalize();
-        Vec3 up = cross(forward, right).normalize();
+        XMVECTOR eye = XMLoadFloat3(&m_position);
+        XMVECTOR up = XMVectorSet(0, 1, 0, 0);
 
-        m_forward = forward;
-
-        Vec3 target = m_position + forward;
-        m_viewMatrix.setLookAtLH(m_position, target, up);
+        XMMATRIX V = XMMatrixLookAtLH(eye, eye + forward, up);
+        XMStoreFloat4x4(&m_view, V);
     }
 
     void Camera::update()
     {
-        float dt = static_cast<float>(Time::Instance()->deltaTime());
-        float moveStep = m_speed * dt;
+        float dt = (float)Time::Instance()->deltaTime();
+        float move = m_speed * dt;
 
-        Vec3 forward = m_forward.normalize();
+        XMVECTOR forward = XMLoadFloat3(&m_forward);
+        XMVECTOR up = XMVectorSet(0, 1, 0, 0);
+        XMVECTOR right = XMVector3Normalize(XMVector3Cross(up, forward));
 
-        // Узгоджено з updateViewMatrix()
-        Vec3 right = Vec3(forward.z, 0.0f, -forward.x).normalize();
-        Vec3 up(0, 1, 0);
+        XMVECTOR pos = XMLoadFloat3(&m_position);
 
-        m_position += forward * (m_moveForward * moveStep);
-        m_position += right * (m_moveRight * moveStep);
-        m_position += up * (m_moveUp * moveStep);
+        pos += forward * (m_moveForward * move);
+        pos += right * (m_moveRight * move);
+        pos += up * (m_moveUp * move);
+
+        XMStoreFloat3(&m_position, pos);
 
         updateViewMatrix();
     }
 
-
-    void Camera::onKeyDown(int key) {
-        if (key == VK_SHIFT) m_speed *= 5;
+    void Camera::onKeyDown(int key)
+    {
+        if (key == VK_SHIFT)
+            m_speed *= 5;
     }
 
     void Camera::onKeyUp(int key)
@@ -78,12 +77,14 @@ namespace dx3d
         if ((char)key == 'W' || (char)key == 'S') m_moveForward = 0;
         if ((char)key == 'A' || (char)key == 'D') m_moveRight = 0;
         if (key == VK_SPACE || key == VK_CONTROL) m_moveUp = 0;
-        if (key == VK_SHIFT) m_speed /= 5;
+
+        if (key == VK_SHIFT)
+            m_speed /= 5;
     }
 
     void Camera::onKeyPress(int key)
     {
-        float dt = static_cast<float>(Time::Instance()->deltaTime());
+        float dt = (float)Time::Instance()->deltaTime();
 
         if ((char)key == 'W') m_moveForward = 1;
         if ((char)key == 'S') m_moveForward = -1;
@@ -105,8 +106,8 @@ namespace dx3d
         m_yaw -= deltaMouse.x * m_sensitivity * 0.01f;
         m_pitch -= deltaMouse.y * m_sensitivity * 0.01f;
 
-        const float limit = 1.55f; // ~89°
-        if (m_pitch > limit)  m_pitch = limit;
+        const float limit = 1.55f;
+        if (m_pitch > limit) m_pitch = limit;
         if (m_pitch < -limit) m_pitch = -limit;
 
         updateViewMatrix();

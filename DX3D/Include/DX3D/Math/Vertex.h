@@ -1,31 +1,37 @@
 #pragma once
-#include <DX3D/Math/Vec2.h>
-#include <DX3D/Math/Vec3.h>
-#include <DX3D/Math/Vec4.h>
+#include <DirectXMath.h>
 
 namespace dx3d
 {
+    using namespace DirectX;
 
     struct Vertex
     {
-        Vec3 position;
-        Vec3 normal;
-        Vec2 texcoord;
-        Vec4 color;
+        XMFLOAT3 position;
+        XMFLOAT3 normal;
+        XMFLOAT2 texcoord;
+        XMFLOAT4 color;
 
-        Vertex() = default;
-
-        Vertex(const Vec3& pos, const Vec4& col) :
-            position(pos), color(col)
+        Vertex() :
+            position(0.f, 0.f, 0.f),
+            normal(0.f, 1.f, 0.f),
+            texcoord(0.f, 0.f),
+            color(1.f, 1.f, 1.f, 1.f)
         {
-            normal = Vec3(0, 1, 0);
-            texcoord = Vec2(0, 0);
         }
 
-        Vertex(const Vec3& pos, const Vec3& norm, const Vec2& uv, const Vec4& col = Vec4(1, 1, 1, 1)) :
+        Vertex(const XMFLOAT3& pos, const XMFLOAT4& col) :
+            position(pos),
+            normal(0.f, 1.f, 0.f),
+            texcoord(0.f, 0.f),
+            color(col)
+        {
+        }
+
+        Vertex(const XMFLOAT3& pos, const XMFLOAT3& norm, const XMFLOAT2& uv,
+            const XMFLOAT4& col = XMFLOAT4(1.f, 1.f, 1.f, 1.f)) :
             position(pos), normal(norm), texcoord(uv), color(col)
         {
         }
     };
-
 }

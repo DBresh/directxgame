@@ -1,11 +1,13 @@
 #pragma once
-#include <DX3D/Math/Vec3.h>
-#include <DX3D/Math/Matrix4x4.h>
+
+#include <DirectXMath.h>
 #include <DX3D/Core/Time.h>
 #include <DX3D/InputSystem/InputListener.h>
 
 namespace dx3d
 {
+    using namespace DirectX;
+
     class Camera final : public InputListener
     {
     public:
@@ -13,12 +15,12 @@ namespace dx3d
 
         void update();
 
-        const Matrix4x4& getViewMatrix() const noexcept { return m_viewMatrix; }
-        const Matrix4x4& getProjectionMatrix() const noexcept { return m_projMatrix; }
+        const XMFLOAT4X4& getViewMatrix() const noexcept { return m_view; }
+        const XMFLOAT4X4& getProjectionMatrix() const noexcept { return m_proj; }
 
         void setPerspective(float fov, float aspect, float zNear, float zFar);
-        void setPosition(const Vec3& pos);
-        const Vec3& getPosition() const noexcept { return m_position; }
+        void setPosition(float x, float y, float z);
+        XMFLOAT3 getPosition() const noexcept { return m_position; }
 
         void onKeyDown(int key) override;
         void onKeyUp(int key) override;
@@ -28,15 +30,17 @@ namespace dx3d
         void onMouseUp(int button) override;
         void onMouseWheel(int delta) override;
 
-        constexpr float degToRad(float deg) { return deg * 3.1415926535f / 180.0f; }
+        static constexpr float degToRad(float deg) { return deg * 3.1415926535f / 180.0f; }
 
     private:
         void updateViewMatrix();
 
     private:
-        Vec3 m_position{ 0.0f, 0.0f, 0.0f };
-        Vec3 m_forward{ 0.0f, 0.0f, 1.0f };
-        Vec3 m_up{ 0.0f, 1.0f, 0.0f };
+        XMFLOAT3 m_position{ 0, 0, 0 };
+        XMFLOAT3 m_forward{ 0, 0, 1 };
+
+        XMFLOAT4X4 m_view;
+        XMFLOAT4X4 m_proj;
 
         float m_yaw{ 0.0f };
         float m_pitch{ 0.0f };
@@ -46,8 +50,5 @@ namespace dx3d
         int m_moveForward{ 0 };
         int m_moveRight{ 0 };
         int m_moveUp{ 0 };
-
-        Matrix4x4 m_viewMatrix;
-        Matrix4x4 m_projMatrix;
     };
 }
