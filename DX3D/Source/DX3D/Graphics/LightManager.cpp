@@ -21,7 +21,6 @@ namespace dx3d
         Light l{};
         l.type = LightType::Directional;
 
-        // Normalize direction
         XMVECTOR d = XMLoadFloat3(&dir);
         d = XMVector3Normalize(d);
         XMStoreFloat3(&l.direction, d);
@@ -80,7 +79,6 @@ namespace dx3d
 
         l.position = pos;
 
-        // direction normalized
         XMVECTOR d = XMLoadFloat3(&dir);
         d = XMVector3Normalize(d);
         XMStoreFloat3(&l.direction, d);
@@ -99,9 +97,6 @@ namespace dx3d
         m_lights.push_back(std::move(l));
     }
 
-    // ================================================================
-    // Spot light shadow map creation (DirectXMath version)
-    // ================================================================
     void LightManager::createSpotShadow(Light& l)
     {
         const UINT shadowSize = 1024;
@@ -109,12 +104,10 @@ namespace dx3d
         l.shadow = std::make_shared<LightShadowData>();
         l.shadow->shadowMap = m_device->createDepthTexture2D(shadowSize, shadowSize);
 
-        // ====== Build View matrix (ROW-MAJOR DirectXMath) ======
         XMVECTOR pos = XMLoadFloat3(&l.position);
         XMVECTOR forward = XMLoadFloat3(&l.direction);
         XMVECTOR up = XMVectorSet(0, 1, 0, 0);
 
-        // Fix up-vector when direction ~ Y axis
         {
             XMFLOAT3 d3;
             XMStoreFloat3(&d3, forward);
@@ -123,31 +116,19 @@ namespace dx3d
         }
 
         XMMATRIX V = XMMatrixLookAtLH(pos, pos + forward, up);
-        //Debug log (чистий row-major)
-        //LogMatrix("SpotLight View (row-major)", V);
-
-        // ====== Build Projection matrix (ROW-MAJOR DirectXMath) ======
-        float fov = l.spotAngle; // spotAngle already half-angle
+        float fov = l.spotAngle;
         float aspect = 1.0f;
         float znear = 0.1f;
         float zfar = l.range;
 
         XMMATRIX P = XMMatrixPerspectiveFovLH(fov, aspect, znear, zfar);
-        //LogMatrix("SpotLight Proj (row-major)", P);
-
-        // ====== ViewProj у ROW-MAJOR (як DirectXMath) ======
         XMMATRIX VP = V * P;
-        //LogMatrix("SpotLight ViewProj (row-major, V*P)", VP);
-
-        // ====== Store ВСЕ БЕЗ transpose ======
         XMStoreFloat4x4(&l.shadow->view, V);
         XMStoreFloat4x4(&l.shadow->proj, P);
         XMStoreFloat4x4(&l.shadow->viewProj, VP);
 
-        // Shadow bias
         l.shadow->bias = 0.0065f;
 
-        // Debug info
         XMFLOAT3 d3;
         XMStoreFloat3(&d3, forward);
 
@@ -159,9 +140,6 @@ namespace dx3d
         );
     }
 
-    // ================================================================
-    // Upload to GPU (StructuredBuffer<LightGPU>)
-    // ================================================================
     void LightManager::uploadToGPU()
     {
         if (m_lights.empty())

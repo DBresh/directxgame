@@ -23,14 +23,9 @@ namespace dx3d
 		: m_device(std::move(device)), m_context(std::move(context))
 	{
 		m_cameraBuffer = m_device->createConstantBuffer({ nullptr, sizeof(CameraData) });
-
 		m_lightManager = std::make_unique<LightManager>(m_device);
-
-		// один float4x4 для worldViewProj у shadow pass
 		m_depthCB = m_device->createConstantBuffer({ nullptr, sizeof(XMFLOAT4X4) });
 		m_depthVS = m_device->createVertexShaderFromFile("DX3D/Assets/Shaders/ShadowDepthVS.hlsl", "VSMain");
-
-		// масив матриць світла (viewProj) на 64 світла
 		m_lightMatrixBuffer = m_device->createConstantBuffer(
 			{ nullptr, sizeof(XMFLOAT4X4) * 64 });
 
@@ -67,7 +62,6 @@ namespace dx3d
 
 	void RenderSystem::beginFrame(SwapChain& swapChain, const XMFLOAT4& clearColor)
 	{
-		// === Clear + базовий пайплайн ===
 		m_context->clearAndSetBackBuffer(swapChain, clearColor);
 
 		if (m_pipeline)
@@ -81,13 +75,11 @@ namespace dx3d
 
 		m_context->setViewportSize(swapChain.getSize());
 
-		// === Lights + shadow matrices (cbuffer b2) ===
 		if (m_lightManager)
 		{
 			constexpr int max_lights = 64;
 			XMFLOAT4X4 lightMatrices[max_lights];
 
-			// 1) Заповнюємо ВСЕ identity
 			for (int i = 0; i < max_lights; ++i)
 				XMStoreFloat4x4(&lightMatrices[i], XMMatrixIdentity());
 
@@ -96,12 +88,10 @@ namespace dx3d
 
 			int shadowTextureLightIndex = -1;
 
-			// 2) Заповнюємо viewProj матриці
 			for (int i = 0; i < (int)lights.size() && i < max_lights; ++i)
 			{
 				const auto& L = lights[i];
 
-				// Прив’язуємо shadowMap першого spot
 				if (shadowTextureLightIndex < 0 &&
 					L.type == LightType::Spot &&
 					L.castShadows &&
@@ -111,42 +101,28 @@ namespace dx3d
 					shadowTextureLightIndex = i;
 				}
 
-				// Якщо світло має тіні — трансонуємо його VP для GPU
 				if (L.castShadows && L.shadow)
 				{
-					// Оригінал row-major
 					XMMATRIX VP = XMLoadFloat4x4(&L.shadow->viewProj);
-
-					// Лог row-major (вихід з LightManager)
-					LogMatrix("LightManager VP (row-major)", VP);
-
-					// ТРАНСПОЗУЄМО ДЛЯ GPU (GPU column-major)
 					XMMATRIX VP_t = XMMatrixTranspose(VP);
 
-					// Зберігаємо в lightMatrices (GPU-ready)
 					XMStoreFloat4x4(&lightMatrices[i], VP_t);
-
-					// Лог того, що реально піде в GPU
 					LogMatrix("GPU VP_t (column-major)", VP_t);
 				}
 			}
 
-			// 3) Відправляємо масив матриць у cbuffer b2
 			m_context->updateConstantBuffer(
 				*m_lightMatrixBuffer,
 				lightMatrices,
 				sizeof(XMFLOAT4X4) * max_lights
 			);
 
-			// 4) Прив’язуємо b2
 			m_context->setPSConstantBuffer(*m_lightMatrixBuffer, 2);
 			m_context->setVSConstantBuffer(*m_lightMatrixBuffer, 2);
 
-			// 5) StructuredBuffer Lights — t1
 			m_lightManager->uploadToGPU();
 			m_lightManager->bind(*m_context, 1);
 
-			// Додатковий лог для світла, чий shadowMap прикріплено
 			if (shadowTextureLightIndex >= 0)
 			{
 				DX3D_LOG_INFO(
@@ -160,7 +136,6 @@ namespace dx3d
 			}
 		}
 
-		// === Camera (b1) ===
 		CameraData cam{};
 		cam.cameraPos = m_cameraPosition;
 		cam.ambientIntensity = 0.08f;
@@ -186,7 +161,6 @@ namespace dx3d
 		if (m_pipeline)
 			m_context->setGraphicsPipelineState(*m_pipeline);
 
-		// Обнуляємо VS/PS cbuffers (b0..b7)
 		ID3D11Buffer* nullBuf = nullptr;
 		for (UINT slot = 0; slot < 8; ++slot)
 		{
@@ -220,32 +194,26 @@ namespace dx3d
 				spotDeg
 			);
 
-			// === viewport під shadow map ===
 			Rect vp;
 			vp.width = depthTex->getWidth();
 			vp.height = depthTex->getHeight();
 			m_context->setViewportSize(vp);
 
-			// === target тільки depth ===
 			m_context->setDepthTarget(depthTex->getDSV());
 			m_context->clearDepth(*depthTex->getDSV());
 
-			// === шейдери: тільки VS для depth ===
 			m_context->setVertexShader(m_depthVS.Get());
 			m_context->setPixelShader(nullptr);
 
-			// === матриці світла з LightManager (ROW-MAJOR) ===
 			XMMATRIX V = XMLoadFloat4x4(&shadow->view);
 			XMMATRIX P = XMLoadFloat4x4(&shadow->proj);
 
 			LogMatrix("ShadowPass View (row-major)", V);
 			LogMatrix("ShadowPass Proj (row-major)", P);
 
-			// попередньо можемо подивитись VP у row-major
 			XMMATRIX VP = V * P;
 			LogMatrix("ShadowPass VP (row-major, V*P)", VP);
 
-			// === малюємо всі обєкти сцени в цю shadow map ===
 			for (auto& objPtr : scene.getAllObjects())
 			{
 				auto& obj = *objPtr;
@@ -253,26 +221,21 @@ namespace dx3d
 				if (!model || !model->mesh)
 					continue;
 
-				// 1) World з твого transform (ROW-MAJOR)
 				XMMATRIX W = XMLoadFloat4x4(&obj.transform.getWorldMatrix());
 				LogMatrix("ShadowPass WORLD (row-major)", W);
 
-				// 2) WVP у ROW-MAJOR (як логічна композиція)
 				XMMATRIX WVP = W * V * P;
 				LogMatrix("ShadowPass WVP (row-major, W*V*P)", WVP);
 
-				// 3) ТРАНСПОНУЄМО ЛИШЕ ТУТ, перед GPU
 				XMMATRIX WVP_t = XMMatrixTranspose(WVP);
 				LogMatrix("ShadowPass WVP_t (GPU column-major)", WVP_t);
 
-				// 4) Заливаємо в VS cbuffer (b0)
 				XMFLOAT4X4 cb;
 				XMStoreFloat4x4(&cb, WVP_t);
 
 				m_context->updateConstantBuffer(*m_depthCB, &cb, sizeof(cb));
 				m_context->setVSConstantBuffer(*m_depthCB, 0);
 
-				// 5) Малюємо меш
 				m_context->setVertexBuffer(model->mesh->getVertexBuffer());
 				m_context->setIndexBuffer(model->mesh->getIndexBuffer());
 				m_context->drawIndexedTriangleList(
@@ -281,7 +244,6 @@ namespace dx3d
 			}
 		}
 
-		// Повертаємось до звичайного depth target-а
 		m_context->setDepthTarget(nullptr);
 	}
 
@@ -296,7 +258,6 @@ namespace dx3d
 	{
 		TransformData cbData{};
 
-		// ==== 1. ROW-MAJOR матриці (з CPU) ====
 		XMMATRIX W = XMLoadFloat4x4(&world);
 		XMMATRIX V = XMLoadFloat4x4(&view);
 		XMMATRIX P = XMLoadFloat4x4(&proj);
@@ -305,7 +266,6 @@ namespace dx3d
 		LogMatrix("DrawModel VIEW  (row-major)", V);
 		LogMatrix("DrawModel PROJ  (row-major)", P);
 
-		// ==== 2. Транспонуємо тільки перед GPU ====
 		XMMATRIX W_t = XMMatrixTranspose(W);
 		XMMATRIX V_t = XMMatrixTranspose(V);
 		XMMATRIX P_t = XMMatrixTranspose(P);
@@ -314,7 +274,6 @@ namespace dx3d
 		LogMatrix("DrawModel VIEW_t  (GPU column-major)", V_t);
 		LogMatrix("DrawModel PROJ_t  (GPU column-major)", P_t);
 
-		// ==== 3. Заповнюємо constant buffer ====
 		XMStoreFloat4x4(&cbData.world, W_t);
 		XMStoreFloat4x4(&cbData.view, V_t);
 		XMStoreFloat4x4(&cbData.projection, P_t);
@@ -322,8 +281,6 @@ namespace dx3d
 		m_context->updateConstantBuffer(objectCB, &cbData, sizeof(cbData));
 		m_context->setVSConstantBuffer(objectCB, 0);
 
-
-		// ==== 4. Малюємо модель ====
 		if (!model.submeshes.empty())
 		{
 			for (const auto& sm : model.submeshes)
@@ -354,7 +311,6 @@ namespace dx3d
 			return;
 		}
 
-		// ==== 5. Single-mesh variant ====
 		if (!model.mesh)
 			return;
 

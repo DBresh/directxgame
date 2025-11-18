@@ -176,7 +176,6 @@
     <ClInclude Include="DX3D\Include\DX3D\InputSystem\InputListener.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\Point.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\PointFloat.h" />
-    <ClInclude Include="DX3D\Include\DX3D\Math\Matrix4x4.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\Quaternion.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\Transform.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\Vec2.h" />

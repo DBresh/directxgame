@@ -99,16 +99,13 @@ namespace dx3d
         auto lights = m_renderSystem->getLightManager();
         lights->clear();
 
-        // TODO: після рефактору LightManager теж перевести на XMFLOAT3 замість Vec3.
-        // Поки тут лишається старий код, поки не перепишеш сам LightManager.
-
          lights->addSpot(
-             XMFLOAT3(1.5f, 20.0f, 0.f),
+             XMFLOAT3(1.5f, 80.0f, 0.f),
              XMFLOAT3(0.0f, -1.0f, 0.f),
              10.0f,
              XMFLOAT3(1.f, 0.95f, 0.85f),
              100.0f,
-             100.0f,
+             1000.0f,
              true
          );
         //
