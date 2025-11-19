@@ -1,7 +1,5 @@
-//#define DEBUG_NL
 #define USE_GAMMA 0
 #define MAX_LIGHTS 64
-#define SPOT_ANGLE_IS_DEGREES 1
 
 static const float SpecStrength = 0.3f;
 static const float SpecPower = 32.0f;
@@ -12,11 +10,15 @@ SamplerState samplerLinear : register(s0);
 Texture2D shadowMap : register(t2);
 SamplerComparisonState shadowSampler : register(s1);
 
+// ==== MATRICES ====
+//  - На CPU: матриці рахуємо DirectXMath-ом (row-major), ПЕРЕД аплоадом робимо XMMatrixTranspose.
+//  - У cbuffers лежать вже transpose-нуті матриці (GPU-ready column-major).
+//  - У HLSL всюди використовуємо mul(vector, matrix) (vec * mat).
 cbuffer TransformBuffer : register(b0)
 {
-    row_major float4x4 world;
-    row_major float4x4 view;
-    row_major float4x4 projection;
+    float4x4 world;
+    float4x4 view;
+    float4x4 projection;
 };
 
 cbuffer CameraBuffer : register(b1)
@@ -29,13 +31,13 @@ cbuffer CameraBuffer : register(b1)
 
 cbuffer LightMatrixBuffer : register(b2)
 {
-    row_major float4x4 lightViewProj[MAX_LIGHTS];
+    float4x4 lightViewProj[MAX_LIGHTS];
 };
 
 struct Light
 {
     float4 posRange; // xyz = position, w = range
-    float4 dirSpot; // xyz = direction, w = spotAngle (deg if SPOT_ANGLE_IS_DEGREES)
+    float4 dirSpot; // xyz = direction (normalized), w = spotHalfAngleRadians
     float4 colInt; // rgb = color, w = intensity
     int type; // 0=Dir, 1=Point, 2=Spot
     int3 _pad;
@@ -63,12 +65,17 @@ VSOutput VSMain(VSInput input)
 {
     VSOutput o;
 
-    float4 wp = mul(float4(input.position, 1.0f), world);
-    float4 vp = mul(wp, view);
-    o.position = mul(vp, projection);
+    float4 localPos = float4(input.position, 1.0f);
+
+    float4 worldPos4 = mul(localPos, world);
+    float4 viewPos4 = mul(worldPos4, view);
+    float4 projPos4 = mul(viewPos4, projection);
+
+    o.position = projPos4;
+    o.worldPos = worldPos4.xyz;
 
     o.normal = normalize(mul(input.normal, (float3x3) world));
-    o.worldPos = wp.xyz;
+
     o.texcoord = input.texcoord;
     o.color = input.color;
     return o;
@@ -78,16 +85,20 @@ float ComputeShadowFromCoord(float4 lightClip, float bias)
 {
     float3 p = lightClip.xyz / max(lightClip.w, 1e-6f);
 
-    float2 uv = p.xy * 0.5f + 0.5f;
-    uv.y = 1.0f - uv.y;
-    
+    float2 uv;
+    uv.x = p.x * 0.5f + 0.5f;
+    uv.y = -p.y * 0.5f + 0.5f;
+
+
     if (uv.x < 0.0f || uv.x > 1.0f ||
         uv.y < 0.0f || uv.y > 1.0f ||
         p.z < 0.0f || p.z > 1.0f)
-        return 1.0f;
+    {
+        return 1.0f; // lights on
+    }
 
-    float refZ = p.z - bias;
-    return shadowMap.SampleCmpLevelZero(shadowSampler, uv, refZ);
+    float refDepth = p.z - bias;
+    return shadowMap.SampleCmp(shadowSampler, uv, refDepth);
 }
 
 float3 ComputeLighting(float3 baseColor, float3 N, float3 V, float3 worldPos)
@@ -108,6 +119,7 @@ float3 ComputeLighting(float3 baseColor, float3 N, float3 V, float3 worldPos)
         }
         else
         {
+            // from point to light
             float3 toL = l.posRange.xyz - worldPos;
             float dist = length(toL);
             L = (dist > 1e-4f) ? (toL / dist) : float3(0, 0, 0);
@@ -118,18 +130,19 @@ float3 ComputeLighting(float3 baseColor, float3 N, float3 V, float3 worldPos)
 
             if (l.type == 2) // Spot
             {
-                float fullDeg = l.dirSpot.w;
-                float theta = radians(fullDeg * 0.5f);
-                float outer = max(1e-4f, theta);
-                float inner = outer * 0.85f;
+                float theta = l.dirSpot.w;
+                float outer = theta;
+                float inner = theta * 0.85f;
 
+                // direction, куди дивиться прожектор (від світла в сцену)
                 float3 lightDir = normalize(l.dirSpot.xyz);
                 float3 L_toPoint = normalize(-L);
-
                 float cosTheta = dot(L_toPoint, lightDir);
                 float cosInner = cos(inner);
                 float cosOuter = cos(outer);
-                float spotFactor = saturate((cosTheta - cosOuter) / max(1e-4f, (cosInner - cosOuter)));
+
+                float spotFactor = saturate((cosTheta - cosOuter) /
+                                            max(1e-4f, (cosInner - cosOuter)));
                 atten *= spotFactor;
             }
         }
@@ -142,19 +155,12 @@ float3 ComputeLighting(float3 baseColor, float3 N, float3 V, float3 worldPos)
         float3 specular = l.colInt.rgb * spec * SpecStrength;
 
         float shadow = 1.0f;
+
+        // ==== SPOT SHADOW ====
         if (l.type == 2)
         {
-            float3 toL = l.posRange.xyz - worldPos;
-            float dist = length(toL);
-            if (dist <= l.posRange.w)
-            {
-                float4 lightClip = mul(float4(worldPos, 1.0f), lightViewProj[i]);
-                shadow = ComputeShadowFromCoord(lightClip, 0.0065f);
-            }
-            else
-            {
-                shadow = 1.0f;
-            }
+            float4 lightClip = mul(float4(worldPos, 1.0f), lightViewProj[i]);
+            shadow = ComputeShadowFromCoord(lightClip, 0.00085f);
         }
 
         sum += shadow * (diffuse + specular) * l.colInt.w * atten;
@@ -167,6 +173,7 @@ float3 toLinear(float3 c)
 {
     return pow(c, 2.2f);
 }
+
 float3 toGamma(float3 c)
 {
     return pow(c, 1.0f / 2.2f);
@@ -189,18 +196,13 @@ float4 PSMain(VSOutput input) : SV_Target
     float3 ambient = baseLin * ambientIntensity;
     float3 lighting = ComputeLighting(baseLin, N, V, input.worldPos);
     float3 finalLin = ambient + lighting;
-    
-    //return float4(normalize(input.normal) * 0.5f + 0.5f, 1.0f);
-    
-    //float3 Ltest = normalize(Lights[0].posRange.xyz - input.worldPos);
-    //float d = saturate(dot(normalize(input.normal), Ltest));
-    //return float4(d, d, d, 1.0);
-    
-    //float4 lightClip = mul(float4(input.worldPos, 1.0f), lightViewProj[0]);
-    //float shadow = ComputeShadowFromCoord(lightClip, 0.0045f);
-    //return float4(shadow.xxx, 1.0);
 
 
+    //float4 lightClipDbg = mul(float4(input.worldPos, 1.0f), lightViewProj[0]);
+    //float shadowDbg = ComputeShadowFromCoord(lightClipDbg, 0.0005f);
+    //return float4(shadowDbg.xxx, 1.0);
+    
+    
 #if USE_GAMMA
     float3 final = toGamma(saturate(finalLin));
 #else

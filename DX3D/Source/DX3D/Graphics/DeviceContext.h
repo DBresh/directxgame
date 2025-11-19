@@ -1,6 +1,7 @@
 #pragma once
 #include <DX3D/Graphics/GraphicsResource.h>
 #include <DX3D/Math/Vec4.h>
+#include <DirectXMath.h>
 
 namespace dx3d
 {
@@ -9,7 +10,7 @@ namespace dx3d
 	{
 	public:
 		explicit DeviceContext(const GraphicsResourceDesc& gDesc);
-		void clearAndSetBackBuffer(const SwapChain& swapChain, const Vec4& color);
+		void clearAndSetBackBuffer(const SwapChain& swapChain, const DirectX::XMFLOAT4& color);
 		void setGraphicsPipelineState(const GraphicsPipelineState& pipeline);
 		void setVertexBuffer(const VertexBuffer& buffer);
 		void setIndexBuffer(const IndexBuffer& buffer);

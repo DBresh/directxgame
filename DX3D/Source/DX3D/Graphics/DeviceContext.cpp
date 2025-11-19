@@ -5,6 +5,7 @@
 #include <DX3D/Graphics/IndexBuffer.h>
 #include <DX3D/Graphics/ConstantBuffer.h>
 #include <DX3D/Graphics/StructuredBuffer.h>
+#include <DirectXMath.h>
 
 namespace dx3d
 {
@@ -13,17 +14,19 @@ namespace dx3d
 		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(m_device.CreateDeferredContext(0, &m_context), "CreateDeferredContext failed.");
 	}
 
-	void DeviceContext::clearAndSetBackBuffer(const SwapChain& swapChain, const Vec4& color)
+	void DeviceContext::clearAndSetBackBuffer(const SwapChain& swapChain, const DirectX::XMFLOAT4& color)
 	{
 		float fColor[] = { color.x, color.y, color.z, color.w };
-		
+
 		m_context->ClearRenderTargetView(swapChain.m_rtv.Get(), fColor);
-		m_context->ClearDepthStencilView(swapChain.m_dsv.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+		m_context->ClearDepthStencilView(swapChain.m_dsv.Get(),
+			D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 		auto rtv = swapChain.m_rtv.Get();
 		auto dsv = swapChain.m_dsv.Get();
 		m_context->OMSetRenderTargets(1, &rtv, dsv);
 	}
+
 
 	void DeviceContext::setGraphicsPipelineState(const GraphicsPipelineState& pipeline)
 	{

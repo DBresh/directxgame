@@ -1,6 +1,8 @@
 #pragma once
 #include <DX3D/Math/Vertex.h>
 #include <DX3D/Graphics/Material.h>
+
+#include <DirectXMath.h>
 #include <string>
 #include <vector>
 
@@ -16,20 +18,23 @@ namespace dx3d
 
     struct AABB
     {
-        Vec3 min;
-        Vec3 max;
+        DirectX::XMFLOAT3 min = DirectX::XMFLOAT3(FLT_MAX, FLT_MAX, FLT_MAX);
+        DirectX::XMFLOAT3 max = DirectX::XMFLOAT3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
     };
 
     struct ModelData
     {
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
+
         std::vector<std::string> materialNames;
         std::vector<Material> materials;
-        std::string sourcePath;
         std::vector<MaterialGroup> materialGroups;
 
-        AABB boundingBox{};
+        std::string sourcePath;
+
+        AABB boundingBox;
+
         bool hasNormals = false;
         bool hasTexcoords = false;
     };

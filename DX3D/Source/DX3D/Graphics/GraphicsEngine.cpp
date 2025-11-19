@@ -4,150 +4,165 @@
 #include <DX3D/Graphics/SwapChain.h>
 #include <DX3D/Graphics/GraphicsLogUtils.h>
 #include <DX3D/Graphics/Texture2D.h>
-#include <DX3D/Math/Vec3.h>
-#include <DX3D/Math/Matrix4x4.h>
 #include <DX3D/Core/Time.h>
 #include <DX3D/InputSystem/InputSystem.h>
 #include <DX3D/Graphics/ModelCache.h>
 #include <DX3D/Graphics/AssetManager.h>
+
+#include <DirectXMath.h>
 #include <fstream>
+
+using namespace DirectX;
 
 namespace dx3d
 {
-	namespace
-	{
-		static std::string loadFileText(const std::string& path)
-		{
-			std::ifstream file(path);
-			if (!file.is_open())
-				DX3D_LOG_THROW_ERROR("Failed to open file: {}", path);
-			return { std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() };
-		}
-	}
+    namespace
+    {
+        static std::string loadFileText(const std::string& path)
+        {
+            std::ifstream file(path);
+            if (!file.is_open())
+                DX3D_LOG_THROW_ERROR("Failed to open file: {}", path);
+            return { std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() };
+        }
+    }
 
-	GraphicsEngine::GraphicsEngine(const GraphicsEngineDesc& desc) : Base(desc.base)
-	{
-		m_graphicsDevice = std::make_shared<GraphicsDevice>(GraphicsDeviceDesc{});
-		auto& device = *m_graphicsDevice;
-		m_deviceContext = device.createDeviceContext();
+    GraphicsEngine::GraphicsEngine(const GraphicsEngineDesc& desc) : Base(desc.base)
+    {
+        m_graphicsDevice = std::make_shared<GraphicsDevice>(GraphicsDeviceDesc{});
+        auto& device = *m_graphicsDevice;
+        m_deviceContext = device.createDeviceContext();
 
-		const std::string shaderFileData = loadFileText("DX3D/Assets/Shaders/Basic.hlsl");
-		const char* shaderSourceCode = shaderFileData.c_str();
-		const size_t shaderSize = shaderFileData.size();
+        const std::string shaderFileData = loadFileText("DX3D/Assets/Shaders/Basic.hlsl");
+        const char* shaderSourceCode = shaderFileData.c_str();
+        const size_t shaderSize = shaderFileData.size();
 
-		auto vs = device.compileShader({ "Basic.hlsl", shaderSourceCode, shaderSize, "VSMain", ShaderType::VertexShader });
-		auto ps = device.compileShader({ "Basic.hlsl", shaderSourceCode, shaderSize, "PSMain", ShaderType::PixelShader });
-		auto vsSig = device.createVertexShaderSignature({ vs });
+        auto vs = device.compileShader({ "Basic.hlsl", shaderSourceCode, shaderSize, "VSMain", ShaderType::VertexShader });
+        auto ps = device.compileShader({ "Basic.hlsl", shaderSourceCode, shaderSize, "PSMain", ShaderType::PixelShader });
+        auto vsSig = device.createVertexShaderSignature({ vs });
 
-		m_pipeline = device.createGraphicsPipelineState({ *vsSig, *ps });
+        m_pipeline = device.createGraphicsPipelineState({ *vsSig, *ps });
 
-		AssetManagerDesc aDesc{};
-		aDesc.graphicsDevice = m_graphicsDevice;
-		aDesc.assetsRoot = std::filesystem::path("DX3D/Assets/Models");
-		m_assets = std::make_shared<AssetManager>(aDesc);
+        AssetManagerDesc aDesc{};
+        aDesc.graphicsDevice = m_graphicsDevice;
+        aDesc.assetsRoot = std::filesystem::path("DX3D/Assets/Models");
+        m_assets = std::make_shared<AssetManager>(aDesc);
 
-		m_renderSystem = std::make_unique<RenderSystem>(m_graphicsDevice, m_deviceContext);
-		m_renderSystem->setPipeline(m_pipeline);
+        m_renderSystem = std::make_unique<RenderSystem>(m_graphicsDevice, m_deviceContext);
+        m_renderSystem->setPipeline(m_pipeline);
 
-		createCubeMesh();
+        createCubeMesh();
 
-		m_camera = std::make_unique<Camera>();
-		InputSystem::get()->addListener(m_camera.get());
-	}
+        m_camera = std::make_unique<Camera>();
+        InputSystem::get()->addListener(m_camera.get());
+    }
 
-	GraphicsEngine::~GraphicsEngine()
-	{
-	}
+    GraphicsEngine::~GraphicsEngine() = default;
 
-	GraphicsDevice& GraphicsEngine::getGraphicsDevice() noexcept
-	{
-		return *m_graphicsDevice;
-	}
+    GraphicsDevice& GraphicsEngine::getGraphicsDevice() noexcept
+    {
+        return *m_graphicsDevice;
+    }
 
-	void GraphicsEngine::createCubeMesh()
-	{
-		auto model = m_assets->getModel("cube.obj");
-		for (int i = 1; i <= 1; i++) {
-			auto cubes = m_scene.createObject("cube");
+    void GraphicsEngine::createCubeMesh()
+    {
+        auto model = m_assets->getModel("cube.obj");
 
-			cubes->model = model;
+        for (int i = 1; i <= 5; ++i)
+        {
+            auto cube = m_scene.createObject("cube");
+            cube->model = model;
 
-			cubes->transform.setPosition(Vec3(i * 1.5f, 0.0f, 0.0f));
-			cubes->transform.setScale(Vec3(1, 1, 1));
-			cubes->constantBuffer = m_graphicsDevice->createConstantBuffer({ nullptr, sizeof(Matrix4x4) * 3 });
-		}
+            cube->transform.setPosition(XMFLOAT3(i * 1.5f, 0.0f, -2.0f));
+            cube->transform.setScale(XMFLOAT3(1.0f, 1.0f, 1.0f));
 
-		auto planeModel = m_assets->getModel("plane.obj");
-		auto plane = m_scene.createObject("plane");
-		plane->model = planeModel;
-		plane->transform.setPosition(Vec3(0, -2, 0));
-		plane->transform.setScale(Vec3(5, 5, 5));
-		plane->constantBuffer = m_graphicsDevice->createConstantBuffer({ nullptr, sizeof(Matrix4x4) * 3 });
+            cube->constantBuffer =
+                m_graphicsDevice->createConstantBuffer({ nullptr, sizeof(XMFLOAT4X4) * 3 });
+        }
 
-		auto plane1 = m_scene.createObject("plane");
-		plane1->model = planeModel;
-		plane1->transform.setPosition(Vec3(0, 10, 0));
-		plane1->transform.setScale(Vec3(5, 5, 5));
-		plane1->constantBuffer = m_graphicsDevice->createConstantBuffer({ nullptr, sizeof(Matrix4x4) * 3 });
+        auto planeModel = m_assets->getModel("plane.obj");
 
-		auto lights = m_renderSystem->getLightManager();
-		lights->clear();
+        auto plane = m_scene.createObject("plane");
+        plane->model = planeModel;
+        plane->transform.setPosition(XMFLOAT3(0.0f, -2.0f, 0.0f));
+        plane->transform.setScale(XMFLOAT3(5.0f, 5.0f, 5.0f));
+        plane->constantBuffer =
+            m_graphicsDevice->createConstantBuffer({ nullptr, sizeof(XMFLOAT4X4) * 3 });
 
-		//for (int i = -32; i <= 16; i += 2)
-		//{
-		//	for (int j = -24; j <= 16; j += 2)
-		//	{
-		//		float r = (i + 32) / 48.0f;
-		//		float g = (j + 24) / 40.0f;
-		//		float b = 1.0f - 0.5f * (r + g);
+        auto plane1 = m_scene.createObject("plane");
+        plane1->model = planeModel;
+        plane1->transform.setPosition(XMFLOAT3(1.5f, 0.75f, 5.0f));
+        plane1->transform.setScale(XMFLOAT3(0.1f, 0.1f, 0.1f));
+        plane1->constantBuffer =
+            m_graphicsDevice->createConstantBuffer({ nullptr, sizeof(XMFLOAT4X4) * 3 });
 
-		//		lights->addPoint(Vec3((float)i, -2.2f, (float)j), Vec3(r, g, b), 1.0f, 1.0f);
-		//	}
-		//}
+        auto lights = m_renderSystem->getLightManager();
+        lights->clear();
 
-		//lights->addPoint(Vec3(5, 0, -2), Vec3(0.2f, 0.4f, 1.0f), 55.0f, 2.9f);
-		//m_scene.getAllObjects()[1]->transform.setPosition(Vec3(4, 0, 0));
-		lights->addSpot(
-			Vec3(1.5f, 3.0f, 0.f),        // позиція
-			Vec3(0.0f, -1.0f, 0.f),       // напрям
-			55.0f,                      // кут
-			Vec3(1.f, 0.95f, 0.85f),    // колір
-			25.0f,                      // range
-			8.0f,                        // інтенсивність
-			true						// тіні
-		);
+         lights->addSpot(
+             XMFLOAT3(1.5f, 0.75f, 5.f),
+             XMFLOAT3(1.5f, -0.59f, -2.9f),
+             50.0f,
+             XMFLOAT3(1.f, 0.95f, 0.85f),
+             25.0f,
+             25.0f,
+             true
+         );
+    }
 
-		lights->addPoint(Vec3(1.5f, 0.2, 0), Vec3(0.8f, 0.4f, 0.2f), 55.0f, 2.9f);
-	}
+    static void LogMatrix(const char* name, CXMMATRIX M)
+    {
+        XMFLOAT4X4 m;
+        XMStoreFloat4x4(&m, M);
+        DX3D_LOG_INFO(
+            "Matrix Log: {} [as Row-Major]\n"
+            "  [{: 8.2f}, {: 8.2f}, {: 8.2f}, {: 8.2f}]\n"
+            "  [{: 8.2f}, {: 8.2f}, {: 8.2f}, {: 8.2f}]\n"
+            "  [{: 8.2f}, {: 8.2f}, {: 8.2f}, {: 8.2f}]\n"
+            "  [{: 8.2f}, {: 8.2f}, {: 8.2f}, {: 8.2f}]",
+            name,
+            m._11, m._12, m._13, m._14,
+            m._21, m._22, m._23, m._24,
+            m._31, m._32, m._33, m._34,
+            m._41, m._42, m._43, m._44
+        );
+    }
 
-	void GraphicsEngine::render(SwapChain& swapChain)
-	{
-		m_camera->update();
-		auto cameraPos = m_camera->getPosition();
-		m_renderSystem->setCameraPosition(cameraPos);
+    void GraphicsEngine::render(SwapChain& swapChain)
+    {
+        m_camera->update();
 
-		//DX3D_LOG_INFO("POS: x={}, y={}, z={}", cameraPos.x, cameraPos.y, cameraPos.z);
+        XMFLOAT3 cameraPos = m_camera->getPosition();
+        m_renderSystem->setCameraPosition(cameraPos);
 
-		Matrix4x4 viewT = m_camera->getViewMatrix();
-		Matrix4x4 projT = m_camera->getProjectionMatrix();
+        const XMFLOAT4X4& view = m_camera->getViewMatrix();
+        const XMFLOAT4X4& proj = m_camera->getProjectionMatrix();
 
-		m_renderSystem->renderShadows(m_scene);
-		m_renderSystem->beginFrame(swapChain, { 0.2f, 0.2f, 0.2f, 1.0f });
+        //LogMatrix("Camera View (row-major)", XMLoadFloat4x4(&view));
+        //LogMatrix("Camera Proj (row-major)", XMLoadFloat4x4(&proj));
 
-		for (const auto& object : m_scene.getAllObjects())
-		{
-			if (!object->model) continue;
-			Matrix4x4 worldT = object->getWorldTransform().getWorldMatrix();
+        m_renderSystem->renderShadows(m_scene);
+        m_renderSystem->beginFrame(swapChain, { 0.2f, 0.2f, 0.2f, 1.0f });
 
-			m_renderSystem->drawModel(
-				*object->model,
-				*object->constantBuffer,
-				worldT,
-				viewT,
-				projT
-			);
-		}
+        for (const auto& object : m_scene.getAllObjects())
+        {
+            if (!object->model)
+                continue;
 
-		m_renderSystem->endFrame(*m_graphicsDevice, swapChain, true);
-	}
+            const XMFLOAT4X4& world = object->getWorldTransform().getWorldMatrix();
+
+            //LogMatrix("Object WORLD (row-major)", XMLoadFloat4x4(&world));
+
+            m_renderSystem->drawModel(
+                *object->model,
+                *object->constantBuffer,
+                world,  // row-major
+                view,   // row-major
+                proj    // row-major
+            );
+        }
+
+        m_renderSystem->endFrame(*m_graphicsDevice, swapChain, true);
+    }
+
 }

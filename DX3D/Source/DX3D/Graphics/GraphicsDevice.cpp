@@ -170,7 +170,7 @@ namespace dx3d
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> GraphicsDevice::createShadowSampler()
 	{
 		D3D11_SAMPLER_DESC desc{};
-		desc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+		desc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
 		desc.AddressU = desc.AddressV = desc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
 		desc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
 		desc.BorderColor[0] = desc.BorderColor[1] = desc.BorderColor[2] = desc.BorderColor[3] = 1.0f;

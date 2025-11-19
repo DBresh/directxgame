@@ -116,6 +116,10 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <FxCompile>
+      <EntryPointName>PSMain</EntryPointName>
+      <ShaderModel>6.7</ShaderModel>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -172,7 +176,6 @@
     <ClInclude Include="DX3D\Include\DX3D\InputSystem\InputListener.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\Point.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\PointFloat.h" />
-    <ClInclude Include="DX3D\Include\DX3D\Math\Matrix4x4.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\Quaternion.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\Transform.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\Vec2.h" />

@@ -1,6 +1,6 @@
 cbuffer TransformBuffer : register(b0)
 {
-    row_major float4x4 worldViewProj;
+    float4x4 worldViewProj;
 };
 
 struct VSInput
