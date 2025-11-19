@@ -66,15 +66,15 @@ namespace dx3d
 
     void GraphicsEngine::createCubeMesh()
     {
-        auto model = m_assets->getModel("plane.obj");
+        auto model = m_assets->getModel("cube.obj");
 
-        for (int i = 1; i <= 1; ++i)
+        for (int i = 1; i <= 5; ++i)
         {
             auto cube = m_scene.createObject("cube");
             cube->model = model;
 
-            cube->transform.setPosition(XMFLOAT3(i * 1.5f, 0.0f, 0.0f));
-            cube->transform.setScale(XMFLOAT3(0.1f, 0.1f, 0.1f));
+            cube->transform.setPosition(XMFLOAT3(i * 1.5f, 0.0f, -2.0f));
+            cube->transform.setScale(XMFLOAT3(1.0f, 1.0f, 1.0f));
 
             cube->constantBuffer =
                 m_graphicsDevice->createConstantBuffer({ nullptr, sizeof(XMFLOAT4X4) * 3 });
@@ -91,7 +91,7 @@ namespace dx3d
 
         auto plane1 = m_scene.createObject("plane");
         plane1->model = planeModel;
-        plane1->transform.setPosition(XMFLOAT3(1.5f, 20.0f, 0.0f));
+        plane1->transform.setPosition(XMFLOAT3(1.5f, 0.75f, 5.0f));
         plane1->transform.setScale(XMFLOAT3(0.1f, 0.1f, 0.1f));
         plane1->constantBuffer =
             m_graphicsDevice->createConstantBuffer({ nullptr, sizeof(XMFLOAT4X4) * 3 });
@@ -100,21 +100,14 @@ namespace dx3d
         lights->clear();
 
          lights->addSpot(
-             XMFLOAT3(1.5f, 80.0f, 0.f),
-             XMFLOAT3(0.0f, -1.0f, 0.f),
-             10.0f,
+             XMFLOAT3(1.5f, 0.75f, 5.f),
+             XMFLOAT3(1.5f, -0.59f, -2.9f),
+             50.0f,
              XMFLOAT3(1.f, 0.95f, 0.85f),
-             100.0f,
-             1000.0f,
+             25.0f,
+             25.0f,
              true
          );
-        //
-        // lights->addPoint(
-        //     XMFLOAT3(1.5f, 0.2f, 0.f),
-        //     XMFLOAT3(0.8f, 0.4f, 0.2f),
-        //     55.0f,
-        //     2.9f
-        // );
     }
 
     static void LogMatrix(const char* name, CXMMATRIX M)
@@ -137,28 +130,20 @@ namespace dx3d
 
     void GraphicsEngine::render(SwapChain& swapChain)
     {
-        // --- Оновлюємо камеру ---
         m_camera->update();
 
-        // Камера вже з DirectXMath. Позиція зберігається в XMFLOAT3.
         XMFLOAT3 cameraPos = m_camera->getPosition();
         m_renderSystem->setCameraPosition(cameraPos);
 
-        // View / Projection матриці: ВАЖЛИВО — вони row-major тут.
         const XMFLOAT4X4& view = m_camera->getViewMatrix();
         const XMFLOAT4X4& proj = m_camera->getProjectionMatrix();
 
-        // Логи view / proj у row-major
-        LogMatrix("Camera View (row-major)", XMLoadFloat4x4(&view));
-        LogMatrix("Camera Proj (row-major)", XMLoadFloat4x4(&proj));
+        //LogMatrix("Camera View (row-major)", XMLoadFloat4x4(&view));
+        //LogMatrix("Camera Proj (row-major)", XMLoadFloat4x4(&proj));
 
-        // --- Shadow pass ---
         m_renderSystem->renderShadows(m_scene);
-
-        // --- Main pass begin ---
         m_renderSystem->beginFrame(swapChain, { 0.2f, 0.2f, 0.2f, 1.0f });
 
-        // --- Малюємо всі моделі у сцені ---
         for (const auto& object : m_scene.getAllObjects())
         {
             if (!object->model)
@@ -166,10 +151,8 @@ namespace dx3d
 
             const XMFLOAT4X4& world = object->getWorldTransform().getWorldMatrix();
 
-            // Лог world у row-major
-            LogMatrix("Object WORLD (row-major)", XMLoadFloat4x4(&world));
+            //LogMatrix("Object WORLD (row-major)", XMLoadFloat4x4(&world));
 
-            // RenderSystem::drawModel сам тратить transpose.
             m_renderSystem->drawModel(
                 *object->model,
                 *object->constantBuffer,
@@ -179,7 +162,6 @@ namespace dx3d
             );
         }
 
-        // --- Закриваємо кадр ---
         m_renderSystem->endFrame(*m_graphicsDevice, swapChain, true);
     }
 

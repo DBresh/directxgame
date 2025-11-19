@@ -12,12 +12,10 @@ namespace dx3d
     public:
         Transform() = default;
 
-        // ================= GETTERS =================
         XMFLOAT3 getPosition()    const noexcept { return m_position; }
         XMFLOAT3 getScale()       const noexcept { return m_scale; }
         XMFLOAT4 getQuaternion()  const noexcept { return m_quat; }
 
-        // Euler only for debugging / editor
         XMFLOAT3 getEuler() const noexcept { return m_euler; }
 
         const XMFLOAT4X4& getWorldMatrix() const
@@ -27,7 +25,6 @@ namespace dx3d
             return m_world;
         }
 
-        // ================= SETTERS =================
         void setPosition(const XMFLOAT3& p)
         {
             m_position = p;
@@ -54,7 +51,6 @@ namespace dx3d
             m_dirty = true;
         }
 
-        // ================= MODIFY =================
         void translate(const XMFLOAT3& d)
         {
             m_position.x += d.x;
@@ -86,9 +82,6 @@ namespace dx3d
         }
 
     private:
-        // ===================================================
-        // INTERNAL FUNCTIONS
-        // ===================================================
         void updateQuaternionFromEuler()
         {
             XMVECTOR q =

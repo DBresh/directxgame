@@ -3,6 +3,8 @@
 #include <vector>
 #include <memory>
 
+#include <DX3D/InputSystem/InputListener.h>
+#include <DX3D/InputSystem/InputSystem.h>
 #include <DX3D/Graphics/Light.h>
 #include <DX3D/Graphics/StructuredBuffer.h>
 
@@ -11,11 +13,12 @@ namespace dx3d
     class GraphicsDevice;
     class DeviceContext;
 
-    class LightManager
+    class LightManager : InputListener
     {
     public:
         explicit LightManager(std::shared_ptr<GraphicsDevice> device)
             : m_device(std::move(device)) {
+            InputSystem::get()->addListener(this);
         }
 
         void clear();
@@ -42,6 +45,15 @@ namespace dx3d
         void bind(DeviceContext& context, unsigned slot);
 
         const std::vector<Light>& getLights() const { return m_lights; }
+
+        void onKeyDown(int key);
+        void onKeyUp(int key);
+        void onKeyPress(int key);
+
+        void onMouseMove(Point deltaMouse);
+        void onMouseDown(int button);
+        void onMouseUp(int button);
+        void onMouseWheel(int delta);
 
     private:
         void createSpotShadow(Light& l);

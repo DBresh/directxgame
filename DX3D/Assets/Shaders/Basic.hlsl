@@ -85,17 +85,20 @@ float ComputeShadowFromCoord(float4 lightClip, float bias)
 {
     float3 p = lightClip.xyz / max(lightClip.w, 1e-6f);
 
-    float2 uv = p.xy * 0.5f + 0.5f;
+    float2 uv;
+    uv.x = p.x * 0.5f + 0.5f;
+    uv.y = -p.y * 0.5f + 0.5f;
+
 
     if (uv.x < 0.0f || uv.x > 1.0f ||
         uv.y < 0.0f || uv.y > 1.0f ||
         p.z < 0.0f || p.z > 1.0f)
     {
-        return 1.0f;
+        return 1.0f; // lights on
     }
 
-    float refZ = p.z - bias;
-    return shadowMap.SampleCmpLevelZero(shadowSampler, uv, refZ);
+    float refDepth = p.z - bias;
+    return shadowMap.SampleCmp(shadowSampler, uv, refDepth);
 }
 
 float3 ComputeLighting(float3 baseColor, float3 N, float3 V, float3 worldPos)
@@ -116,7 +119,7 @@ float3 ComputeLighting(float3 baseColor, float3 N, float3 V, float3 worldPos)
         }
         else
         {
-            // до світла (from point to light)
+            // from point to light
             float3 toL = l.posRange.xyz - worldPos;
             float dist = length(toL);
             L = (dist > 1e-4f) ? (toL / dist) : float3(0, 0, 0);
@@ -156,25 +159,8 @@ float3 ComputeLighting(float3 baseColor, float3 N, float3 V, float3 worldPos)
         // ==== SPOT SHADOW ====
         if (l.type == 2)
         {
-            // вектор від світла до фрагмента
-            float3 vecFromLight = worldPos - l.posRange.xyz;
-            float distL = length(vecFromLight);
-
-            float3 lightDir = normalize(l.dirSpot.xyz);
-            float3 toPointDir = (distL > 1e-4f) ? (vecFromLight / distL) : lightDir;
-
-            float cosTheta = dot(toPointDir, lightDir);
-            float cosOuter = cos(l.dirSpot.w);
-
-            if (distL <= l.posRange.w && cosTheta >= cosOuter)
-            {
-                float4 lightClip = mul(float4(worldPos, 1.0f), lightViewProj[i]);
-                shadow = ComputeShadowFromCoord(lightClip, 0.0065f);
-            }
-            else
-            {
-                shadow = 1.0f;
-            }
+            float4 lightClip = mul(float4(worldPos, 1.0f), lightViewProj[i]);
+            shadow = ComputeShadowFromCoord(lightClip, 0.00085f);
         }
 
         sum += shadow * (diffuse + specular) * l.colInt.w * atten;
@@ -211,8 +197,9 @@ float4 PSMain(VSOutput input) : SV_Target
     float3 lighting = ComputeLighting(baseLin, N, V, input.worldPos);
     float3 finalLin = ambient + lighting;
 
+
     //float4 lightClipDbg = mul(float4(input.worldPos, 1.0f), lightViewProj[0]);
-    //float shadowDbg = ComputeShadowFromCoord(lightClipDbg, 0.0045f);
+    //float shadowDbg = ComputeShadowFromCoord(lightClipDbg, 0.0005f);
     //return float4(shadowDbg.xxx, 1.0);
     
     
