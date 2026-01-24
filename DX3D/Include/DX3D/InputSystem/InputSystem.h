@@ -40,7 +40,7 @@ namespace dx3d
 
     protected:
         std::vector<InputListener*> m_listeners;
-
+        
         std::unordered_map<int, bool> m_currentKeys;
         std::unordered_map<int, bool> m_previousKeys;
 

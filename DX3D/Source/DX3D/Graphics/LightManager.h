@@ -23,6 +23,18 @@ namespace dx3d
 
         void clear();
 
+        ID3D11DepthStencilView* getShadowDSV(int index) const {
+            if (index >= 0 && index < m_shadowDSVs.size())
+                return m_shadowDSVs[index].Get();
+            return nullptr;
+        }
+
+        UINT getShadowMapSize() const { return m_shadowMapSize; }
+
+        ID3D11ShaderResourceView* getShadowSRV() const { return m_shadowArraySRV.Get(); }
+
+        void initShadowArray(UINT size, UINT maxLights);
+
         void addDirectional(const DirectX::XMFLOAT3& dir,
             const DirectX::XMFLOAT3& color,
             float intensity,
@@ -62,5 +74,10 @@ namespace dx3d
         std::shared_ptr<GraphicsDevice> m_device;
         std::shared_ptr<StructuredBuffer> m_gpuBuffer;
         std::vector<Light> m_lights;
+
+        UINT m_shadowMapSize = 2048;
+        Microsoft::WRL::ComPtr<ID3D11Texture2D> m_shadowArray;
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_shadowArraySRV;
+        std::vector<Microsoft::WRL::ComPtr<ID3D11DepthStencilView>> m_shadowDSVs;
     };
 }

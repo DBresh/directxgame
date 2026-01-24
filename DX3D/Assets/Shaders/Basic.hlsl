@@ -7,7 +7,7 @@ static const float SpecPower = 32.0f;
 Texture2D diffuseTexture : register(t0);
 SamplerState samplerLinear : register(s0);
 
-Texture2D shadowMap : register(t2);
+Texture2DArray shadowMap : register(t2);
 SamplerComparisonState shadowSampler : register(s1);
 
 // ==== MATRICES ====
@@ -40,7 +40,8 @@ struct Light
     float4 dirSpot; // xyz = direction (normalized), w = spotHalfAngleRadians
     float4 colInt; // rgb = color, w = intensity
     int type; // 0=Dir, 1=Point, 2=Spot
-    int3 _pad;
+    int shadowMapIndex;
+    int2 _pad;
 };
 StructuredBuffer<Light> Lights : register(t1);
 
@@ -81,7 +82,7 @@ VSOutput VSMain(VSInput input)
     return o;
 }
 
-float ComputeShadowFromCoord(float4 lightClip, float bias)
+float ComputeShadowFromCoord(float4 lightClip, float bias, int sliceIndex)
 {
     float3 p = lightClip.xyz / max(lightClip.w, 1e-6f);
 
@@ -89,16 +90,16 @@ float ComputeShadowFromCoord(float4 lightClip, float bias)
     uv.x = p.x * 0.5f + 0.5f;
     uv.y = -p.y * 0.5f + 0.5f;
 
-
     if (uv.x < 0.0f || uv.x > 1.0f ||
         uv.y < 0.0f || uv.y > 1.0f ||
         p.z < 0.0f || p.z > 1.0f)
     {
-        return 1.0f; // lights on
+        return 1.0f;
     }
 
     float refDepth = p.z - bias;
-    return shadowMap.SampleCmp(shadowSampler, uv, refDepth);
+    
+    return shadowMap.SampleCmp(shadowSampler, float3(uv, (float) sliceIndex), refDepth);
 }
 
 float3 ComputeLighting(float3 baseColor, float3 N, float3 V, float3 worldPos)
@@ -157,10 +158,11 @@ float3 ComputeLighting(float3 baseColor, float3 N, float3 V, float3 worldPos)
         float shadow = 1.0f;
 
         // ==== SPOT SHADOW ====
-        if (l.type == 2)
+        if (l.shadowMapIndex >= 0) // Spot Light
         {
             float4 lightClip = mul(float4(worldPos, 1.0f), lightViewProj[i]);
-            shadow = ComputeShadowFromCoord(lightClip, 0.00085f);
+    
+            shadow = ComputeShadowFromCoord(lightClip, 0.00085f, l.shadowMapIndex);
         }
 
         sum += shadow * (diffuse + specular) * l.colInt.w * atten;

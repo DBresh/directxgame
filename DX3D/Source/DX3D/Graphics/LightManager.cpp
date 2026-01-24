@@ -155,12 +155,61 @@ namespace dx3d
 		);
 	}
 
+	void LightManager::initShadowArray(UINT size, UINT numSlices)
+	{
+		m_shadowMapSize = size;
+		m_shadowDSVs.clear();
+
+		D3D11_TEXTURE2D_DESC texDesc = {};
+		texDesc.Width = size;
+		texDesc.Height = size;
+		texDesc.MipLevels = 1;
+		texDesc.ArraySize = numSlices;
+		texDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
+		texDesc.SampleDesc.Count = 1;
+		texDesc.Usage = D3D11_USAGE_DEFAULT;
+		texDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+
+		ID3D11Device* device = m_device->getD3D11Device();
+
+		HRESULT hr = device->CreateTexture2D(&texDesc, nullptr, m_shadowArray.GetAddressOf());
+		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(hr, "Error creating Shadow Texture Array");
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+		srvDesc.Texture2DArray.MostDetailedMip = 0;
+		srvDesc.Texture2DArray.MipLevels = 1;
+		srvDesc.Texture2DArray.FirstArraySlice = 0;
+		srvDesc.Texture2DArray.ArraySize = numSlices;
+
+		hr = device->CreateShaderResourceView(m_shadowArray.Get(), &srvDesc, m_shadowArraySRV.GetAddressOf());
+		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(hr, "Error creating Shadow SRV");
+
+		for (UINT i = 0; i < numSlices; ++i)
+		{
+			D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+			dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+			dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+			dsvDesc.Texture2DArray.MipSlice = 0;
+			dsvDesc.Texture2DArray.FirstArraySlice = i;
+			dsvDesc.Texture2DArray.ArraySize = 1;
+
+			Microsoft::WRL::ComPtr<ID3D11DepthStencilView> dsv;
+			hr = device->CreateDepthStencilView(m_shadowArray.Get(), &dsvDesc, dsv.GetAddressOf());
+			DX3D_GRAPHICS_LOG_THROW_ON_FAIL(hr, "Error creating Shadow DSV Slice");
+
+			m_shadowDSVs.push_back(dsv);
+		}
+	}
+
 	void LightManager::uploadToGPU()
 	{
 		if (m_lights.empty())
 			return;
 
 		std::vector<LightGPU> gpuLights;
+		int currentShadowIndex = 0;
 		gpuLights.reserve(m_lights.size());
 
 		for (auto& l : m_lights)
@@ -171,6 +220,7 @@ namespace dx3d
 			g.posRange = XMFLOAT4(l.position.x, l.position.y, l.position.z, l.range);
 			g.dirSpot = XMFLOAT4(l.direction.x, l.direction.y, l.direction.z, l.spotAngle);
 			g.colInt = XMFLOAT4(l.color.x, l.color.y, l.color.z, l.intensity);
+			g.shadowMapIndex = (l.castShadows) ? currentShadowIndex++ : -1;
 
 			gpuLights.push_back(g);
 		}

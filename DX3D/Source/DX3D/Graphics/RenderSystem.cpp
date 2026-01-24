@@ -24,6 +24,7 @@ namespace dx3d
     {
         m_cameraBuffer = m_device->createConstantBuffer({ nullptr, sizeof(CameraData) });
         m_lightManager = std::make_unique<LightManager>(m_device);
+        m_lightManager->initShadowArray(1024, 4);
         m_depthCB = m_device->createConstantBuffer({ nullptr, sizeof(XMFLOAT4X4) });
         m_depthVS = m_device->createVertexShaderFromFile("DX3D/Assets/Shaders/ShadowDepthVS.hlsl", "VSMain");
         m_lightMatrixBuffer = m_device->createConstantBuffer(
@@ -87,31 +88,25 @@ namespace dx3d
 
             const auto& lights = m_lightManager->getLights();
 
-            int shadowTextureLightIndex = -1;
+            // 1. [REPLACEMENT] Bind the entire shadow array once to t2
+            // This replaces the old loop that searched for a single shadow map
+            if (m_lightManager->getShadowSRV()) {
+                m_context->setPSTexture(m_lightManager->getShadowSRV(), 2);
+            }
 
+            // 2. Fill the matrix buffer for all shadow-casting lights
             for (int i = 0; i < (int)lights.size() && i < max_lights; ++i)
             {
                 const auto& L = lights[i];
-
-                // shadowMap t2
-                if (shadowTextureLightIndex < 0 &&
-                    L.type == LightType::Spot &&
-                    L.castShadows &&
-                    L.shadow && L.shadow->shadowMap)
-                {
-                    m_context->setPSTexture(L.shadow->shadowMap->getSRV(), 2);
-                    shadowTextureLightIndex = i;
-                }
 
                 if (L.castShadows && L.shadow)
                 {
                     XMMATRIX VP_gpu = XMLoadFloat4x4(&L.shadow->viewProj);
                     XMStoreFloat4x4(&lightMatrices[i], VP_gpu);
-
-                    //LogMatrix("GPU light VP (as loaded for b2)", VP_gpu);
                 }
             }
 
+            // 3. Update Constant Buffers as before
             m_context->updateConstantBuffer(
                 *m_lightMatrixBuffer,
                 lightMatrices,
@@ -140,67 +135,61 @@ namespace dx3d
         if (m_pipeline)
             m_context->setGraphicsPipelineState(*m_pipeline);
 
+        // Unbind standard buffers
         ID3D11Buffer* nullBuf = nullptr;
-        for (UINT slot = 0; slot < 8; ++slot)
-        {
+        for (UINT slot = 0; slot < 8; ++slot) {
             m_context->m_context->VSSetConstantBuffers(slot, 1, &nullBuf);
             m_context->m_context->PSSetConstantBuffers(slot, 1, &nullBuf);
         }
 
         const auto& lights = m_lightManager->getLights();
-        //DX3D_LOG_INFO("RenderShadows: lights count = {}", (int)lights.size());
 
-        for (auto& light : lights)
+        // Set Viewport ONCE (All shadow slices are same size now)
+        Rect vp;
+        vp.width = (float)m_lightManager->getShadowMapSize();
+        vp.height = (float)m_lightManager->getShadowMapSize();
+        m_context->setViewportSize(vp);
+
+        m_context->setVertexShader(m_depthVS.Get());
+        m_context->setPixelShader(nullptr);
+
+        int shadowIndex = 0;
+
+        for (int i = 0; i < lights.size(); ++i)
         {
-            if (!light.castShadows || !light.shadow)
-                continue;
+            const auto& light = lights[i];
 
-            auto& shadow = light.shadow;
-            auto depthTex = shadow->shadowMap;
-            if (!depthTex)
-                continue;
+            // Skip if this light doesn't cast shadows
+            if (!light.castShadows) continue;
 
-            float spotDeg = (light.type == LightType::Spot)
-                ? XMConvertToDegrees(light.spotAngle * 2.0f) // full FOV for debug
-                : 0.0f;
+            // Safety: Ensure we don't exceed our allocated array size
+            ID3D11DepthStencilView* dsv = m_lightManager->getShadowDSV(shadowIndex);
+            if (!dsv) break;
 
-            //DX3D_LOG_INFO(
-            //    "ShadowPass: light type={} pos({:.2f},{:.2f},{:.2f}) dir({:.2f},{:.2f},{:.2f}) range={:.2f} spotFovDeg={:.2f}",
-            //    (int)light.type,
-            //    light.position.x, light.position.y, light.position.z,
-            //    light.direction.x, light.direction.y, light.direction.z,
-            //    light.range,
-            //    spotDeg
-            //);
+            // 1. Set the specific Array Slice as the Depth Target
+            m_context->setDepthTargetArraySlice(dsv);
+            m_context->clearDepth(*dsv);
 
-            Rect vp;
-            vp.width = depthTex->getWidth();
-            vp.height = depthTex->getHeight();
-            m_context->setViewportSize(vp);
+            // 2. Prepare View/Proj Matrices
+            // Note: We use the existing shadow data struct, 
+            // but we NO LONGER check light.shadow->shadowMap
+            if (!light.shadow) continue;
 
-            m_context->setDepthTarget(depthTex->getDSV());
-            m_context->clearDepth(*depthTex->getDSV());
+            XMMATRIX V = XMLoadFloat4x4(&light.shadow->view);
+            XMMATRIX P = XMLoadFloat4x4(&light.shadow->proj);
 
-            m_context->setVertexShader(m_depthVS.Get());
-            m_context->setPixelShader(nullptr);
-
-            XMMATRIX V = XMLoadFloat4x4(&shadow->view);
-            XMMATRIX P = XMLoadFloat4x4(&shadow->proj);
-
-            //LogMatrix("ShadowPass View (row-major)", V);
-            //LogMatrix("ShadowPass Proj (row-major)", P);
-
+            // 3. Render Scene
             for (auto& objPtr : scene.getAllObjects())
             {
                 auto& obj = *objPtr;
                 const auto& model = obj.model;
-                if (!model || !model->mesh)
-                    continue;
+                if (!model || !model->mesh) continue;
 
                 XMMATRIX W = XMLoadFloat4x4(&obj.transform.getWorldMatrix());
                 XMMATRIX WVP = W * V * P;
+
+                // Transpose for GPU (Column-Major)
                 XMMATRIX WVP_t = XMMatrixTranspose(WVP);
-                //LogMatrix("ShadowPass WVP_t (GPU column-major)", WVP_t);
 
                 XMFLOAT4X4 cb;
                 XMStoreFloat4x4(&cb, WVP_t);
@@ -214,8 +203,12 @@ namespace dx3d
                     model->mesh->getIndexBuffer().getIndexCount(), 0, 0
                 );
             }
+
+            // Increment shadow slice index for the next light
+            shadowIndex++;
         }
 
+        // Cleanup
         m_context->setDepthTarget(nullptr);
         m_context->setPSConstantBuffer(*m_lightMatrixBuffer, 2);
         m_context->setVSConstantBuffer(*m_lightMatrixBuffer, 2);

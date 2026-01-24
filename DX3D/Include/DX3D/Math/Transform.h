@@ -100,19 +100,18 @@ namespace dx3d
 
             float t0 = +2.0f * (qf.w * qf.x + qf.y * qf.z);
             float t1 = +1.0f - 2.0f * (qf.x * qf.x + ysqr);
-            float roll = atan2(t0, t1);
+            float roll = atan2f(t0, t1);
 
             float t2 = +2.0f * (qf.w * qf.y - qf.z * qf.x);
             t2 = std::clamp(t2, -1.0f, 1.0f);
-            float pitch = asin(t2);
+            float pitch = asinf(t2);
 
             float t3 = +2.0f * (qf.w * qf.z + qf.x * qf.y);
             float t4 = +1.0f - 2.0f * (ysqr + qf.z * qf.z);
-            float yaw = atan2(t3, t4);
+            float yaw = atan2f(t3, t4);
 
             m_euler = XMFLOAT3(pitch, yaw, roll);
         }
-
 
         void recalcMatrix() const
         {

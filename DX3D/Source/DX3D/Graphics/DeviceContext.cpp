@@ -145,4 +145,9 @@ namespace dx3d
 	{
 		m_context->PSSetShader(ps, nullptr, 0);
 	}
+
+	void DeviceContext::setDepthTargetArraySlice(ID3D11DepthStencilView* dsv)
+	{
+		m_context->OMSetRenderTargets(0, nullptr, dsv);
+	}
 }

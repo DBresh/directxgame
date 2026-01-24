@@ -43,6 +43,8 @@ namespace dx3d
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> createShadowSampler();
 		Microsoft::WRL::ComPtr<ID3D11VertexShader> createVertexShaderFromFile(const std::string& path, const char* entry);
 
+		ID3D11Device* getD3D11Device() const noexcept { return m_d3dDevice.Get(); }
+
 		void executeCommandList(DeviceContext& context);
 	protected:
 		GraphicsResourceDesc getGraphicsResourceDesc() const noexcept;

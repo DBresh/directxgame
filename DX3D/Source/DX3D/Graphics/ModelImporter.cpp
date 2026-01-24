@@ -211,7 +211,6 @@ namespace dx3d
                             1.0f
                         );
 
-                        // Assumes Vertex has a ctor: Vertex(XMFLOAT3 pos, XMFLOAT3 norm, XMFLOAT2 uv, XMFLOAT4 color)
                         model.vertices.emplace_back(key.position, key.normal, key.texcoord, color);
                         model.indices.push_back(newIndex);
 
@@ -225,7 +224,7 @@ namespace dx3d
                 }
             }
         }
-    } // anonymous namespace
+    }
 
     ModelData ModelImporter::loadOBJ(const std::string& relativePath)
     {
@@ -326,7 +325,6 @@ namespace dx3d
                 }
             }
 
-            // Normalize accumulated normals
             for (auto& v : model.vertices)
             {
                 XMVECTOR nv = XMLoadFloat3(&v.normal);

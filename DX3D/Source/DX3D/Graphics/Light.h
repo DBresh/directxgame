@@ -49,6 +49,7 @@ namespace dx3d
         XMFLOAT4 dirSpot;  // xyz dir,  w = spotAngleRadians
         XMFLOAT4 colInt;   // rgb col,  w = intensity
         int type;
-        int _pad[3]; // 16-byte alignment
+        int shadowMapIndex; // -1 if no shadow
+        int _pad[2]; // 16-byte alignment
     };
 }
