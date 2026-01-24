@@ -33,5 +33,20 @@ namespace dx3d
 		dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
 		dsDesc.StencilEnable = FALSE;
 		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(m_device.CreateDepthStencilState(&dsDesc, &m_depthStencilState), "CreateDepthStencilState failed.");
+
+		D3D11_RASTERIZER_DESC rsDesc = {};
+		rsDesc.CullMode = D3D11_CULL_BACK;   // Standard culling
+		rsDesc.FillMode = D3D11_FILL_SOLID;  // Render triangles
+		rsDesc.FrontCounterClockwise = FALSE;
+		rsDesc.DepthClipEnable = TRUE;
+		rsDesc.MultisampleEnable = FALSE;
+		rsDesc.AntialiasedLineEnable = FALSE;
+
+		// Default bias for normal rendering is 0
+		rsDesc.DepthBias = 0;
+		rsDesc.SlopeScaledDepthBias = 0.0f;
+		rsDesc.DepthBiasClamp = 0.0f;
+
+		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(m_device.CreateRasterizerState(&rsDesc, &m_rasterizerState), "CreateRasterizerState failed.");
 	}
 }

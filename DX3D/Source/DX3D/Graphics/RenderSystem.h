@@ -54,6 +54,8 @@ namespace dx3d
         GraphicsPipelineStatePtr        m_pipeline;
         std::unique_ptr<LightManager>   m_lightManager;
 
+        Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_shadowRasterizer;
+
         ConstantBufferPtr m_cameraBuffer;
         XMFLOAT3          m_cameraPosition{ 0, 0, 0 };
 

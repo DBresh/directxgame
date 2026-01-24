@@ -8,6 +8,7 @@ namespace dx3d
 	{
 	public:
 		GraphicsPipelineState(const GraphicsPipelineStateDesc& desc, const GraphicsResourceDesc& gDesc);
+		ID3D11RasterizerState* getRasterizerState() const { return m_rasterizerState.Get(); }
 	
 	
 	private:
@@ -15,6 +16,7 @@ namespace dx3d
 		Microsoft::WRL::ComPtr<ID3D11PixelShader> m_ps{};
 		Microsoft::WRL::ComPtr<ID3D11InputLayout> m_layout{};
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilState{};
+		Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerState{};
 
 		friend class DeviceContext;
 	};

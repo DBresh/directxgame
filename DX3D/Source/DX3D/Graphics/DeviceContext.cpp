@@ -34,6 +34,7 @@ namespace dx3d
 		m_context->VSSetShader(pipeline.m_vs.Get(), nullptr, 0);
 		m_context->PSSetShader(pipeline.m_ps.Get(), nullptr, 0);
 		m_context->OMSetDepthStencilState(pipeline.m_depthStencilState.Get(), 0);
+		m_context->RSSetState(pipeline.getRasterizerState());
 	}
 
 	void DeviceContext::setVertexBuffer(const VertexBuffer& buffer)
@@ -145,7 +146,7 @@ namespace dx3d
 	{
 		m_context->PSSetShader(ps, nullptr, 0);
 	}
-
+	
 	void DeviceContext::setDepthTargetArraySlice(ID3D11DepthStencilView* dsv)
 	{
 		m_context->OMSetRenderTargets(0, nullptr, dsv);

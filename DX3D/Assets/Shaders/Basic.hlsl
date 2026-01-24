@@ -82,7 +82,7 @@ VSOutput VSMain(VSInput input)
     return o;
 }
 
-float ComputeShadowFromCoord(float4 lightClip, float bias, int sliceIndex)
+float ComputeShadowFromCoord(float4 lightClip, int sliceIndex)
 {
     float3 p = lightClip.xyz / max(lightClip.w, 1e-6f);
 
@@ -96,11 +96,10 @@ float ComputeShadowFromCoord(float4 lightClip, float bias, int sliceIndex)
     {
         return 1.0f;
     }
-
-    float refDepth = p.z - bias;
     
-    return shadowMap.SampleCmp(shadowSampler, float3(uv, (float) sliceIndex), refDepth);
+    return shadowMap.SampleCmp(shadowSampler, float3(uv, (float) sliceIndex), p.z);
 }
+
 
 float3 ComputeLighting(float3 baseColor, float3 N, float3 V, float3 worldPos)
 {
@@ -162,7 +161,7 @@ float3 ComputeLighting(float3 baseColor, float3 N, float3 V, float3 worldPos)
         {
             float4 lightClip = mul(float4(worldPos, 1.0f), lightViewProj[i]);
     
-            shadow = ComputeShadowFromCoord(lightClip, 0.00085f, l.shadowMapIndex);
+            shadow = ComputeShadowFromCoord(lightClip, l.shadowMapIndex);
         }
 
         sum += shadow * (diffuse + specular) * l.colInt.w * atten;

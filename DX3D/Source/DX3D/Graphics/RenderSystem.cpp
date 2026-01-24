@@ -24,13 +24,27 @@ namespace dx3d
     {
         m_cameraBuffer = m_device->createConstantBuffer({ nullptr, sizeof(CameraData) });
         m_lightManager = std::make_unique<LightManager>(m_device);
-        m_lightManager->initShadowArray(1024, 4);
+
+        m_lightManager->initShadowArray(2048, 4);
+
         m_depthCB = m_device->createConstantBuffer({ nullptr, sizeof(XMFLOAT4X4) });
         m_depthVS = m_device->createVertexShaderFromFile("DX3D/Assets/Shaders/ShadowDepthVS.hlsl", "VSMain");
         m_lightMatrixBuffer = m_device->createConstantBuffer(
             { nullptr, sizeof(XMFLOAT4X4) * 64 });
 
         m_shadowSampler = m_device->createShadowSampler();
+
+        D3D11_RASTERIZER_DESC shadowRS = {};
+        shadowRS.CullMode = D3D11_CULL_BACK;
+        shadowRS.FillMode = D3D11_FILL_SOLID;
+        shadowRS.DepthClipEnable = TRUE;
+
+        // ==== AUTO BIAS SETTINGS ====
+        shadowRS.DepthBias = 15000;
+        shadowRS.SlopeScaledDepthBias = 2.0f; // More bias on steep slopes
+        shadowRS.DepthBiasClamp = 0.0f;
+
+        m_device->getD3D11Device()->CreateRasterizerState(&shadowRS, &m_shadowRasterizer);
     }
 
     void RenderSystem::setPipeline(GraphicsPipelineStatePtr pipeline) noexcept
@@ -132,24 +146,37 @@ namespace dx3d
 
     void RenderSystem::renderShadows(SceneManager& scene)
     {
+        // 1. Set Input Layout (Required for the Vertex Shader to read data)
         if (m_pipeline)
             m_context->setGraphicsPipelineState(*m_pipeline);
 
-        // Unbind standard buffers
+        // 2. Set Shadow Rasterizer (Slope-Scaled Bias)
+        // Use the getter we added to access the raw context
+        m_context->m_context->RSSetState(m_shadowRasterizer.Get());
+
+        // 3. Unbind Resources to prevent hazards
         ID3D11Buffer* nullBuf = nullptr;
+        ID3D11ShaderResourceView* nullSRV = nullptr;
+
         for (UINT slot = 0; slot < 8; ++slot) {
-            m_context->m_context->VSSetConstantBuffers(slot, 1, &nullBuf);
-            m_context->m_context->PSSetConstantBuffers(slot, 1, &nullBuf);
+            auto ctx = m_context->m_context;
+            ctx->VSSetConstantBuffers(slot, 1, &nullBuf);
+            ctx->PSSetConstantBuffers(slot, 1, &nullBuf);
         }
+
+        // [IMPORTANT] Unbind the shadow map from the Pixel Shader slot (t2)
+        // so we can write to it as a Depth Target without warnings.
+        m_context->m_context->PSSetShaderResources(2, 1, &nullSRV);
 
         const auto& lights = m_lightManager->getLights();
 
-        // Set Viewport ONCE (All shadow slices are same size now)
+        // 4. Set Viewport ONCE
         Rect vp;
         vp.width = (float)m_lightManager->getShadowMapSize();
         vp.height = (float)m_lightManager->getShadowMapSize();
         m_context->setViewportSize(vp);
 
+        // 5. Set Shadow Shaders (Null Pixel Shader = Depth Only)
         m_context->setVertexShader(m_depthVS.Get());
         m_context->setPixelShader(nullptr);
 
@@ -158,27 +185,22 @@ namespace dx3d
         for (int i = 0; i < lights.size(); ++i)
         {
             const auto& light = lights[i];
-
-            // Skip if this light doesn't cast shadows
             if (!light.castShadows) continue;
 
-            // Safety: Ensure we don't exceed our allocated array size
             ID3D11DepthStencilView* dsv = m_lightManager->getShadowDSV(shadowIndex);
             if (!dsv) break;
 
-            // 1. Set the specific Array Slice as the Depth Target
+            // A. Set Target Slice
             m_context->setDepthTargetArraySlice(dsv);
             m_context->clearDepth(*dsv);
 
-            // 2. Prepare View/Proj Matrices
-            // Note: We use the existing shadow data struct, 
-            // but we NO LONGER check light.shadow->shadowMap
+            // B. Calculate Matrices
             if (!light.shadow) continue;
 
             XMMATRIX V = XMLoadFloat4x4(&light.shadow->view);
             XMMATRIX P = XMLoadFloat4x4(&light.shadow->proj);
 
-            // 3. Render Scene
+            // C. Render Objects
             for (auto& objPtr : scene.getAllObjects())
             {
                 auto& obj = *objPtr;
@@ -187,8 +209,6 @@ namespace dx3d
 
                 XMMATRIX W = XMLoadFloat4x4(&obj.transform.getWorldMatrix());
                 XMMATRIX WVP = W * V * P;
-
-                // Transpose for GPU (Column-Major)
                 XMMATRIX WVP_t = XMMatrixTranspose(WVP);
 
                 XMFLOAT4X4 cb;
@@ -203,17 +223,21 @@ namespace dx3d
                     model->mesh->getIndexBuffer().getIndexCount(), 0, 0
                 );
             }
-
-            // Increment shadow slice index for the next light
             shadowIndex++;
         }
 
-        // Cleanup
+        // 6. Cleanup / Restore State
+        if (m_pipeline)
+            m_context->setGraphicsPipelineState(*m_pipeline); // Restores default RS if pipeline has one
+        else
+            m_context->m_context->RSSetState(nullptr);
+
         m_context->setDepthTarget(nullptr);
+
+        // Restore light buffers for the main pass
         m_context->setPSConstantBuffer(*m_lightMatrixBuffer, 2);
         m_context->setVSConstantBuffer(*m_lightMatrixBuffer, 2);
     }
-
 
     void RenderSystem::drawModel(
         const ModelGPU& model,
