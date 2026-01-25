@@ -155,7 +155,40 @@ namespace dx3d
         }
 
         auto importer = std::make_shared<ModelImporter>(m_device, this);
-        auto cpuData = std::make_shared<ModelData>(importer->loadOBJ(key));
+        std::shared_ptr<ModelData> cpuData;
+
+        // --- Binary Cache Logic ---
+        std::filesystem::path objPath(key);
+        std::filesystem::path binPath = objPath;
+        binPath += ".bin"; // e.g., "model.obj.bin"
+
+        bool loadFromBinary = false;
+
+        // Check if .bin exists and is newer than .obj
+        if (std::filesystem::exists(binPath) && std::filesystem::exists(objPath))
+        {
+            auto objTime = std::filesystem::last_write_time(objPath);
+            auto binTime = std::filesystem::last_write_time(binPath);
+
+            if (binTime > objTime) {
+                ModelData binData = importer->loadBinary(binPath.string());
+                if (!binData.vertices.empty()) { // Check if load succeeded
+                    cpuData = std::make_shared<ModelData>(std::move(binData));
+                    loadFromBinary = true;
+                }
+            }
+        }
+
+        // Fallback to OBJ if binary invalid or outdated
+        if (!loadFromBinary)
+        {
+            cpuData = std::make_shared<ModelData>(importer->loadOBJ(key));
+
+            // Save binary for next time
+            if (!cpuData->vertices.empty()) {
+                importer->saveBinary(binPath.string(), *cpuData);
+            }
+        }
 
         return buildGPUAndCache(key, cpuData);
     }

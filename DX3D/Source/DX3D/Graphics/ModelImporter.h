@@ -15,6 +15,9 @@ namespace dx3d
 
         ModelData loadOBJ(const std::string& relativePath);
 
+        bool saveBinary(const std::string& path, const ModelData& data);
+        ModelData loadBinary(const std::string& path);
+
     private:
         std::shared_ptr<GraphicsDevice> m_graphicsDevice;
         AssetManager* m_assets = nullptr;

@@ -25,7 +25,7 @@ namespace dx3d
         m_cameraBuffer = m_device->createConstantBuffer({ nullptr, sizeof(CameraData) });
         m_lightManager = std::make_unique<LightManager>(m_device);
 
-        m_lightManager->initShadowArray(2048, 4);
+        m_lightManager->initShadowArray(512, 4);
 
         m_depthCB = m_device->createConstantBuffer({ nullptr, sizeof(XMFLOAT4X4) });
         m_depthVS = m_device->createVertexShaderFromFile("DX3D/Assets/Shaders/ShadowDepthVS.hlsl", "VSMain");
@@ -40,7 +40,7 @@ namespace dx3d
         shadowRS.DepthClipEnable = TRUE;
 
         // ==== AUTO BIAS SETTINGS ====
-        shadowRS.DepthBias = 15000;
+        shadowRS.DepthBias = 3500;
         shadowRS.SlopeScaledDepthBias = 2.0f; // More bias on steep slopes
         shadowRS.DepthBiasClamp = 0.0f;
 

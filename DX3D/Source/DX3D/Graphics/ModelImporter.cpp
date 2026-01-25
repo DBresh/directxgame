@@ -226,6 +226,199 @@ namespace dx3d
         }
     }
 
+    namespace {
+        const char BINARY_SIGNATURE[4] = { 'D', 'X', '3', 'B' };
+        const uint32_t BINARY_VERSION = 1;
+
+        template<typename T>
+        void writePOD(std::ofstream& out, const T& data) {
+            out.write(reinterpret_cast<const char*>(&data), sizeof(T));
+        }
+
+        template<typename T>
+        void readPOD(std::ifstream& in, T& data) {
+            in.read(reinterpret_cast<char*>(&data), sizeof(T));
+        }
+
+        void writeString(std::ofstream& out, const std::string& str) {
+            uint32_t len = static_cast<uint32_t>(str.size());
+            writePOD(out, len);
+            if (len > 0) out.write(str.data(), len);
+        }
+
+        void readString(std::ifstream& in, std::string& str) {
+            uint32_t len = 0;
+            readPOD(in, len);
+            if (len > 0) {
+                str.resize(len);
+                in.read(str.data(), len);
+            }
+            else {
+                str.clear();
+            }
+        }
+
+        template<typename T>
+        void writeVector(std::ofstream& out, const std::vector<T>& vec) {
+            uint32_t size = static_cast<uint32_t>(vec.size());
+            writePOD(out, size);
+            if (size > 0) out.write(reinterpret_cast<const char*>(vec.data()), size * sizeof(T));
+        }
+
+        template<typename T>
+        void readVector(std::ifstream& in, std::vector<T>& vec) {
+            uint32_t size = 0;
+            readPOD(in, size);
+            vec.resize(size);
+            if (size > 0) in.read(reinterpret_cast<char*>(vec.data()), size * sizeof(T));
+        }
+    }
+
+    bool ModelImporter::saveBinary(const std::string& path, const ModelData& data)
+    {
+        std::ofstream out(path, std::ios::binary);
+        if (!out.is_open()) {
+            DX3D_LOG_ERROR("Failed to open file for binary saving: {}", path);
+            return false;
+        }
+
+        // Header & Version
+        out.write(BINARY_SIGNATURE, 4);
+        writePOD(out, BINARY_VERSION);
+
+        // Global Properties
+        writePOD(out, data.boundingBox);
+        writePOD(out, data.hasNormals);
+        writePOD(out, data.hasTexcoords);
+        writeString(out, data.sourcePath);
+
+        // Geometry (Vertices & Indices)
+        writeVector(out, data.vertices);
+        writeVector(out, data.indices);
+
+        // Materials
+        // We cannot write the struct directly because of std::string and pointers
+        uint32_t matCount = static_cast<uint32_t>(data.materials.size());
+        writePOD(out, matCount);
+
+        for (const auto& mat : data.materials) {
+            writeString(out, mat.name);
+
+            // Write POD fields manually to avoid padding/pointer issues
+            writePOD(out, mat.diffuseColor);
+            writePOD(out, mat.shininess);
+            writePOD(out, mat.ambientColor);
+            writePOD(out, mat.opacity);
+            writePOD(out, mat.specularColor);
+
+            writeString(out, mat.diffuseTexturePath);
+        }
+
+        // Material Groups
+        uint32_t groupCount = static_cast<uint32_t>(data.materialGroups.size());
+        writePOD(out, groupCount);
+        for (const auto& grp : data.materialGroups) {
+            writeString(out, grp.name);
+            writePOD(out, grp.startIndex);
+            writePOD(out, grp.indexCount);
+            writePOD(out, grp.materialIndex);
+        }
+
+        // Material Names List
+        uint32_t nameCount = static_cast<uint32_t>(data.materialNames.size());
+        writePOD(out, nameCount);
+        for (const auto& name : data.materialNames) {
+            writeString(out, name);
+        }
+
+        DX3D_LOG_INFO("Saved binary model cache: {}", path);
+        return true;
+    }
+
+    ModelData ModelImporter::loadBinary(const std::string& path)
+    {
+        ModelData data;
+        std::ifstream in(path, std::ios::binary);
+        if (!in.is_open()) return data; // Return empty
+
+        // Header & Version Check
+        char sig[4];
+        in.read(sig, 4);
+        uint32_t ver = 0;
+        readPOD(in, ver);
+
+        if (strncmp(sig, BINARY_SIGNATURE, 4) != 0 || ver != BINARY_VERSION) {
+            DX3D_LOG_WARNING("Binary model version mismatch or invalid format: {}", path);
+            return data; // Return empty to trigger fallback
+        }
+
+        // Global Properties
+        readPOD(in, data.boundingBox);
+        readPOD(in, data.hasNormals);
+        readPOD(in, data.hasTexcoords);
+        readString(in, data.sourcePath);
+
+        // Geometry
+        readVector(in, data.vertices);
+        readVector(in, data.indices);
+
+        // Materials
+        uint32_t matCount = 0;
+        readPOD(in, matCount);
+        data.materials.reserve(matCount);
+
+        for (uint32_t i = 0; i < matCount; ++i) {
+            Material mat;
+            readString(in, mat.name);
+
+            readPOD(in, mat.diffuseColor);
+            readPOD(in, mat.shininess);
+            readPOD(in, mat.ambientColor);
+            readPOD(in, mat.opacity);
+            readPOD(in, mat.specularColor);
+
+            readString(in, mat.diffuseTexturePath);
+
+            // Re-link texture if AssetManager is available
+            if (m_assets && !mat.diffuseTexturePath.empty()) {
+                // Construct the full path for the texture relative to the binary file (or assets root)
+                std::filesystem::path binPath(path);
+                std::filesystem::path texPath = binPath.parent_path() / mat.diffuseTexturePath;
+
+                // Use AssetManager to get/cache the texture
+                mat.diffuseTexture = m_assets->getTexture(texPath.string());
+            }
+
+            data.materials.push_back(mat);
+        }
+
+        // Material Groups
+        uint32_t groupCount = 0;
+        readPOD(in, groupCount);
+        data.materialGroups.reserve(groupCount);
+        for (uint32_t i = 0; i < groupCount; ++i) {
+            MaterialGroup grp;
+            readString(in, grp.name);
+            readPOD(in, grp.startIndex);
+            readPOD(in, grp.indexCount);
+            readPOD(in, grp.materialIndex);
+            data.materialGroups.push_back(grp);
+        }
+
+        // Material Names
+        uint32_t nameCount = 0;
+        readPOD(in, nameCount);
+        data.materialNames.reserve(nameCount);
+        for (uint32_t i = 0; i < nameCount; ++i) {
+            std::string name;
+            readString(in, name);
+            data.materialNames.push_back(name);
+        }
+
+        DX3D_LOG_INFO("Loaded binary model: {} ({} verts)", path, data.vertices.size());
+        return data;
+    }
+
     ModelData ModelImporter::loadOBJ(const std::string& relativePath)
     {
         ModelData model;
