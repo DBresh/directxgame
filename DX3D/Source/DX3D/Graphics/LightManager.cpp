@@ -29,7 +29,45 @@ namespace dx3d
 		l.intensity = intensity;
 		l.castShadows = shadows;
 
+		if (shadows)
+			createDirectionalShadow(l);
+
 		m_lights.push_back(l);
+	}
+
+	void LightManager::createDirectionalShadow(Light& l)
+	{
+		float sceneDiameter = 60.0f;
+		XMVECTOR targetPos = XMVectorSet(0, 0, 0, 0);
+
+		XMVECTOR lightDir = XMLoadFloat3(&l.direction);
+
+		// Use XMVectorScale instead of operator*
+		XMVECTOR offset = XMVectorScale(lightDir, sceneDiameter);
+		XMVECTOR lightPos = XMVectorSubtract(targetPos, offset);
+
+		if (!l.shadow)
+			l.shadow = std::make_shared<LightShadowData>();
+
+		l.shadow->shadowMap = m_device->createDepthTexture2D(m_shadowMapSize, m_shadowMapSize);
+
+		XMVECTOR up = XMVectorSet(0, 1, 0, 0);
+		// Use XMVector3NearEqual for safe vector comparison
+		if (XMVector3NearEqual(XMVectorAbs(lightDir), XMVectorSet(0, 1, 0, 0), XMVectorReplicate(0.1f)))
+			up = XMVectorSet(0, 0, 1, 0);
+
+		XMMATRIX V = XMMatrixLookAtLH(lightPos, targetPos, up);
+
+		// Orthographic projection for directional light
+		XMMATRIX P = XMMatrixOrthographicLH(sceneDiameter, sceneDiameter, 1.0f, sceneDiameter * 4.0f);
+
+		XMMATRIX VP = XMMatrixMultiply(V, P);
+
+		XMStoreFloat4x4(&l.shadow->view, V);
+		XMStoreFloat4x4(&l.shadow->proj, P);
+		XMStoreFloat4x4(&l.shadow->viewProj, XMMatrixTranspose(VP));
+
+		l.shadow->bias = 0.f;
 	}
 
 	void LightManager::addPoint(const XMFLOAT3& pos,
@@ -99,13 +137,11 @@ namespace dx3d
 
 	void LightManager::createSpotShadow(Light& l)
 	{
-		const UINT shadowSize = 2048;
-
 		if (!l.shadow)
 			l.shadow = std::make_shared<LightShadowData>();
 
 		// Створюємо / оновлюємо depth-текстуру
-		l.shadow->shadowMap = m_device->createDepthTexture2D(shadowSize, shadowSize);
+		l.shadow->shadowMap = m_device->createDepthTexture2D(m_shadowMapSize, m_shadowMapSize);
 
 		// --- Обчислюємо view матрицю (row-major на CPU) ---
 		XMVECTOR pos = XMLoadFloat3(&l.position);
@@ -136,12 +172,10 @@ namespace dx3d
 		XMStoreFloat4x4(&l.shadow->view, V);
 		XMStoreFloat4x4(&l.shadow->proj, P);
 
-		// --- А сюди кладемо ВЖЕ ТРАНСПОНОВАНИЙ VP (GPU-ready column-major) ---
 		XMMATRIX VP_t = XMMatrixTranspose(VP);
 		XMStoreFloat4x4(&l.shadow->viewProj, VP_t);
 
-		// Біас для SampleCmp (потім за бажанням підкрутиш)
-		l.shadow->bias = 0.0065f;
+		l.shadow->bias = 0.f;
 
 		XMFLOAT3 d3;
 		XMStoreFloat3(&d3, forward);

@@ -109,6 +109,13 @@ namespace dx3d
 			true
 		);
 
+		//lights->addDirectional(
+		//	XMFLOAT3(0.4f, -1.f, 0.f),
+		//	XMFLOAT3(1.f, 0.f, 0.f),
+		//	0.5f,
+		//	true
+		//);
+
 		//lights->addSpot(
 		//	XMFLOAT3(1.5f, 1.25f, -10.f),
 		//	XMFLOAT3(1.5f, -0.59f, 2.9f),

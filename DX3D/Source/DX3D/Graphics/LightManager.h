@@ -69,6 +69,7 @@ namespace dx3d
 
     private:
         void createSpotShadow(Light& l);
+        void createDirectionalShadow(Light& l);
 
     private:
         std::shared_ptr<GraphicsDevice> m_device;
