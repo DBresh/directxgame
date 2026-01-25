@@ -40,8 +40,8 @@ namespace dx3d
         shadowRS.DepthClipEnable = TRUE;
 
         // ==== AUTO BIAS SETTINGS ====
-        shadowRS.DepthBias = 3500;
-        shadowRS.SlopeScaledDepthBias = 2.0f; // More bias on steep slopes
+        shadowRS.DepthBias = 0.0f;
+        shadowRS.SlopeScaledDepthBias = 0.0f; // More bias on steep slopes
         shadowRS.DepthBiasClamp = 0.0f;
 
         m_device->getD3D11Device()->CreateRasterizerState(&shadowRS, &m_shadowRasterizer);

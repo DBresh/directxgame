@@ -82,7 +82,7 @@ VSOutput VSMain(VSInput input)
     return o;
 }
 
-float ComputeShadowFromCoord(float4 lightClip, int sliceIndex)
+float ComputeShadowFromCoord(float4 lightClip, int sliceIndex, float3 N, float3 L)
 {
     float3 p = lightClip.xyz / max(lightClip.w, 1e-6f);
 
@@ -96,20 +96,47 @@ float ComputeShadowFromCoord(float4 lightClip, int sliceIndex)
     {
         return 1.0f;
     }
-    
-    return shadowMap.SampleCmp(shadowSampler, float3(uv, (float) sliceIndex), p.z);
-}
 
+    // Auto-Bias Calculation (Slope-Scaled)
+    float NdotL = saturate(dot(N, L));
+    float bias = max(0.005f * (1.0f - NdotL), 0.0005f);
+    float currentDepth = p.z - bias;
+
+    // PCF SOFTENING (3x3 Loop)
+    // Calculate the size of one texel (1.0 / 2048.0)
+    uint width, height, elements;
+    shadowMap.GetDimensions(width, height, elements);
+    float2 texelSize = 1.0f / float2(width, height);
+
+    float shadowSum = 0.0f;
+
+    // Loop through a 3x3 grid around the current pixel
+    [unroll]
+    for (int x = -1; x <= 1; ++x)
+    {
+        [unroll]
+        for (int y = -1; y <= 1; ++y)
+        {
+            float2 offset = float2(x, y) * texelSize;
+            
+            // Sample the shadow map at the offset position
+            shadowSum += shadowMap.SampleCmp(shadowSampler,
+                                             float3(uv + offset, (float) sliceIndex),
+                                             currentDepth);
+        }
+    }
+
+    // Average the 9 samples
+    return shadowSum / 9.0f;
+}
 
 float3 ComputeLighting(float3 baseColor, float3 N, float3 V, float3 worldPos)
 {
     float3 sum = 0.0f;
-
     [loop]
     for (int i = 0; i < lightCount; ++i)
     {
         Light l = Lights[i];
-
         float3 L;
         float atten = 1.0f;
 
@@ -119,11 +146,9 @@ float3 ComputeLighting(float3 baseColor, float3 N, float3 V, float3 worldPos)
         }
         else
         {
-            // from point to light
             float3 toL = l.posRange.xyz - worldPos;
             float dist = length(toL);
             L = (dist > 1e-4f) ? (toL / dist) : float3(0, 0, 0);
-
             float att = 1.0f / (1.0f + 0.22f * dist + 0.20f * dist * dist);
             float rangeGate = 1.0f - smoothstep(l.posRange.w * 0.8f, l.posRange.w, dist);
             atten = att * rangeGate;
@@ -133,16 +158,12 @@ float3 ComputeLighting(float3 baseColor, float3 N, float3 V, float3 worldPos)
                 float theta = l.dirSpot.w;
                 float outer = theta;
                 float inner = theta * 0.85f;
-
-                // direction, куди дивиться прожектор (від світла в сцену)
                 float3 lightDir = normalize(l.dirSpot.xyz);
                 float3 L_toPoint = normalize(-L);
                 float cosTheta = dot(L_toPoint, lightDir);
                 float cosInner = cos(inner);
                 float cosOuter = cos(outer);
-
-                float spotFactor = saturate((cosTheta - cosOuter) /
-                                            max(1e-4f, (cosInner - cosOuter)));
+                float spotFactor = saturate((cosTheta - cosOuter) / max(1e-4f, (cosInner - cosOuter)));
                 atten *= spotFactor;
             }
         }
@@ -153,15 +174,14 @@ float3 ComputeLighting(float3 baseColor, float3 N, float3 V, float3 worldPos)
         float3 H = normalize(L + V);
         float spec = pow(max(dot(N, H), 0.0f), SpecPower) * NdotL;
         float3 specular = l.colInt.rgb * spec * SpecStrength;
-
         float shadow = 1.0f;
 
         // ==== SPOT SHADOW ====
-        if (l.shadowMapIndex >= 0) // Spot Light
+        if (l.shadowMapIndex >= 0)
         {
             float4 lightClip = mul(float4(worldPos, 1.0f), lightViewProj[i]);
-    
-            shadow = ComputeShadowFromCoord(lightClip, l.shadowMapIndex);
+            
+            shadow = ComputeShadowFromCoord(lightClip, l.shadowMapIndex, N, L);
         }
 
         sum += shadow * (diffuse + specular) * l.colInt.w * atten;

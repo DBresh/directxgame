@@ -116,15 +116,15 @@ namespace dx3d
 		//	true
 		//);
 
-		//lights->addSpot(
-		//	XMFLOAT3(1.5f, 1.25f, -10.f),
-		//	XMFLOAT3(1.5f, -0.59f, 2.9f),
-		//	50.0f,
-		//	XMFLOAT3(1.f, 0.3f, 0.3f),
-		//	25.0f,
-		//	25.0f,
-		//	true
-		//);
+		lights->addSpot(
+			XMFLOAT3(1.5f, 1.25f, -10.f),
+			XMFLOAT3(1.5f, -0.59f, 2.9f),
+			50.0f,
+			XMFLOAT3(1.f, 0.3f, 0.3f),
+			25.0f,
+			25.0f,
+			true
+		);
 	}
 
 	static void LogMatrix(const char* name, CXMMATRIX M)
