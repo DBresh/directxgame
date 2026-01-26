@@ -45,6 +45,14 @@ struct Light
 };
 StructuredBuffer<Light> Lights : register(t1);
 
+cbuffer MaterialBuffer : register(b3)
+{
+    float3 albedo;
+    float roughness;
+    float metallic;
+    float3 _matPad;
+};
+
 struct VSInput
 {
     float3 position : POSITION0;
@@ -61,6 +69,8 @@ struct VSOutput
     float2 texcoord : TEXCOORD2;
     float4 color : TEXCOORD3;
 };
+
+static const float PI = 3.14159265359f;
 
 VSOutput VSMain(VSInput input)
 {
@@ -80,6 +90,65 @@ VSOutput VSMain(VSInput input)
     o.texcoord = input.texcoord;
     o.color = input.color;
     return o;
+}
+
+// --- TONE MAPPING ---
+// Narkowicz implementation of ACES Filmic Tone Mapping
+// This curve compresses bright HDR values into the 0.0 - 1.0 range gracefully.
+float3 ACESFilmicToneMapping(float3 x)
+{
+    float a = 2.51f;
+    float b = 0.03f;
+    float c = 2.43f;
+    float d = 0.59f;
+    float e = 0.14f;
+    return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
+}
+
+// Calculates the reflection ratio based on viewing angle
+float3 FresnelSchlick(float cosTheta, float3 F0)
+{
+    return F0 + (1.0f - F0) * pow(max(1.0f - cosTheta, 0.0f), 5.0f);
+}
+
+// Normal DistributionFunction (GGX)
+// Approximates the alignment of microfacets (how "rough" the reflection is)
+float DistributionGGX(float3 N, float3 H, float roughness)
+{
+    float a = roughness * roughness;
+    float a2 = a * a;
+    float NdotH = max(dot(N, H), 0.0f);
+    float NdotH2 = NdotH * NdotH;
+
+    float nom = a2;
+    float denom = (NdotH2 * (a2 - 1.0f) + 1.0f);
+    denom = PI * denom * denom;
+
+    return nom / max(denom, 0.0000001f); // prevent divide by zero
+}
+
+// Geometry Schlick-GGX (Helper for Smith)
+float GeometrySchlickGGX(float NdotV, float roughness)
+{
+    float r = (roughness + 1.0f);
+    float k = (r * r) / 8.0f;
+
+    float nom = NdotV;
+    float denom = NdotV * (1.0f - k) + k;
+
+    return nom / denom;
+}
+
+// Geometry Smith
+// Approximates self-shadowing of microfacets
+float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
+{
+    float NdotV = max(dot(N, V), 0.0f);
+    float NdotL = max(dot(N, L), 0.0f);
+    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
+    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
+
+    return ggx1 * ggx2;
 }
 
 float ComputeShadowFromCoord(float4 lightClip, int sliceIndex, float3 N, float3 L)
@@ -130,13 +199,23 @@ float ComputeShadowFromCoord(float4 lightClip, int sliceIndex, float3 N, float3 
     return shadowSum / 9.0f;
 }
 
-float3 ComputeLighting(float3 baseColor, float3 N, float3 V, float3 worldPos)
+// Main PBR Lighting Loop
+float3 ComputeLighting(float3 albedo, float3 N, float3 V, float3 worldPos, float roughness, float metallic)
 {
-    float3 sum = 0.0f;
+    float3 Lo = float3(0.0f, 0.0f, 0.0f);
+
+    // F0: Surface reflection at zero incidence
+    // 0.04 is standard for non-metals (dielectrics). 
+    // For metals, we use the albedo color itself.
+    float3 F0 = float3(0.04f, 0.04f, 0.04f);
+    F0 = lerp(F0, albedo, metallic);
+
     [loop]
     for (int i = 0; i < lightCount; ++i)
     {
         Light l = Lights[i];
+        
+        // --- Light Vector & Attenuation ---
         float3 L;
         float atten = 1.0f;
 
@@ -149,6 +228,8 @@ float3 ComputeLighting(float3 baseColor, float3 N, float3 V, float3 worldPos)
             float3 toL = l.posRange.xyz - worldPos;
             float dist = length(toL);
             L = (dist > 1e-4f) ? (toL / dist) : float3(0, 0, 0);
+            
+            // Inverse Square Law Attenuation
             float att = 1.0f / (1.0f + 0.22f * dist + 0.20f * dist * dist);
             float rangeGate = 1.0f - smoothstep(l.posRange.w * 0.8f, l.posRange.w, dist);
             atten = att * rangeGate;
@@ -160,23 +241,16 @@ float3 ComputeLighting(float3 baseColor, float3 N, float3 V, float3 worldPos)
                 float inner = theta * 0.85f;
                 float3 lightDir = normalize(l.dirSpot.xyz);
                 float3 L_toPoint = normalize(-L);
-                float cosTheta = dot(L_toPoint, lightDir);
+                float cosThetaVal = dot(L_toPoint, lightDir);
                 float cosInner = cos(inner);
                 float cosOuter = cos(outer);
-                float spotFactor = saturate((cosTheta - cosOuter) / max(1e-4f, (cosInner - cosOuter)));
+                float spotFactor = saturate((cosThetaVal - cosOuter) / max(1e-4f, (cosInner - cosOuter)));
                 atten *= spotFactor;
             }
         }
 
-        float NdotL = max(dot(N, L), 0.0f);
-        float3 diffuse = baseColor * l.colInt.rgb * NdotL;
-
-        float3 H = normalize(L + V);
-        float spec = pow(max(dot(N, H), 0.0f), SpecPower) * NdotL;
-        float3 specular = l.colInt.rgb * spec * SpecStrength;
+        // --- Calculate Shadows ---
         float shadow = 1.0f;
-
-        // ==== SPOT SHADOW ====
         if (l.shadowMapIndex >= 0)
         {
             float4 lightClip = mul(float4(worldPos, 1.0f), lightViewProj[i]);
@@ -184,10 +258,36 @@ float3 ComputeLighting(float3 baseColor, float3 N, float3 V, float3 worldPos)
             shadow = ComputeShadowFromCoord(lightClip, l.shadowMapIndex, N, L);
         }
 
-        sum += shadow * (diffuse + specular) * l.colInt.w * atten;
-    }
+        // --- PBR Math (Cook-Torrance) ---
+        float3 H = normalize(V + L);
+        float NdotL = max(dot(N, L), 0.0f);
 
-    return sum;
+        // Calculate D, G, F components
+        float NDF = DistributionGGX(N, H, roughness);
+        float G = GeometrySmith(N, V, L, roughness);
+        float3 F = FresnelSchlick(max(dot(H, V), 0.0f), F0);
+           
+        float3 numerator = NDF * G * F;
+        float denominator = 4.0f * max(dot(N, V), 0.0f) * NdotL + 0.0001f; // + 0.0001 to prevent divide by zero
+        float3 specular = numerator / denominator;
+        
+        // kS is just F (Fresnel). kD is the remaining energy.
+        float3 kS = F;
+        float3 kD = float3(1.0f, 1.0f, 1.0f) - kS;
+        
+        // Multiply kD by 1.0 - metallic. 
+        // Metals absorb no diffuse light (they are purely specular).
+        kD *= (1.0f - metallic);
+
+        // Combine
+        // Note: l.colInt.rgb is light color, l.colInt.w is intensity
+        float3 radiance = l.colInt.rgb * l.colInt.w * atten * shadow;
+
+        // NdotL because light hits surface at angle
+        Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+    }
+    
+    return Lo;
 }
 
 float3 toLinear(float3 c)
@@ -202,33 +302,44 @@ float3 toGamma(float3 c)
 
 float4 PSMain(VSOutput input) : SV_Target
 {
+    // TEXTURE SAMPLING
     float4 tex = diffuseTexture.Sample(samplerLinear, input.texcoord);
     float4 baseColor = (any(tex.rgb > 0.001) ? tex : 1.0) * input.color;
 
-#if USE_GAMMA
-    float3 baseLin = toLinear(baseColor.rgb);
-#else
-    float3 baseLin = baseColor.rgb;
-#endif
+    // LINEAR CONVERSION
+    // Most textures (like .png/.jpg) are saved in sRGB (Gamma Space).
+    // We MUST convert them to Linear Space before doing any math.
+    float3 baseLin = pow(max(baseColor.rgb, 0.0f), 2.2f);
 
+    // GET MATERIAL DATA (From CBuffer)
+    float localRough = roughness;
+    float localMetal = metallic;
+
+    // PBR LIGHTING
     float3 N = normalize(input.normal);
     float3 V = normalize(cameraPos - input.worldPos);
-
-    float3 ambient = baseLin * ambientIntensity;
-    float3 lighting = ComputeLighting(baseLin, N, V, input.worldPos);
-    float3 finalLin = ambient + lighting;
-
-
-    //float4 lightClipDbg = mul(float4(input.worldPos, 1.0f), lightViewProj[0]);
-    //float shadowDbg = ComputeShadowFromCoord(lightClipDbg, 0.0005f);
-    //return float4(shadowDbg.xxx, 1.0);
     
+    // Ambient (Simple Linear Ambient)
+    float3 ambient = float3(0.03f, 0.03f, 0.03f) * baseLin * ambientIntensity;
     
-#if USE_GAMMA
-    float3 final = toGamma(saturate(finalLin));
-#else
-    float3 final = saturate(finalLin);
-#endif
+    // Direct Lighting
+    float3 Lo = ComputeLighting(baseLin, N, V, input.worldPos, localRough, localMetal);
+    
+    float3 finalLin = ambient + Lo;
+
+    // --- POST PROCESSING ---
+    
+    // Exposure
+    float exposure = 1.0f;
+    finalLin *= exposure;
+
+    // Tone Mapping (HDR -> LDR)
+    // Converts high ranges (e.g., 0 to 500) to displayable (0 to 1)
+    float3 finalLDR = ACESFilmicToneMapping(finalLin);
+
+    // Gamma Correction (Linear -> sRGB)
+    // Monitors expect sRGB data
+    float3 final = pow(max(finalLDR, 0.0f), 1.0f / 2.2f);
 
     return float4(final, baseColor.a);
 }

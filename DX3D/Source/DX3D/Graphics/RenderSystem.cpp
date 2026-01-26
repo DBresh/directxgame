@@ -27,6 +27,8 @@ namespace dx3d
 
         m_lightManager->initShadowArray(512, 4);
 
+        m_materialBuffer = m_device->createConstantBuffer({ nullptr, sizeof(MaterialDataGPU) });
+
         m_depthCB = m_device->createConstantBuffer({ nullptr, sizeof(XMFLOAT4X4) });
         m_depthVS = m_device->createVertexShaderFromFile("DX3D/Assets/Shaders/ShadowDepthVS.hlsl", "VSMain");
         m_lightMatrixBuffer = m_device->createConstantBuffer(
@@ -102,13 +104,11 @@ namespace dx3d
 
             const auto& lights = m_lightManager->getLights();
 
-            // 1. [REPLACEMENT] Bind the entire shadow array once to t2
-            // This replaces the old loop that searched for a single shadow map
             if (m_lightManager->getShadowSRV()) {
                 m_context->setPSTexture(m_lightManager->getShadowSRV(), 2);
             }
 
-            // 2. Fill the matrix buffer for all shadow-casting lights
+            // Fill the matrix buffer for all shadow-casting lights
             for (int i = 0; i < (int)lights.size() && i < max_lights; ++i)
             {
                 const auto& L = lights[i];
@@ -120,7 +120,7 @@ namespace dx3d
                 }
             }
 
-            // 3. Update Constant Buffers as before
+            // Update Constant Buffers
             m_context->updateConstantBuffer(
                 *m_lightMatrixBuffer,
                 lightMatrices,
@@ -146,15 +146,11 @@ namespace dx3d
 
     void RenderSystem::renderShadows(SceneManager& scene)
     {
-        // 1. Set Input Layout (Required for the Vertex Shader to read data)
         if (m_pipeline)
             m_context->setGraphicsPipelineState(*m_pipeline);
 
-        // 2. Set Shadow Rasterizer (Slope-Scaled Bias)
-        // Use the getter we added to access the raw context
         m_context->m_context->RSSetState(m_shadowRasterizer.Get());
 
-        // 3. Unbind Resources to prevent hazards
         ID3D11Buffer* nullBuf = nullptr;
         ID3D11ShaderResourceView* nullSRV = nullptr;
 
@@ -164,19 +160,15 @@ namespace dx3d
             ctx->PSSetConstantBuffers(slot, 1, &nullBuf);
         }
 
-        // [IMPORTANT] Unbind the shadow map from the Pixel Shader slot (t2)
-        // so we can write to it as a Depth Target without warnings.
         m_context->m_context->PSSetShaderResources(2, 1, &nullSRV);
 
         const auto& lights = m_lightManager->getLights();
 
-        // 4. Set Viewport ONCE
         Rect vp;
         vp.width = (float)m_lightManager->getShadowMapSize();
         vp.height = (float)m_lightManager->getShadowMapSize();
         m_context->setViewportSize(vp);
 
-        // 5. Set Shadow Shaders (Null Pixel Shader = Depth Only)
         m_context->setVertexShader(m_depthVS.Get());
         m_context->setPixelShader(nullptr);
 
@@ -190,17 +182,14 @@ namespace dx3d
             ID3D11DepthStencilView* dsv = m_lightManager->getShadowDSV(shadowIndex);
             if (!dsv) break;
 
-            // A. Set Target Slice
             m_context->setDepthTargetArraySlice(dsv);
             m_context->clearDepth(*dsv);
 
-            // B. Calculate Matrices
             if (!light.shadow) continue;
 
             XMMATRIX V = XMLoadFloat4x4(&light.shadow->view);
             XMMATRIX P = XMLoadFloat4x4(&light.shadow->proj);
 
-            // C. Render Objects
             for (auto& objPtr : scene.getAllObjects())
             {
                 auto& obj = *objPtr;
@@ -226,15 +215,13 @@ namespace dx3d
             shadowIndex++;
         }
 
-        // 6. Cleanup / Restore State
         if (m_pipeline)
-            m_context->setGraphicsPipelineState(*m_pipeline); // Restores default RS if pipeline has one
+            m_context->setGraphicsPipelineState(*m_pipeline);
         else
             m_context->m_context->RSSetState(nullptr);
 
         m_context->setDepthTarget(nullptr);
 
-        // Restore light buffers for the main pass
         m_context->setPSConstantBuffer(*m_lightMatrixBuffer, 2);
         m_context->setVSConstantBuffer(*m_lightMatrixBuffer, 2);
     }
@@ -249,18 +236,12 @@ namespace dx3d
         TransformData cbData{};
 
         XMMATRIX W = XMLoadFloat4x4(&world);
-        //DX3D_LOG_INFO("MainPass W:");
-        //LogMatrix("main W", W);
         XMMATRIX V = XMLoadFloat4x4(&view);
         XMMATRIX P = XMLoadFloat4x4(&proj);
 
         XMMATRIX W_t = XMMatrixTranspose(W);
         XMMATRIX V_t = XMMatrixTranspose(V);
         XMMATRIX P_t = XMMatrixTranspose(P);
-
-        //LogMatrix("DrawModel WORLD_t (GPU column-major)", W_t);
-        //LogMatrix("DrawModel VIEW_t  (GPU column-major)", V_t);
-        //LogMatrix("DrawModel PROJ_t  (GPU column-major)", P_t);
 
         XMStoreFloat4x4(&cbData.world, W_t);
         XMStoreFloat4x4(&cbData.view, V_t);
@@ -282,6 +263,25 @@ namespace dx3d
                 {
                     mat = &model.materials[sm.materialIndex];
                 }
+                
+                MaterialDataGPU matData = {};
+
+                if (mat)
+                {
+                    matData.albedo = mat->diffuseColor;
+                    matData.roughness = mat->roughness;
+                    matData.metallic = mat->metallic;
+                }
+                else
+                {
+                    // Fallback defaults if no material
+                    matData.albedo = { 1.0f, 1.0f, 1.0f };
+                    matData.roughness = 0.5f;
+                    matData.metallic = 0.0f;
+                }
+
+                m_context->updateConstantBuffer(*m_materialBuffer, &matData, sizeof(matData));
+                m_context->setPSConstantBuffer(*m_materialBuffer, 3);
 
                 if (mat && mat->diffuseTexture)
                     m_context->setPSTexture(mat->diffuseTexture->getSRV(), 0);
@@ -314,6 +314,20 @@ namespace dx3d
                 mat = &model.materials[group.materialIndex];
             }
 
+            MaterialDataGPU matData = {};
+            if (mat) {
+                matData.albedo = mat->diffuseColor;
+                matData.roughness = mat->roughness;
+                matData.metallic = mat->metallic;
+            }
+            else {
+                matData.albedo = { 1.0f, 1.0f, 1.0f };
+                matData.roughness = 0.5f;
+                matData.metallic = 0.0f;
+            }
+            m_context->updateConstantBuffer(*m_materialBuffer, &matData, sizeof(matData));
+            m_context->setPSConstantBuffer(*m_materialBuffer, 3);
+
             if (mat && mat->diffuseTexture)
                 m_context->setPSTexture(mat->diffuseTexture->getSRV(), 0);
             else
@@ -321,7 +335,6 @@ namespace dx3d
 
             m_context->drawIndexedTriangleList(group.indexCount, group.startIndex, 0);
         }
-
     }
 
     void RenderSystem::endFrame(GraphicsDevice& device, SwapChain& swapChain, bool vsync)

@@ -21,6 +21,14 @@ namespace dx3d
 {
     using namespace DirectX;
 
+    struct MaterialDataGPU
+    {
+        DirectX::XMFLOAT3 albedo;
+        float roughness;
+        float metallic;
+        DirectX::XMFLOAT3 padding;
+    };
+
     class RenderSystem
     {
     public:
@@ -30,11 +38,9 @@ namespace dx3d
         void setPipeline(GraphicsPipelineStatePtr pipeline) noexcept;
         void setPSSampler(ID3D11SamplerState* sampler) noexcept;
 
-        // clearColor тепер XMFLOAT4
         void beginFrame(SwapChain& swapChain, const XMFLOAT4& clearColor);
         void endFrame(GraphicsDevice& device, SwapChain& swapChain, bool vsync);
 
-        // Матриці тепер XMFLOAT4X4 (матриці трансформу, камери, проєкції)
         void drawModel(
             const ModelGPU& model,
             const ConstantBuffer& objectCB,
@@ -53,6 +59,8 @@ namespace dx3d
         DeviceContextPtr                m_context;
         GraphicsPipelineStatePtr        m_pipeline;
         std::unique_ptr<LightManager>   m_lightManager;
+
+        ConstantBufferPtr m_materialBuffer;
 
         Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_shadowRasterizer;
 
