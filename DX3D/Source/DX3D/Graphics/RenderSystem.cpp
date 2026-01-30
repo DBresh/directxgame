@@ -77,6 +77,33 @@ namespace dx3d
         );
     }
 
+    void RenderSystem::setFrameResources(DeviceContext& context)
+    {
+        // 1. Bind Camera (Slot 1)
+        context.setVSConstantBuffer(*m_cameraBuffer, 1);
+        context.setPSConstantBuffer(*m_cameraBuffer, 1);
+
+        // 2. Bind Lights (Slot 2)
+        context.setVSConstantBuffer(*m_lightMatrixBuffer, 2);
+        context.setPSConstantBuffer(*m_lightMatrixBuffer, 2);
+
+        // 3. Bind Samplers
+        if (m_psSampler)
+            context.setPSSampler(m_psSampler.Get(), 0);
+        if (m_shadowSampler)
+            context.setPSSampler(m_shadowSampler.Get(), 1);
+
+        // 4. Bind Shadow Map Texture
+        if (m_lightManager && m_lightManager->getShadowSRV()) {
+            context.setPSTexture(m_lightManager->getShadowSRV(), 2);
+        }
+
+        // 5. Bind Light Data (Structured Buffers)
+        if (m_lightManager) {
+            m_lightManager->bind(context, 1);
+        }
+    }
+
     void RenderSystem::beginFrame(SwapChain& swapChain, const XMFLOAT4& clearColor)
     {
         m_context->clearAndSetBackBuffer(swapChain, clearColor);

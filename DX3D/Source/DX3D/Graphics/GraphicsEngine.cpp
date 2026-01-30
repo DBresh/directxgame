@@ -77,9 +77,9 @@ namespace dx3d
 	{
 		auto model = m_assets->getModel("cube.obj");
 
-		for (int i = 1; i <= 100; i++)
+		for (int i = 1; i <= 25; i++)
 		{
-			for (int j = 1; j <= 100; j++)
+			for (int j = 1; j <= 25; j++)
 			{
 				auto cube = m_scene.createObject("cube");
 				cube->model = model;
@@ -159,28 +159,26 @@ namespace dx3d
 
 	void GraphicsEngine::render(SwapChain& swapChain)
 	{
-		// 1. Setup Frame (Clear, etc. on Main Thread Immediate Context)
+		// Update Camera & Lights on MAIN thread (Immediate Context)
 		m_renderSystem->beginFrame(swapChain, { 0.2f, 0.2f, 0.2f, 1.0f });
 
-		// 2. PARALLEL RECORDING
-		// Split objects into chunks
 		auto& objects = m_scene.getAllObjects();
 
+		// Multithreaded Recording
 		JobSystem::Dispatch((uint32_t)objects.size(), 250, [&](JobDispatchArgs args)
 			{
 				int ctxIndex = args.groupIndex % m_deferredContexts.size();
 				auto& ctx = *m_deferredContexts[ctxIndex];
 
-				// 1. Set Pipeline State (Shaders)
+				// --- SETUP DEFERRED CONTEXT STATE ---
 				ctx.setGraphicsPipelineState(*m_pipeline);
-
-				// 2. Set Viewport
 				ctx.setViewportSize(swapChain.getSize());
-
-				// 3. [FIX] Set Render Targets (Crucial!)
 				ctx.setRenderTarget(swapChain);
 
-				// 4. Draw
+				// [FIX] Bind Camera/Lights to THIS thread's context
+				m_renderSystem->setFrameResources(ctx);
+				// ------------------------------------
+
 				auto& obj = objects[args.jobIndex];
 				if (obj->model) {
 					m_renderSystem->drawModel(
@@ -194,19 +192,20 @@ namespace dx3d
 
 		JobSystem::Wait();
 
-		// 3. EXECUTE COMMANDS (Main Thread)
+		// Execute
 		for (int i = 0; i < m_deferredContexts.size(); ++i) {
-			// Finish recording
-			m_deferredContexts[i]->m_context->FinishCommandList(
+			// Use the new getter to access the private m_context
+			HRESULT hr = m_deferredContexts[i]->getD3D11Context()->FinishCommandList(
 				false, &m_commandLists[i]
 			);
 
-			// Execute on Immediate Context
-			m_deviceContext->m_context->ExecuteCommandList(
-				m_commandLists[i].Get(), false
-			);
+			if (SUCCEEDED(hr) && m_commandLists[i]) {
+				m_deviceContext->getD3D11Context()->ExecuteCommandList(
+					m_commandLists[i].Get(), false
+				);
+			}
 
-			m_commandLists[i].Reset(); // Cleanup
+			m_commandLists[i].Reset();
 		}
 
 		m_renderSystem->endFrame(*m_graphicsDevice, swapChain, true);
