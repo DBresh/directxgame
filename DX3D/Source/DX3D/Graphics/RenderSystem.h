@@ -41,12 +41,12 @@ namespace dx3d
         void beginFrame(SwapChain& swapChain, const XMFLOAT4& clearColor);
         void endFrame(GraphicsDevice& device, SwapChain& swapChain, bool vsync);
 
+        void setCameraMatrices(const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj);
+
         void drawModel(
             const ModelGPU& model,
             const ConstantBuffer& objectCB,
-            const XMFLOAT4X4& world,
-            const XMFLOAT4X4& view,
-            const XMFLOAT4X4& proj);
+            const DirectX::XMFLOAT4X4& world);
 
         void setCameraPosition(const XMFLOAT3& pos) noexcept { m_cameraPosition = pos; }
 
@@ -67,9 +67,13 @@ namespace dx3d
         ConstantBufferPtr m_cameraBuffer;
         XMFLOAT3          m_cameraPosition{ 0, 0, 0 };
 
+        // Cached GPU-ready (transposed) matrices
+        DirectX::XMFLOAT4X4 m_viewGPU;
+        DirectX::XMFLOAT4X4 m_projGPU;
+
         Microsoft::WRL::ComPtr<ID3D11VertexShader> m_depthVS;
-        ConstantBufferPtr m_depthCB;           // worldViewProj для shadow pass
-        ConstantBufferPtr m_lightMatrixBuffer; // масив матриць світла (viewProj)
+        ConstantBufferPtr m_depthCB;           // worldViewProj for shadow pass
+        ConstantBufferPtr m_lightMatrixBuffer; // array of light matrices (viewProj)
 
         Microsoft::WRL::ComPtr<ID3D11SamplerState> m_psSampler;
         Microsoft::WRL::ComPtr<ID3D11SamplerState> m_shadowSampler;

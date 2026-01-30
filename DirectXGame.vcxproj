@@ -76,6 +76,10 @@
     <IncludePath>DX3D/Include;DX3D/Source;$(IncludePath)</IncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>DX3D/Source;DX3D/Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -127,15 +131,18 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DX3D\Source\DX3D\Core\JobSystem.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Graphics\DepthTexture2D.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Graphics\AssetManager.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\InputSystem\Camera.cpp" />
@@ -169,6 +176,7 @@
     <ClCompile Include="DX3D\Source\DX3D\Graphics\LightManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DX3D\Include\DX3D\Core\JobSystem.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\Utils.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\DepthTexture2D.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\AssetManager.h" />

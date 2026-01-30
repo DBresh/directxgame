@@ -4,6 +4,7 @@
 #include <DX3D/Core/Logger.h>
 #include <DX3D/Game/Display.h>
 #include <DX3D/Core/Time.h>
+#include <DX3D/Core/JobSystem.h>
 
 namespace dx3d
 {
@@ -19,6 +20,7 @@ namespace dx3d
 
 		m_graphicsEngine = std::make_unique<GraphicsEngine>(GraphicsEngineDesc{});
 		m_display = std::make_unique<Display>(DisplayDesc{ WindowDesc{desc.windowSize}, m_graphicsEngine->getGraphicsDevice() });
+		//JobSystem::Initialize();
 
 		Time::Instance()->Update(0.0);
 		
@@ -27,6 +29,7 @@ namespace dx3d
 
 	Game::~Game()
 	{
+		JobSystem::Shutdown();
 		DX3D_LOG_INFO("Game is shutting down.");
 	}
 

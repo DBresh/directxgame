@@ -229,23 +229,15 @@ namespace dx3d
     void RenderSystem::drawModel(
         const ModelGPU& model,
         const ConstantBuffer& objectCB,
-        const XMFLOAT4X4& world,
-        const XMFLOAT4X4& view,
-        const XMFLOAT4X4& proj)
+        const XMFLOAT4X4& world)
     {
         TransformData cbData{};
 
         XMMATRIX W = XMLoadFloat4x4(&world);
-        XMMATRIX V = XMLoadFloat4x4(&view);
-        XMMATRIX P = XMLoadFloat4x4(&proj);
+        XMStoreFloat4x4(&cbData.world, XMMatrixTranspose(W));
 
-        XMMATRIX W_t = XMMatrixTranspose(W);
-        XMMATRIX V_t = XMMatrixTranspose(V);
-        XMMATRIX P_t = XMMatrixTranspose(P);
-
-        XMStoreFloat4x4(&cbData.world, W_t);
-        XMStoreFloat4x4(&cbData.view, V_t);
-        XMStoreFloat4x4(&cbData.projection, P_t);
+        cbData.view = m_viewGPU;
+        cbData.projection = m_projGPU;
 
         m_context->updateConstantBuffer(objectCB, &cbData, sizeof(cbData));
         m_context->setVSConstantBuffer(objectCB, 0);
@@ -263,7 +255,7 @@ namespace dx3d
                 {
                     mat = &model.materials[sm.materialIndex];
                 }
-                
+
                 MaterialDataGPU matData = {};
 
                 if (mat)
@@ -274,7 +266,6 @@ namespace dx3d
                 }
                 else
                 {
-                    // Fallback defaults if no material
                     matData.albedo = { 1.0f, 1.0f, 1.0f };
                     matData.roughness = 0.5f;
                     matData.metallic = 0.0f;
@@ -335,6 +326,16 @@ namespace dx3d
 
             m_context->drawIndexedTriangleList(group.indexCount, group.startIndex, 0);
         }
+    }
+
+    void RenderSystem::setCameraMatrices(const XMFLOAT4X4& view, const XMFLOAT4X4& proj)
+    {
+        XMMATRIX V = XMLoadFloat4x4(&view);
+        XMMATRIX P = XMLoadFloat4x4(&proj);
+
+        // Transpose once and store
+        XMStoreFloat4x4(&m_viewGPU, XMMatrixTranspose(V));
+        XMStoreFloat4x4(&m_projGPU, XMMatrixTranspose(P));
     }
 
     void RenderSystem::endFrame(GraphicsDevice& device, SwapChain& swapChain, bool vsync)

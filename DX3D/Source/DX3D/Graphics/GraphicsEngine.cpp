@@ -68,16 +68,19 @@ namespace dx3d
 	{
 		auto model = m_assets->getModel("cube.obj");
 
-		for (int i = 1; i <= 5; ++i)
+		for (int i = 1; i <= 100; i++)
 		{
-			auto cube = m_scene.createObject("cube");
-			cube->model = model;
+			for (int j = 1; j <= 100; j++)
+			{
+				auto cube = m_scene.createObject("cube");
+				cube->model = model;
 
-			cube->transform.setPosition(XMFLOAT3(i * 1.5f, 0.0f, -2.0f));
-			cube->transform.setScale(XMFLOAT3(1.0f, 1.0f, 1.0f));
+				cube->transform.setPosition(XMFLOAT3(i * 1.5f, 0.0f, j * -2.0f));
+				cube->transform.setScale(XMFLOAT3(1.0f, 1.0f, 1.0f));
 
-			cube->constantBuffer =
-				m_graphicsDevice->createConstantBuffer({ nullptr, sizeof(XMFLOAT4X4) * 3 });
+				cube->constantBuffer =
+					m_graphicsDevice->createConstantBuffer({ nullptr, sizeof(XMFLOAT4X4) * 3 });
+			}
 		}
 
 		auto planeModel = m_assets->getModel("plane.obj");
@@ -160,6 +163,7 @@ namespace dx3d
 
 		m_renderSystem->renderShadows(m_scene);
 		m_renderSystem->beginFrame(swapChain, { 0.2f, 0.2f, 0.2f, 1.0f });
+		m_renderSystem->setCameraMatrices(view, proj);
 
 		for (const auto& object : m_scene.getAllObjects())
 		{
@@ -168,18 +172,14 @@ namespace dx3d
 
 			const XMFLOAT4X4& world = object->getWorldTransform().getWorldMatrix();
 
-			//LogMatrix("Object WORLD (row-major)", XMLoadFloat4x4(&world));
-
 			m_renderSystem->drawModel(
 				*object->model,
 				*object->constantBuffer,
-				world,  // row-major
-				view,   // row-major
-				proj    // row-major
+				world
 			);
 		}
 
-		m_renderSystem->endFrame(*m_graphicsDevice, swapChain, true);
+		m_renderSystem->endFrame(*m_graphicsDevice, swapChain, false);
 	}
 
 }

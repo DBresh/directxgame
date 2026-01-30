@@ -19,6 +19,7 @@ namespace dx3d
 		dxgiDesc.SampleDesc.Count = 1;
 		dxgiDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 		dxgiDesc.Windowed = TRUE;
+		dxgiDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 
 		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(
 			m_factory.CreateSwapChain(&m_device, &dxgiDesc, &m_swapChain)
@@ -34,9 +35,12 @@ namespace dx3d
 
 	void SwapChain::present(bool vsync)
 	{
+		UINT syncInterval = vsync ? 1 : 0;
+		UINT flags = vsync ? 0 : DXGI_PRESENT_ALLOW_TEARING;
+
 		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(
-			m_swapChain->Present(vsync, 0)
-			, "Present failed.");
+			m_swapChain->Present(syncInterval, flags),
+			"Present failed.");
 	}
 
 	void SwapChain::reloadBuffers()
