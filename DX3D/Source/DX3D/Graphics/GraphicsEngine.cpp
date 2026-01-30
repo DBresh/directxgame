@@ -77,9 +77,9 @@ namespace dx3d
 	{
 		auto model = m_assets->getModel("cube.obj");
 
-		for (int i = 1; i <= 25; i++)
+		for (int i = 1; i <= 5; i++)
 		{
-			for (int j = 1; j <= 25; j++)
+			for (int j = 1; j <= 5; j++)
 			{
 				auto cube = m_scene.createObject("cube");
 				cube->model = model;
@@ -159,42 +159,51 @@ namespace dx3d
 
 	void GraphicsEngine::render(SwapChain& swapChain)
 	{
-		// Update Camera & Lights on MAIN thread (Immediate Context)
+		m_camera->update();
+		const XMFLOAT4X4& view = m_camera->getViewMatrix();
+		const XMFLOAT4X4& proj = m_camera->getProjectionMatrix();
+
+		m_renderSystem->setCameraMatrices(view, proj);
+
 		m_renderSystem->beginFrame(swapChain, { 0.2f, 0.2f, 0.2f, 1.0f });
 
 		auto& objects = m_scene.getAllObjects();
+		const uint32_t groupSize = 250;
 
-		// Multithreaded Recording
-		JobSystem::Dispatch((uint32_t)objects.size(), 250, [&](JobDispatchArgs args)
+		JobSystem::Dispatch((uint32_t)objects.size(), groupSize, [&](JobDispatchArgs args)
 			{
 				int ctxIndex = args.groupIndex % m_deferredContexts.size();
 				auto& ctx = *m_deferredContexts[ctxIndex];
 
-				// --- SETUP DEFERRED CONTEXT STATE ---
+				// --- Setup Context ---
 				ctx.setGraphicsPipelineState(*m_pipeline);
 				ctx.setViewportSize(swapChain.getSize());
 				ctx.setRenderTarget(swapChain);
 
-				// [FIX] Bind Camera/Lights to THIS thread's context
 				m_renderSystem->setFrameResources(ctx);
-				// ------------------------------------
 
-				auto& obj = objects[args.jobIndex];
-				if (obj->model) {
-					m_renderSystem->drawModel(
-						ctx,
-						*obj->model,
-						*obj->constantBuffer,
-						obj->transform.getWorldMatrix()
-					);
+				uint32_t count = std::min(groupSize, (uint32_t)objects.size() - args.jobIndex);
+
+				for (uint32_t i = 0; i < count; ++i)
+				{
+					// Access object at (Start Index + Offset)
+					auto& obj = objects[args.jobIndex + i];
+
+					if (obj->model) {
+						m_renderSystem->drawModel(
+							ctx,
+							*obj->model,
+							*obj->constantBuffer,
+							obj->transform.getWorldMatrix()
+						);
+					}
 				}
 			});
 
 		JobSystem::Wait();
 
-		// Execute
-		for (int i = 0; i < m_deferredContexts.size(); ++i) {
-			// Use the new getter to access the private m_context
+		for (int i = 0; i < m_deferredContexts.size(); ++i)
+		{
 			HRESULT hr = m_deferredContexts[i]->getD3D11Context()->FinishCommandList(
 				false, &m_commandLists[i]
 			);
@@ -204,10 +213,9 @@ namespace dx3d
 					m_commandLists[i].Get(), false
 				);
 			}
-
 			m_commandLists[i].Reset();
 		}
 
-		m_renderSystem->endFrame(*m_graphicsDevice, swapChain, true);
+		m_renderSystem->endFrame(*m_graphicsDevice, swapChain, false);
 	}
 }
