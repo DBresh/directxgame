@@ -30,6 +30,7 @@ namespace dx3d
 		ModelGPU createModelGPU(const ModelData& data);
 		StructuredBufferPtr createStructuredBuffer(const void* data, size_t elementSize, size_t elementCount);
 		DepthTexture2DPtr createDepthTexture2D(UINT width, UINT height);
+		DeviceContextPtr createDeferredContext();
 
 		template<typename T>
 		StructuredBufferPtr createStructuredBuffer(const std::vector<T>& elements)
@@ -44,12 +45,15 @@ namespace dx3d
 		Microsoft::WRL::ComPtr<ID3D11VertexShader> createVertexShaderFromFile(const std::string& path, const char* entry);
 
 		ID3D11Device* getD3D11Device() const noexcept { return m_d3dDevice.Get(); }
+		IDXGIFactory* getDXGIFactory() const { return m_dxgiFactory.Get(); }
+		const GraphicsDeviceDesc& getDesc() const { return m_desc; }
 
 		void executeCommandList(DeviceContext& context);
 	protected:
 		GraphicsResourceDesc getGraphicsResourceDesc() const noexcept;
 
 	private:
+		GraphicsDeviceDesc m_desc;
 		Microsoft::WRL::ComPtr<ID3D11Device> m_d3dDevice{};
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_d3dContext{};
 		Microsoft::WRL::ComPtr<IDXGIDevice> m_dxgiDevice{};

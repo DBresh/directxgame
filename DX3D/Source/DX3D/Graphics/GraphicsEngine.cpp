@@ -8,6 +8,7 @@
 #include <DX3D/InputSystem/InputSystem.h>
 #include <DX3D/Graphics/ModelCache.h>
 #include <DX3D/Graphics/AssetManager.h>
+#include <DX3D/Core/JobSystem.h>
 
 #include <DirectXMath.h>
 #include <fstream>
@@ -47,6 +48,14 @@ namespace dx3d
 		aDesc.graphicsDevice = m_graphicsDevice;
 		aDesc.assetsRoot = std::filesystem::path("DX3D/Assets/Models");
 		m_assets = std::make_shared<AssetManager>(aDesc);
+
+		int numThreads = std::thread::hardware_concurrency();
+		m_deferredContexts.resize(numThreads);
+		m_commandLists.resize(numThreads);
+
+		for (int i = 0; i < numThreads; ++i) {
+			m_deferredContexts[i] = m_graphicsDevice->createDeferredContext();
+		}
 
 		m_renderSystem = std::make_unique<RenderSystem>(m_graphicsDevice, m_deviceContext);
 		m_renderSystem->setPipeline(m_pipeline);
@@ -150,36 +159,58 @@ namespace dx3d
 
 	void GraphicsEngine::render(SwapChain& swapChain)
 	{
-		m_camera->update();
-
-		XMFLOAT3 cameraPos = m_camera->getPosition();
-		m_renderSystem->setCameraPosition(cameraPos);
-
-		const XMFLOAT4X4& view = m_camera->getViewMatrix();
-		const XMFLOAT4X4& proj = m_camera->getProjectionMatrix();
-
-		//LogMatrix("Camera View (row-major)", XMLoadFloat4x4(&view));
-		//LogMatrix("Camera Proj (row-major)", XMLoadFloat4x4(&proj));
-
-		m_renderSystem->renderShadows(m_scene);
+		// 1. Setup Frame (Clear, etc. on Main Thread Immediate Context)
 		m_renderSystem->beginFrame(swapChain, { 0.2f, 0.2f, 0.2f, 1.0f });
-		m_renderSystem->setCameraMatrices(view, proj);
 
-		for (const auto& object : m_scene.getAllObjects())
-		{
-			if (!object->model)
-				continue;
+		// 2. PARALLEL RECORDING
+		// Split objects into chunks
+		auto& objects = m_scene.getAllObjects();
 
-			const XMFLOAT4X4& world = object->getWorldTransform().getWorldMatrix();
+		JobSystem::Dispatch((uint32_t)objects.size(), 250, [&](JobDispatchArgs args)
+			{
+				// Identify which thread/context we are using
+				// (Simplified: assume groupIndex maps to thread index, or use thread_local)
+				// Ideally, pass a specific context index to the job or use a pool.
+				int ctxIndex = args.groupIndex % m_deferredContexts.size();
+				auto& ctx = *m_deferredContexts[ctxIndex];
 
-			m_renderSystem->drawModel(
-				*object->model,
-				*object->constantBuffer,
-				world
+				// IMPORTANT: Deferred Contexts start "blank". 
+				// You must reset state (Viewports, RenderTargets, Shaders) for EACH context inside the thread.
+				// You might need a helper function in RenderSystem like "preparePass(ctx)"
+				ctx.setGraphicsPipelineState(*m_pipeline);
+				ctx.setViewportSize(swapChain.getSize());
+				// Bind the BackBuffer as RenderTarget (needs getter in DeviceContext)
+				// ctx.setRenderTarget(...) 
+
+				// Draw the chunk
+				auto& obj = objects[args.jobIndex];
+				if (obj->model) {
+					m_renderSystem->drawModel(
+						ctx, // <--- Draw to deferred context
+						*obj->model,
+						*obj->constantBuffer,
+						obj->transform.getWorldMatrix()
+					);
+				}
+			});
+
+		JobSystem::Wait();
+
+		// 3. EXECUTE COMMANDS (Main Thread)
+		for (int i = 0; i < m_deferredContexts.size(); ++i) {
+			// Finish recording
+			m_deferredContexts[i]->m_context->FinishCommandList(
+				false, &m_commandLists[i]
 			);
+
+			// Execute on Immediate Context
+			m_deviceContext->m_context->ExecuteCommandList(
+				m_commandLists[i].Get(), false
+			);
+
+			m_commandLists[i].Reset(); // Cleanup
 		}
 
-		m_renderSystem->endFrame(*m_graphicsDevice, swapChain, false);
+		m_renderSystem->endFrame(*m_graphicsDevice, swapChain, true);
 	}
-
 }

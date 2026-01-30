@@ -10,6 +10,9 @@ namespace dx3d
 	{
 	public:
 		explicit DeviceContext(const GraphicsResourceDesc& gDesc);
+		DeviceContext(ID3D11DeviceContext* context, std::shared_ptr<GraphicsDevice> device);
+		ID3D11DeviceContext* getD3D11Context() const { return m_context.Get(); }
+
 		void clearAndSetBackBuffer(const SwapChain& swapChain, const DirectX::XMFLOAT4& color);
 		void setGraphicsPipelineState(const GraphicsPipelineState& pipeline);
 		void setVertexBuffer(const VertexBuffer& buffer);
@@ -36,6 +39,7 @@ namespace dx3d
 
 		friend class GraphicsDevice;
 		friend class RenderSystem;
+		friend class GraphicsEngine;
 	};
 }
 

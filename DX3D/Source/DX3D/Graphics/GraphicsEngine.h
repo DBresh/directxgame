@@ -33,5 +33,7 @@ namespace dx3d
         std::unique_ptr<RenderSystem> m_renderSystem;
         std::unique_ptr<Camera> m_camera;
         std::shared_ptr<AssetManager>  m_assets;
+        std::vector<DeviceContextPtr> m_deferredContexts;
+        std::vector<Microsoft::WRL::ComPtr<ID3D11CommandList>> m_commandLists;
     };
 }
