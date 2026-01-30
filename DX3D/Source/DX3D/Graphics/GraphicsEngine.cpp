@@ -168,25 +168,23 @@ namespace dx3d
 
 		JobSystem::Dispatch((uint32_t)objects.size(), 250, [&](JobDispatchArgs args)
 			{
-				// Identify which thread/context we are using
-				// (Simplified: assume groupIndex maps to thread index, or use thread_local)
-				// Ideally, pass a specific context index to the job or use a pool.
 				int ctxIndex = args.groupIndex % m_deferredContexts.size();
 				auto& ctx = *m_deferredContexts[ctxIndex];
 
-				// IMPORTANT: Deferred Contexts start "blank". 
-				// You must reset state (Viewports, RenderTargets, Shaders) for EACH context inside the thread.
-				// You might need a helper function in RenderSystem like "preparePass(ctx)"
+				// 1. Set Pipeline State (Shaders)
 				ctx.setGraphicsPipelineState(*m_pipeline);
-				ctx.setViewportSize(swapChain.getSize());
-				// Bind the BackBuffer as RenderTarget (needs getter in DeviceContext)
-				// ctx.setRenderTarget(...) 
 
-				// Draw the chunk
+				// 2. Set Viewport
+				ctx.setViewportSize(swapChain.getSize());
+
+				// 3. [FIX] Set Render Targets (Crucial!)
+				ctx.setRenderTarget(swapChain);
+
+				// 4. Draw
 				auto& obj = objects[args.jobIndex];
 				if (obj->model) {
 					m_renderSystem->drawModel(
-						ctx, // <--- Draw to deferred context
+						ctx,
 						*obj->model,
 						*obj->constantBuffer,
 						obj->transform.getWorldMatrix()

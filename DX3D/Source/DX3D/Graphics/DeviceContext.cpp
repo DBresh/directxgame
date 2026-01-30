@@ -164,4 +164,12 @@ namespace dx3d
 	{
 		m_context->OMSetRenderTargets(0, nullptr, dsv);
 	}
+
+	void DeviceContext::setRenderTarget(const SwapChain& swapChain)
+	{
+		auto rtv = swapChain.m_rtv.Get();
+		auto dsv = swapChain.m_dsv.Get();
+		// Bind the RTV and DSV to the output merger stage of THIS context
+		m_context->OMSetRenderTargets(1, &rtv, dsv);
+	}
 }

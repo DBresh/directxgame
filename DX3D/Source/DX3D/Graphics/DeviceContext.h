@@ -29,6 +29,8 @@ namespace dx3d
 		void setStructuredBuffer(const StructuredBuffer& buffer, unsigned int slot);
 		void setDepthTargetArraySlice(ID3D11DepthStencilView* dsv);
 
+		void setRenderTarget(const SwapChain& swapChain);
+
 		void setDepthTarget(ID3D11DepthStencilView* dsv);
 		void clearDepth(ID3D11DepthStencilView& dsv);
 
