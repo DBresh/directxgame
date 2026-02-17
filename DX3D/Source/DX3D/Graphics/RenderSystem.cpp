@@ -77,6 +77,33 @@ namespace dx3d
         );
     }
 
+    void RenderSystem::setFrameResources(DeviceContext& context)
+    {
+        // 1. Bind Camera (Slot 1)
+        context.setVSConstantBuffer(*m_cameraBuffer, 1);
+        context.setPSConstantBuffer(*m_cameraBuffer, 1);
+
+        // 2. Bind Lights (Slot 2)
+        context.setVSConstantBuffer(*m_lightMatrixBuffer, 2);
+        context.setPSConstantBuffer(*m_lightMatrixBuffer, 2);
+
+        // 3. Bind Samplers
+        if (m_psSampler)
+            context.setPSSampler(m_psSampler.Get(), 0);
+        if (m_shadowSampler)
+            context.setPSSampler(m_shadowSampler.Get(), 1);
+
+        // 4. Bind Shadow Map Texture
+        if (m_lightManager && m_lightManager->getShadowSRV()) {
+            context.setPSTexture(m_lightManager->getShadowSRV(), 2);
+        }
+
+        // 5. Bind Light Data (Structured Buffers)
+        if (m_lightManager) {
+            m_lightManager->bind(context, 1);
+        }
+    }
+
     void RenderSystem::beginFrame(SwapChain& swapChain, const XMFLOAT4& clearColor)
     {
         m_context->clearAndSetBackBuffer(swapChain, clearColor);
@@ -227,6 +254,7 @@ namespace dx3d
     }
 
     void RenderSystem::drawModel(
+        DeviceContext& context,
         const ModelGPU& model,
         const ConstantBuffer& objectCB,
         const XMFLOAT4X4& world)
@@ -239,8 +267,8 @@ namespace dx3d
         cbData.view = m_viewGPU;
         cbData.projection = m_projGPU;
 
-        m_context->updateConstantBuffer(objectCB, &cbData, sizeof(cbData));
-        m_context->setVSConstantBuffer(objectCB, 0);
+        context.updateConstantBuffer(objectCB, &cbData, sizeof(cbData));
+        context.setVSConstantBuffer(objectCB, 0);
 
         if (!model.submeshes.empty())
         {
@@ -271,18 +299,18 @@ namespace dx3d
                     matData.metallic = 0.0f;
                 }
 
-                m_context->updateConstantBuffer(*m_materialBuffer, &matData, sizeof(matData));
-                m_context->setPSConstantBuffer(*m_materialBuffer, 3);
+                context.updateConstantBuffer(*m_materialBuffer, &matData, sizeof(matData));
+                context.setPSConstantBuffer(*m_materialBuffer, 3);
 
                 if (mat && mat->diffuseTexture)
-                    m_context->setPSTexture(mat->diffuseTexture->getSRV(), 0);
+                    context.setPSTexture(mat->diffuseTexture->getSRV(), 0);
                 else
-                    m_context->setPSTexture(nullptr, 0);
+                    context.setPSTexture(nullptr, 0);
 
-                m_context->setVertexBuffer(sm.mesh->getVertexBuffer());
-                m_context->setIndexBuffer(sm.mesh->getIndexBuffer());
+                context.setVertexBuffer(sm.mesh->getVertexBuffer());
+                context.setIndexBuffer(sm.mesh->getIndexBuffer());
 
-                m_context->drawIndexedTriangleList(
+                context.drawIndexedTriangleList(
                     sm.mesh->getIndexBuffer().getIndexCount(), 0, 0
                 );
             }
@@ -293,8 +321,8 @@ namespace dx3d
         if (!model.mesh)
             return;
 
-        m_context->setVertexBuffer(model.mesh->getVertexBuffer());
-        m_context->setIndexBuffer(model.mesh->getIndexBuffer());
+        context.setVertexBuffer(model.mesh->getVertexBuffer());
+        context.setIndexBuffer(model.mesh->getIndexBuffer());
 
         for (const auto& group : model.materialGroups)
         {
@@ -316,15 +344,15 @@ namespace dx3d
                 matData.roughness = 0.5f;
                 matData.metallic = 0.0f;
             }
-            m_context->updateConstantBuffer(*m_materialBuffer, &matData, sizeof(matData));
-            m_context->setPSConstantBuffer(*m_materialBuffer, 3);
+            context.updateConstantBuffer(*m_materialBuffer, &matData, sizeof(matData));
+            context.setPSConstantBuffer(*m_materialBuffer, 3);
 
             if (mat && mat->diffuseTexture)
-                m_context->setPSTexture(mat->diffuseTexture->getSRV(), 0);
+                context.setPSTexture(mat->diffuseTexture->getSRV(), 0);
             else
-                m_context->setPSTexture(nullptr, 0);
+                context.setPSTexture(nullptr, 0);
 
-            m_context->drawIndexedTriangleList(group.indexCount, group.startIndex, 0);
+            context.drawIndexedTriangleList(group.indexCount, group.startIndex, 0);
         }
     }
 

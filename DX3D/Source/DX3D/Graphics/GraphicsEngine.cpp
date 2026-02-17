@@ -8,6 +8,7 @@
 #include <DX3D/InputSystem/InputSystem.h>
 #include <DX3D/Graphics/ModelCache.h>
 #include <DX3D/Graphics/AssetManager.h>
+#include <DX3D/Core/JobSystem.h>
 
 #include <DirectXMath.h>
 #include <fstream>
@@ -47,6 +48,14 @@ namespace dx3d
 		aDesc.graphicsDevice = m_graphicsDevice;
 		aDesc.assetsRoot = std::filesystem::path("DX3D/Assets/Models");
 		m_assets = std::make_shared<AssetManager>(aDesc);
+
+		int numThreads = std::thread::hardware_concurrency();
+		m_deferredContexts.resize(numThreads);
+		m_commandLists.resize(numThreads);
+
+		for (int i = 0; i < numThreads; ++i) {
+			m_deferredContexts[i] = m_graphicsDevice->createDeferredContext();
+		}
 
 		m_renderSystem = std::make_unique<RenderSystem>(m_graphicsDevice, m_deviceContext);
 		m_renderSystem->setPipeline(m_pipeline);
@@ -151,35 +160,64 @@ namespace dx3d
 	void GraphicsEngine::render(SwapChain& swapChain)
 	{
 		m_camera->update();
-
-		XMFLOAT3 cameraPos = m_camera->getPosition();
-		m_renderSystem->setCameraPosition(cameraPos);
-
 		const XMFLOAT4X4& view = m_camera->getViewMatrix();
 		const XMFLOAT4X4& proj = m_camera->getProjectionMatrix();
 
-		//LogMatrix("Camera View (row-major)", XMLoadFloat4x4(&view));
-		//LogMatrix("Camera Proj (row-major)", XMLoadFloat4x4(&proj));
-
-		m_renderSystem->renderShadows(m_scene);
-		m_renderSystem->beginFrame(swapChain, { 0.2f, 0.2f, 0.2f, 1.0f });
 		m_renderSystem->setCameraMatrices(view, proj);
 
-		for (const auto& object : m_scene.getAllObjects())
+		m_renderSystem->renderShadows(m_scene);
+		
+		m_renderSystem->beginFrame(swapChain, { 0.2f, 0.2f, 0.2f, 1.0f });
+
+		auto& objects = m_scene.getAllObjects();
+		const uint32_t groupSize = 250;
+
+		JobSystem::Dispatch((uint32_t)objects.size(), groupSize, [&](JobDispatchArgs args)
+			{
+				int ctxIndex = args.groupIndex % m_deferredContexts.size();
+				auto& ctx = *m_deferredContexts[ctxIndex];
+
+				// --- Setup Context ---
+				ctx.setGraphicsPipelineState(*m_pipeline);
+				ctx.setViewportSize(swapChain.getSize());
+				ctx.setRenderTarget(swapChain);
+
+				m_renderSystem->setFrameResources(ctx);
+
+				uint32_t count = std::min(groupSize, (uint32_t)objects.size() - args.jobIndex);
+
+				for (uint32_t i = 0; i < count; ++i)
+				{
+					// Access object at (Start Index + Offset)
+					auto& obj = objects[args.jobIndex + i];
+
+					if (obj->model) {
+						m_renderSystem->drawModel(
+							ctx,
+							*obj->model,
+							*obj->constantBuffer,
+							obj->transform.getWorldMatrix()
+						);
+					}
+				}
+			});
+
+		JobSystem::Wait();
+
+		for (int i = 0; i < m_deferredContexts.size(); ++i)
 		{
-			if (!object->model)
-				continue;
-
-			const XMFLOAT4X4& world = object->getWorldTransform().getWorldMatrix();
-
-			m_renderSystem->drawModel(
-				*object->model,
-				*object->constantBuffer,
-				world
+			HRESULT hr = m_deferredContexts[i]->getD3D11Context()->FinishCommandList(
+				false, &m_commandLists[i]
 			);
+
+			if (SUCCEEDED(hr) && m_commandLists[i]) {
+				m_deviceContext->getD3D11Context()->ExecuteCommandList(
+					m_commandLists[i].Get(), false
+				);
+			}
+			m_commandLists[i].Reset();
 		}
 
 		m_renderSystem->endFrame(*m_graphicsDevice, swapChain, false);
 	}
-
 }

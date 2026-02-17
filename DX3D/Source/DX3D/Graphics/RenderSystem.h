@@ -43,7 +43,10 @@ namespace dx3d
 
         void setCameraMatrices(const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj);
 
+        void setFrameResources(DeviceContext& context);
+
         void drawModel(
+            DeviceContext& context,
             const ModelGPU& model,
             const ConstantBuffer& objectCB,
             const DirectX::XMFLOAT4X4& world);

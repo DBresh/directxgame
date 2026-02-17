@@ -17,7 +17,7 @@
 
 namespace dx3d
 {
-	GraphicsDevice::GraphicsDevice(const GraphicsDeviceDesc& desc) : Base(desc.base)
+	GraphicsDevice::GraphicsDevice(const GraphicsDeviceDesc& desc) : Base(desc.base), m_desc(desc)
 	{
 		D3D_FEATURE_LEVEL featureLevel{};
 
@@ -183,6 +183,17 @@ namespace dx3d
 			"Failed to create shadow comparison sampler."
 		);
 		return sampler;
+	}
+
+	DeviceContextPtr GraphicsDevice::createDeferredContext()
+	{
+		ID3D11DeviceContext* deferredCtx = nullptr;
+		// no specific flags
+		m_d3dDevice->CreateDeferredContext(0, &deferredCtx);
+
+		if (!deferredCtx) return nullptr;
+
+		return std::make_shared<DeviceContext>(deferredCtx, shared_from_this());
 	}
 
 }

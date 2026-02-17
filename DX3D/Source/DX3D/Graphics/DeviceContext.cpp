@@ -5,6 +5,7 @@
 #include <DX3D/Graphics/IndexBuffer.h>
 #include <DX3D/Graphics/ConstantBuffer.h>
 #include <DX3D/Graphics/StructuredBuffer.h>
+#include <DX3D/Graphics/GraphicsDevice.h>
 #include <DirectXMath.h>
 
 namespace dx3d
@@ -12,6 +13,18 @@ namespace dx3d
 	DeviceContext::DeviceContext(const GraphicsResourceDesc& gDesc) : GraphicsResource(gDesc)
 	{
 		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(m_device.CreateDeferredContext(0, &m_context), "CreateDeferredContext failed.");
+	}
+
+	DeviceContext::DeviceContext(ID3D11DeviceContext* context, std::shared_ptr<GraphicsDevice> device)
+		: GraphicsResource(GraphicsResourceDesc{
+			device->getDesc().base,          // Pass the BaseDesc
+			device,                          // The shared_ptr
+			*device->getD3D11Device(),       // Dereference to get ID3D11Device&
+			*device->getDXGIFactory()        // Dereference to get IDXGIFactory&
+			}),
+		m_context(context)
+	{
+		// The m_context is initialized in the initializer list above
 	}
 
 	void DeviceContext::clearAndSetBackBuffer(const SwapChain& swapChain, const DirectX::XMFLOAT4& color)
@@ -150,5 +163,13 @@ namespace dx3d
 	void DeviceContext::setDepthTargetArraySlice(ID3D11DepthStencilView* dsv)
 	{
 		m_context->OMSetRenderTargets(0, nullptr, dsv);
+	}
+
+	void DeviceContext::setRenderTarget(const SwapChain& swapChain)
+	{
+		auto rtv = swapChain.m_rtv.Get();
+		auto dsv = swapChain.m_dsv.Get();
+		// Bind the RTV and DSV to the output merger stage of THIS context
+		m_context->OMSetRenderTargets(1, &rtv, dsv);
 	}
 }
