@@ -1,6 +1,5 @@
 # Compiled Object Files and Libraries
 *.o
-*.obj
 *.lo
 *.slo
 *.a

@@ -77,9 +77,9 @@ namespace dx3d
 	{
 		auto model = m_assets->getModel("cube.obj");
 
-		for (int i = 1; i <= 5; i++)
+		for (int i = 1; i <= 100; i++)
 		{
-			for (int j = 1; j <= 5; j++)
+			for (int j = 1; j <= 100; j++)
 			{
 				auto cube = m_scene.createObject("cube");
 				cube->model = model;
@@ -165,6 +165,8 @@ namespace dx3d
 
 		m_renderSystem->setCameraMatrices(view, proj);
 
+		m_renderSystem->renderShadows(m_scene);
+		
 		m_renderSystem->beginFrame(swapChain, { 0.2f, 0.2f, 0.2f, 1.0f });
 
 		auto& objects = m_scene.getAllObjects();

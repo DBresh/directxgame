@@ -1,0 +1,67 @@
+mtllib Basic.mtl
+o Cube
+usemtl red
+
+# vertex positions
+v -0.5 -0.5  0.5
+v -0.5  0.5  0.5
+v  0.5  0.5  0.5
+v  0.5 -0.5  0.5
+v -0.5 -0.5 -0.5
+v -0.5  0.5 -0.5
+v  0.5  0.5 -0.5
+v  0.5 -0.5 -0.5
+
+# texture coordinates
+vt 0.0 0.0
+vt 0.0 1.0
+vt 1.0 1.0
+vt 1.0 0.0
+vt 1.0 0.0
+vt 1.0 1.0
+vt 0.0 1.0
+vt 0.0 0.0
+
+# normals
+vn 0 0 1
+vn 0 0 -1
+vn -1 0 0
+vn 1 0 0
+vn 0 1 0
+vn 0 -1 0
+
+# faces (1-based indices: position/texcoord/normal)
+# Front
+usemtl red
+f 1/1/1 3/3/1 2/2/1
+usemtl cyan
+f 1/1/1 4/4/1 3/3/1
+
+# Back
+usemtl academic
+f 5/5/2 7/7/2 8/8/2
+f 5/5/2 6/6/2 7/7/2
+
+# Left
+usemtl checker
+f 5/1/3 2/2/3 6/3/3
+usemtl checker
+f 5/1/3 1/4/3 2/2/3
+
+# Right
+usemtl checker
+f 4/1/4 7/2/4 3/3/4
+usemtl checker
+f 4/1/4 8/4/4 7/2/4
+
+# Top
+usemtl cyan
+f 2/1/5 7/2/5 6/3/5
+usemtl yellow
+f 2/1/5 3/4/5 7/2/5
+
+# Bottom
+usemtl red
+f 5/1/6 8/2/6 1/3/6
+usemtl green
+f 1/3/6 8/4/6 4/2/6
