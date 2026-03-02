@@ -9,6 +9,7 @@
 #include <DX3D/Game/SceneManager.h>
 #include <DirectXMath.h>
 #include <DX3D/InputSystem/InputSystem.h>
+#include <DX3D/Graphics/InstanceBuffer.h>
 #include <vector>
 
 namespace dx3d
@@ -35,5 +36,7 @@ namespace dx3d
         std::shared_ptr<AssetManager>  m_assets;
         std::vector<DeviceContextPtr> m_deferredContexts;
         std::vector<Microsoft::WRL::ComPtr<ID3D11CommandList>> m_commandLists;
+        GraphicsPipelineStatePtr m_instancedPipeline{};
+        std::shared_ptr<InstanceBuffer> m_testInstanceBuffer{};
     };
 }

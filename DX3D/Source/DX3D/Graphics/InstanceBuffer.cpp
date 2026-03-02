@@ -4,12 +4,12 @@
 
 namespace dx3d
 {
-    InstanceBuffer::InstanceBuffer(unsigned int maxInstances, unsigned int stride, const GraphicsResourceDesc& gDesc)
-        : GraphicsResource(gDesc), m_maxInstances(maxInstances), m_stride(stride)
+    InstanceBuffer::InstanceBuffer(const InstanceBufferDesc& iDesc, const GraphicsResourceDesc& gDesc)
+        : GraphicsResource(gDesc), m_maxInstances(iDesc.maxInstances), m_stride(iDesc.stride)
     {
         D3D11_BUFFER_DESC desc = {};
         desc.Usage = D3D11_USAGE_DYNAMIC;
-        desc.ByteWidth = stride * maxInstances;
+        desc.ByteWidth = iDesc.stride * iDesc.maxInstances;
         desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
         desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
         desc.MiscFlags = 0;

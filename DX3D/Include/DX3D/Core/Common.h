@@ -87,6 +87,12 @@ namespace dx3d
 		size_t size{};
 	};
 
+	struct InstanceBufferDesc
+	{
+		unsigned int maxInstances{};
+		unsigned int stride{};
+	};
+
 	struct DisplayDesc
 	{
 		WindowDesc window;

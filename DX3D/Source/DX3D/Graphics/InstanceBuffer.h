@@ -8,7 +8,7 @@ namespace dx3d
     class InstanceBuffer final : public GraphicsResource
     {
     public:
-        InstanceBuffer(unsigned int maxInstances, unsigned int stride, const GraphicsResourceDesc& gDesc);
+        InstanceBuffer(const InstanceBufferDesc& desc, const GraphicsResourceDesc& gDesc);
 
         unsigned int getMaxInstances() const noexcept;
         unsigned int getStride() const noexcept;

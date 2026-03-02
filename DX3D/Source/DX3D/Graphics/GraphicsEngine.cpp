@@ -41,8 +41,13 @@ namespace dx3d
 		auto vs = device.compileShader({ "Basic.hlsl", shaderSourceCode, shaderSize, "VSMain", ShaderType::VertexShader });
 		auto ps = device.compileShader({ "Basic.hlsl", shaderSourceCode, shaderSize, "PSMain", ShaderType::PixelShader });
 		auto vsSig = device.createVertexShaderSignature({ vs });
-
 		m_pipeline = device.createGraphicsPipelineState({ *vsSig, *ps });
+
+		const std::string instancedShaderFileData = loadFileText("DX3D/Assets/Shaders/BasicInstancedVS.hlsl");
+		auto vsInstanced = device.compileShader({ "BasicInstancedVS.hlsl", instancedShaderFileData.c_str(), instancedShaderFileData.size(), "VSMain", ShaderType::VertexShader });
+		auto vsSigInstanced = device.createVertexShaderSignature({ vsInstanced });
+		m_instancedPipeline = device.createGraphicsPipelineState({ *vsSigInstanced, *ps });
+		m_testInstanceBuffer = device.createInstanceBuffer({ 10000, sizeof(XMFLOAT4X4) });
 
 		AssetManagerDesc aDesc{};
 		aDesc.graphicsDevice = m_graphicsDevice;
@@ -77,9 +82,9 @@ namespace dx3d
 	{
 		auto model = m_assets->getModel("cube.obj");
 
-		for (int i = 1; i <= 2; i++)
+		for (int i = 1; i <= 100; i++)
 		{
-			for (int j = 1; j <= 2; j++)
+			for (int j = 1; j <= 100; j++)
 			{
 				auto cube = m_scene.createObject("cube");
 				cube->model = model;
@@ -169,10 +174,37 @@ namespace dx3d
 		
 		m_renderSystem->beginFrame(swapChain, { 0.2f, 0.2f, 0.2f, 1.0f });
 
-		auto& objects = m_scene.getAllObjects();
+		auto& allObjects = m_scene.getAllObjects();
+
+		std::vector<GameObject*> singleDrawObjects;
+		std::vector<XMFLOAT4X4> cubeMatrices;
+		ModelGPU* cubeModel = nullptr;
+		ConstantBuffer* cubeCB = nullptr;
+
+		for (auto& objPtr : allObjects)
+		{
+			if (objPtr->name == "cube")
+			{
+				// first cube's model and CB just to pass to the draw call later
+				if (!cubeModel) {
+					cubeModel = objPtr->model.get();
+					cubeCB = objPtr->constantBuffer.get();
+				}
+
+				// row-major matrix. Because we load it sequentially into 4 float4s 
+				// in the vertex buffer, do NOT transpose it here.
+				XMFLOAT4X4 w = objPtr->transform.getWorldMatrix();
+				cubeMatrices.push_back(w);
+			}
+			else
+			{
+				singleDrawObjects.push_back(objPtr.get());
+			}
+		}
+
 		const uint32_t groupSize = 250;
 
-		JobSystem::Dispatch((uint32_t)objects.size(), groupSize, [&](JobDispatchArgs args)
+		JobSystem::Dispatch((uint32_t)singleDrawObjects.size(), groupSize, [&](JobDispatchArgs args)
 			{
 				int ctxIndex = args.groupIndex % m_deferredContexts.size();
 				auto& ctx = *m_deferredContexts[ctxIndex];
@@ -184,12 +216,11 @@ namespace dx3d
 
 				m_renderSystem->setFrameResources(ctx);
 
-				uint32_t count = std::min(groupSize, (uint32_t)objects.size() - args.jobIndex);
+				uint32_t count = std::min(groupSize, (uint32_t)singleDrawObjects.size() - args.jobIndex);
 
 				for (uint32_t i = 0; i < count; ++i)
 				{
-					// Access object at (Start Index + Offset)
-					auto& obj = objects[args.jobIndex + i];
+					auto* obj = singleDrawObjects[args.jobIndex + i];
 
 					if (obj->model) {
 						m_renderSystem->drawModel(
@@ -216,6 +247,28 @@ namespace dx3d
 				);
 			}
 			m_commandLists[i].Reset();
+		}
+
+		// --- EXECUTE INSTANCED DRAW ON MAIN CONTEXT ---
+		if (!cubeMatrices.empty() && cubeModel && cubeCB)
+		{
+			auto mapped = m_deviceContext->mapBuffer(m_testInstanceBuffer->getBuffer());
+			memcpy(mapped.pData, cubeMatrices.data(), cubeMatrices.size() * sizeof(XMFLOAT4X4));
+			m_deviceContext->unmapBuffer(m_testInstanceBuffer->getBuffer());
+
+			m_deviceContext->setGraphicsPipelineState(*m_instancedPipeline);
+
+			m_deviceContext->setRenderTarget(swapChain);
+			m_deviceContext->setViewportSize(swapChain.getSize());
+
+			m_renderSystem->setFrameResources(*m_deviceContext);
+			m_renderSystem->drawModelInstanced(
+				*m_deviceContext,
+				*cubeModel,
+				*cubeCB,
+				*m_testInstanceBuffer,
+				(unsigned int)cubeMatrices.size()
+			);
 		}
 
 		m_renderSystem->endFrame(*m_graphicsDevice, swapChain, false);

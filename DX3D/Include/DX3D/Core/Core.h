@@ -41,4 +41,5 @@ namespace dx3d
 	using Texture2DPtr = std::shared_ptr<Texture2D>;
 	using DepthTexture2DPtr = std::shared_ptr<DepthTexture2D>;
 	using StructuredBufferPtr = std::shared_ptr<StructuredBuffer>;
+	using InstanceBufferPtr = std::shared_ptr<InstanceBuffer>;
 }
