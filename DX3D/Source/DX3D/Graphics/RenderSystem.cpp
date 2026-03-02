@@ -371,4 +371,95 @@ namespace dx3d
         device.executeCommandList(*m_context);
         swapChain.present(vsync);
     }
+
+    void RenderSystem::drawModelInstanced(
+        DeviceContext& context,
+        const ModelGPU& model,
+        const ConstantBuffer& objectCB,
+        const InstanceBuffer& instanceBuffer,
+        unsigned int instanceCount)
+    {
+        TransformData cbData{};
+
+        // The vertex shader ignores the world matrix, but we pass Identity just to keep memory clean
+        XMStoreFloat4x4(&cbData.world, XMMatrixIdentity());
+        cbData.view = m_viewGPU;
+        cbData.projection = m_projGPU;
+
+        context.updateConstantBuffer(objectCB, &cbData, sizeof(cbData));
+        context.setVSConstantBuffer(objectCB, 0);
+
+        // Bind the dynamic instance buffer to Slot 1
+        context.setInstanceBuffer(instanceBuffer, 1);
+
+        if (!model.submeshes.empty())
+        {
+            for (const auto& sm : model.submeshes)
+            {
+                if (!sm.mesh) continue;
+                const Material* mat = nullptr;
+                if (sm.materialIndex >= 0 && sm.materialIndex < static_cast<int>(model.materials.size())) {
+                    mat = &model.materials[sm.materialIndex];
+                }
+
+                MaterialDataGPU matData = {};
+                if (mat) {
+                    matData.albedo = mat->diffuseColor;
+                    matData.roughness = mat->roughness;
+                    matData.metallic = mat->metallic;
+                }
+                else {
+                    matData.albedo = { 1.0f, 1.0f, 1.0f };
+                    matData.roughness = 0.5f;
+                    matData.metallic = 0.0f;
+                }
+
+                context.updateConstantBuffer(*m_materialBuffer, &matData, sizeof(matData));
+                context.setPSConstantBuffer(*m_materialBuffer, 3);
+
+                if (mat && mat->diffuseTexture) context.setPSTexture(mat->diffuseTexture->getSRV(), 0);
+                else context.setPSTexture(nullptr, 0);
+
+                context.setVertexBuffer(sm.mesh->getVertexBuffer()); // Slot 0
+                context.setIndexBuffer(sm.mesh->getIndexBuffer());
+
+                context.drawIndexedInstanced(
+                    sm.mesh->getIndexBuffer().getIndexCount(),
+                    instanceCount,
+                    0, 0, 0
+                );
+            }
+        }
+        else if (model.mesh)
+        {
+            context.setVertexBuffer(model.mesh->getVertexBuffer()); // Slot 0
+            context.setIndexBuffer(model.mesh->getIndexBuffer());
+
+            for (const auto& group : model.materialGroups)
+            {
+                const Material* mat = nullptr;
+                if (group.materialIndex >= 0 && group.materialIndex < static_cast<int>(model.materials.size())) {
+                    mat = &model.materials[group.materialIndex];
+                }
+                MaterialDataGPU matData = {};
+                if (mat) {
+                    matData.albedo = mat->diffuseColor; matData.roughness = mat->roughness; matData.metallic = mat->metallic;
+                }
+                else {
+                    matData.albedo = { 1.0f, 1.0f, 1.0f }; matData.roughness = 0.5f; matData.metallic = 0.0f;
+                }
+                context.updateConstantBuffer(*m_materialBuffer, &matData, sizeof(matData));
+                context.setPSConstantBuffer(*m_materialBuffer, 3);
+                if (mat && mat->diffuseTexture) context.setPSTexture(mat->diffuseTexture->getSRV(), 0);
+                else context.setPSTexture(nullptr, 0);
+
+                context.drawIndexedInstanced(group.indexCount, instanceCount, group.startIndex, 0, 0);
+            }
+        }
+
+        ID3D11Buffer* nullBuf = nullptr;
+        unsigned int stride = 0;
+        unsigned int offset = 0;
+        context.getD3D11Context()->IASetVertexBuffers(1, 1, &nullBuf, &stride, &offset);
+    }
 }

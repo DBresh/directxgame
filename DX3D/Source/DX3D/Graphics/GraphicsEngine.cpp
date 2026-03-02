@@ -77,9 +77,9 @@ namespace dx3d
 	{
 		auto model = m_assets->getModel("cube.obj");
 
-		for (int i = 1; i <= 100; i++)
+		for (int i = 1; i <= 2; i++)
 		{
-			for (int j = 1; j <= 100; j++)
+			for (int j = 1; j <= 2; j++)
 			{
 				auto cube = m_scene.createObject("cube");
 				cube->model = model;

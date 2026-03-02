@@ -51,6 +51,13 @@ namespace dx3d
             const ConstantBuffer& objectCB,
             const DirectX::XMFLOAT4X4& world);
 
+        void drawModelInstanced(
+            DeviceContext& context,
+            const ModelGPU& model,
+            const ConstantBuffer& objectCB,
+            const InstanceBuffer& instanceBuffer,
+            unsigned int instanceCount);
+
         void setCameraPosition(const XMFLOAT3& pos) noexcept { m_cameraPosition = pos; }
 
         LightManager* getLightManager() const noexcept { return m_lightManager.get(); }

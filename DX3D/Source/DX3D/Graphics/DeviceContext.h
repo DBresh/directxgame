@@ -36,6 +36,12 @@ namespace dx3d
 
 		void setVertexShader(ID3D11VertexShader* vs);
 		void setPixelShader(ID3D11PixelShader* ps);
+
+		void setInstanceBuffer(const InstanceBuffer& buffer, unsigned int slot);
+		void drawIndexedInstanced(unsigned int indexCountPerInstance, unsigned int instanceCount, unsigned int startIndexLocation, int baseVertexLocation, unsigned int startInstanceLocation);
+		D3D11_MAPPED_SUBRESOURCE mapBuffer(ID3D11Buffer* buffer);
+		void unmapBuffer(ID3D11Buffer* buffer);
+
 	private:
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_context{};
 

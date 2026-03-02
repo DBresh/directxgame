@@ -27,6 +27,7 @@ namespace dx3d
 	class MaterialLoader;
 	class StructuredBuffer;
 	class DepthTexture2D;
+	class InstanceBuffer;
 
 	using SwapChainPtr = std::shared_ptr<SwapChain>;
 	using DeviceContextPtr = std::shared_ptr<DeviceContext>;

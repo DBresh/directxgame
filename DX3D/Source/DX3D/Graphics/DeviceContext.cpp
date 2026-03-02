@@ -6,6 +6,7 @@
 #include <DX3D/Graphics/ConstantBuffer.h>
 #include <DX3D/Graphics/StructuredBuffer.h>
 #include <DX3D/Graphics/GraphicsDevice.h>
+#include <DX3D/Graphics/InstanceBuffer.h>
 #include <DirectXMath.h>
 
 namespace dx3d
@@ -169,7 +170,31 @@ namespace dx3d
 	{
 		auto rtv = swapChain.m_rtv.Get();
 		auto dsv = swapChain.m_dsv.Get();
-		// Bind the RTV and DSV to the output merger stage of THIS context
 		m_context->OMSetRenderTargets(1, &rtv, dsv);
+	}
+
+	void DeviceContext::setInstanceBuffer(const InstanceBuffer& buffer, unsigned int slot)
+	{
+		unsigned int stride = buffer.getStride();
+		unsigned int offset = 0;
+		ID3D11Buffer* buf = buffer.getBuffer();
+		m_context->IASetVertexBuffers(slot, 1, &buf, &stride, &offset);
+	}
+
+	void DeviceContext::drawIndexedInstanced(unsigned int indexCountPerInstance, unsigned int instanceCount, unsigned int startIndexLocation, int baseVertexLocation, unsigned int startInstanceLocation)
+	{
+		m_context->DrawIndexedInstanced(indexCountPerInstance, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
+	}
+
+	D3D11_MAPPED_SUBRESOURCE DeviceContext::mapBuffer(ID3D11Buffer* buffer)
+	{
+		D3D11_MAPPED_SUBRESOURCE mappedResource = {};
+		m_context->Map(buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		return mappedResource;
+	}
+
+	void DeviceContext::unmapBuffer(ID3D11Buffer* buffer)
+	{
+		m_context->Unmap(buffer, 0);
 	}
 }
