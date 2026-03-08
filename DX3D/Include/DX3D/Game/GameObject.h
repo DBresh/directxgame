@@ -1,10 +1,10 @@
 #pragma once
 #include <DX3D/Math/Transform.h>
-#include <DX3D/Graphics/Mesh.h>
-#include <DX3D/Graphics/ConstantBuffer.h>
-#include <DX3D/Graphics/Material.h>
-#include <DX3D/Graphics/ModelData.h>
-#include <DX3D/Graphics/ModelGPU.h>
+#include <DX3D/Graphics/Resources/Mesh.h>
+#include <DX3D/Graphics/Buffers/ConstantBuffer.h>
+#include <DX3D/Graphics/Resources/Material.h>
+#include <DX3D/Graphics/Resources/ModelData.h>
+#include <DX3D/Graphics/Resources/ModelGPU.h>
 #include <memory>
 #include <string>
 #include <vector>

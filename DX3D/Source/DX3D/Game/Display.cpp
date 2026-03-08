@@ -1,5 +1,5 @@
 #include <DX3D/Game/Display.h>
-#include <DX3D/Graphics/GraphicsDevice.h>
+#include <DX3D/Graphics/Core/GraphicsDevice.h>
 
 namespace dx3d
 {
