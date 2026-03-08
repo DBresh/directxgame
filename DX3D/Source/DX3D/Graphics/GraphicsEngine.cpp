@@ -10,6 +10,7 @@
 #include <DX3D/Graphics/AssetManager.h>
 #include <DX3D/Core/JobSystem.h>
 
+#include <unordered_map>
 #include <DirectXMath.h>
 #include <fstream>
 
@@ -64,6 +65,7 @@ namespace dx3d
 
 		m_renderSystem = std::make_unique<RenderSystem>(m_graphicsDevice, m_deviceContext);
 		m_renderSystem->setPipeline(m_pipeline);
+		m_renderSystem->setPipeline(m_instancedPipeline);
 
 		createCubeMesh();
 
@@ -82,9 +84,9 @@ namespace dx3d
 	{
 		auto model = m_assets->getModel("cube.obj");
 
-		for (int i = 1; i <= 100; i++)
+		for (int i = 1; i <= 3; i++)
 		{
-			for (int j = 1; j <= 100; j++)
+			for (int j = 1; j <= 3; j++)
 			{
 				auto cube = m_scene.createObject("cube");
 				cube->model = model;
@@ -144,24 +146,6 @@ namespace dx3d
 		);
 	}
 
-	static void LogMatrix(const char* name, CXMMATRIX M)
-	{
-		XMFLOAT4X4 m;
-		XMStoreFloat4x4(&m, M);
-		DX3D_LOG_INFO(
-			"Matrix Log: {} [as Row-Major]\n"
-			"  [{: 8.2f}, {: 8.2f}, {: 8.2f}, {: 8.2f}]\n"
-			"  [{: 8.2f}, {: 8.2f}, {: 8.2f}, {: 8.2f}]\n"
-			"  [{: 8.2f}, {: 8.2f}, {: 8.2f}, {: 8.2f}]\n"
-			"  [{: 8.2f}, {: 8.2f}, {: 8.2f}, {: 8.2f}]",
-			name,
-			m._11, m._12, m._13, m._14,
-			m._21, m._22, m._23, m._24,
-			m._31, m._32, m._33, m._34,
-			m._41, m._42, m._43, m._44
-		);
-	}
-
 	void GraphicsEngine::render(SwapChain& swapChain)
 	{
 		m_camera->update();
@@ -170,57 +154,73 @@ namespace dx3d
 
 		m_renderSystem->setCameraMatrices(view, proj);
 
-		m_renderSystem->renderShadows(m_scene);
-		
+		buildRenderBatches();
+		m_renderSystem->renderShadows(m_singleDrawObjects, m_instancedBatches, *m_testInstanceBuffer);
 		m_renderSystem->beginFrame(swapChain, { 0.2f, 0.2f, 0.2f, 1.0f });
+		executeSingleDraws(swapChain);
+		executeInstancedDraws(swapChain);
+
+		m_renderSystem->endFrame(*m_graphicsDevice, swapChain, false);
+	}
+
+	void GraphicsEngine::buildRenderBatches()
+	{
+		m_singleDrawObjects.clear();
+		m_instancedBatches.clear();
 
 		auto& allObjects = m_scene.getAllObjects();
-
-		std::vector<GameObject*> singleDrawObjects;
-		std::vector<XMFLOAT4X4> cubeMatrices;
-		ModelGPU* cubeModel = nullptr;
-		ConstantBuffer* cubeCB = nullptr;
+		std::unordered_map<ModelGPU*, std::vector<GameObject*>> modelGroups;
 
 		for (auto& objPtr : allObjects)
 		{
-			if (objPtr->name == "cube")
-			{
-				// first cube's model and CB just to pass to the draw call later
-				if (!cubeModel) {
-					cubeModel = objPtr->model.get();
-					cubeCB = objPtr->constantBuffer.get();
-				}
-
-				// row-major matrix. Because we load it sequentially into 4 float4s 
-				// in the vertex buffer, do NOT transpose it here.
-				XMFLOAT4X4 w = objPtr->transform.getWorldMatrix();
-				cubeMatrices.push_back(w);
-			}
-			else
-			{
-				singleDrawObjects.push_back(objPtr.get());
+			if (objPtr->model) {
+				modelGroups[objPtr->model.get()].push_back(objPtr.get());
 			}
 		}
 
+		for (auto& [model, objects] : modelGroups)
+		{
+			if (objects.size() == 1)
+			{
+				m_singleDrawObjects.push_back(objects[0]);
+			}
+			else if (objects.size() > 1)
+			{
+				InstancedBatch batch;
+				batch.model = model;
+				batch.cb = objects[0]->constantBuffer.get();
+				batch.matrices.reserve(objects.size());
+
+				for (auto* obj : objects) {
+					batch.matrices.push_back(obj->transform.getWorldMatrix());
+				}
+				m_instancedBatches.push_back(std::move(batch));
+			}
+		}
+	}
+
+	void GraphicsEngine::executeSingleDraws(SwapChain& swapChain)
+	{
+		if (m_singleDrawObjects.empty()) return;
+
 		const uint32_t groupSize = 250;
 
-		JobSystem::Dispatch((uint32_t)singleDrawObjects.size(), groupSize, [&](JobDispatchArgs args)
+		JobSystem::Dispatch((uint32_t)m_singleDrawObjects.size(), groupSize, [&](JobDispatchArgs args)
 			{
 				int ctxIndex = args.groupIndex % m_deferredContexts.size();
 				auto& ctx = *m_deferredContexts[ctxIndex];
 
-				// --- Setup Context ---
 				ctx.setGraphicsPipelineState(*m_pipeline);
 				ctx.setViewportSize(swapChain.getSize());
 				ctx.setRenderTarget(swapChain);
 
 				m_renderSystem->setFrameResources(ctx);
 
-				uint32_t count = std::min(groupSize, (uint32_t)singleDrawObjects.size() - args.jobIndex);
+				uint32_t count = std::min(groupSize, (uint32_t)m_singleDrawObjects.size() - args.jobIndex);
 
 				for (uint32_t i = 0; i < count; ++i)
 				{
-					auto* obj = singleDrawObjects[args.jobIndex + i];
+					auto* obj = m_singleDrawObjects[args.jobIndex + i];
 
 					if (obj->model) {
 						m_renderSystem->drawModel(
@@ -248,29 +248,51 @@ namespace dx3d
 			}
 			m_commandLists[i].Reset();
 		}
+	}
 
-		// --- EXECUTE INSTANCED DRAW ON MAIN CONTEXT ---
-		if (!cubeMatrices.empty() && cubeModel && cubeCB)
+	void GraphicsEngine::executeInstancedDraws(SwapChain& swapChain)
+	{
+		if (m_instancedBatches.empty()) return;
+
+		m_deviceContext->setGraphicsPipelineState(*m_instancedPipeline);
+		m_deviceContext->setRenderTarget(swapChain);
+		m_deviceContext->setViewportSize(swapChain.getSize());
+		m_deviceContext->getD3D11Context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		m_renderSystem->setFrameResources(*m_deviceContext);
+
+		for (const auto& batch : m_instancedBatches)
 		{
+			m_testInstanceBuffer->resize((unsigned int)batch.matrices.size());
+
 			auto mapped = m_deviceContext->mapBuffer(m_testInstanceBuffer->getBuffer());
-			memcpy(mapped.pData, cubeMatrices.data(), cubeMatrices.size() * sizeof(XMFLOAT4X4));
+			memcpy(mapped.pData, batch.matrices.data(), batch.matrices.size() * sizeof(XMFLOAT4X4));
 			m_deviceContext->unmapBuffer(m_testInstanceBuffer->getBuffer());
 
-			m_deviceContext->setGraphicsPipelineState(*m_instancedPipeline);
-
-			m_deviceContext->setRenderTarget(swapChain);
-			m_deviceContext->setViewportSize(swapChain.getSize());
-
-			m_renderSystem->setFrameResources(*m_deviceContext);
 			m_renderSystem->drawModelInstanced(
 				*m_deviceContext,
-				*cubeModel,
-				*cubeCB,
+				*batch.model,
+				*batch.cb,
 				*m_testInstanceBuffer,
-				(unsigned int)cubeMatrices.size()
+				(unsigned int)batch.matrices.size()
 			);
 		}
+	}
 
-		m_renderSystem->endFrame(*m_graphicsDevice, swapChain, false);
+	static void LogMatrix(const char* name, CXMMATRIX M)
+	{
+		XMFLOAT4X4 m;
+		XMStoreFloat4x4(&m, M);
+		DX3D_LOG_INFO(
+			"Matrix Log: {} [as Row-Major]\n"
+			"  [{: 8.2f}, {: 8.2f}, {: 8.2f}, {: 8.2f}]\n"
+			"  [{: 8.2f}, {: 8.2f}, {: 8.2f}, {: 8.2f}]\n"
+			"  [{: 8.2f}, {: 8.2f}, {: 8.2f}, {: 8.2f}]\n"
+			"  [{: 8.2f}, {: 8.2f}, {: 8.2f}, {: 8.2f}]",
+			name,
+			m._11, m._12, m._13, m._14,
+			m._21, m._22, m._23, m._24,
+			m._31, m._32, m._33, m._34,
+			m._41, m._42, m._43, m._44
+		);
 	}
 }

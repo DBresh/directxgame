@@ -13,6 +13,7 @@ namespace dx3d
         unsigned int getMaxInstances() const noexcept;
         unsigned int getStride() const noexcept;
         ID3D11Buffer* getBuffer() const { return m_buffer.Get(); }
+        void resize(unsigned int newMaxInstances);
 
     private:
         Microsoft::WRL::ComPtr<ID3D11Buffer> m_buffer{};

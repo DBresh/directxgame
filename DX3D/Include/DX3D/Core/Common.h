@@ -93,6 +93,13 @@ namespace dx3d
 		unsigned int stride{};
 	};
 
+	struct InstancedBatch 
+	{
+		ModelGPU* model;
+		ConstantBuffer* cb;
+		std::vector<DirectX::XMFLOAT4X4> matrices;
+	};
+
 	struct DisplayDesc
 	{
 		WindowDesc window;
