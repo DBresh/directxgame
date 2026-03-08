@@ -13,6 +13,7 @@
 #include <DX3D/Graphics/DepthTexture2D.h>
 #include <DX3D/Math/Vertex.h>
 #include <DX3D/Graphics/StructuredBuffer.h>
+#include <DX3D/Graphics/InstanceBuffer.h>
 #include <vector>
 
 namespace dx3d
@@ -78,6 +79,11 @@ namespace dx3d
 	ConstantBufferPtr GraphicsDevice::createConstantBuffer(const ConstantBufferDesc& desc)
 	{
 		return std::make_shared<ConstantBuffer>(desc, getGraphicsResourceDesc());
+	}
+
+	InstanceBufferPtr GraphicsDevice::createInstanceBuffer(const InstanceBufferDesc& desc)
+	{
+		return std::make_shared<InstanceBuffer>(desc, getGraphicsResourceDesc());
 	}
 
 	MeshPtr GraphicsDevice::createMesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices)

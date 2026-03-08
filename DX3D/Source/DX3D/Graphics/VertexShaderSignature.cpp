@@ -3,6 +3,7 @@
 #include <DX3D/Graphics/GraphicsUtils.h>
 #include <d3dcompiler.h>
 #include <ranges>
+#include <string_view>
 
 namespace dx3d
 {
@@ -41,14 +42,24 @@ namespace dx3d
 		for (auto i : std::views::iota(0u, m_numElements))
 		{
 			auto param = params[i];
+
+			// TEXCOORD 4, 5, 6, 7 for the 4x4 Instance Matrix
+			bool isInstanceData = false;
+			std::string_view semanticName(param.SemanticName);
+
+			if (semanticName == "TEXCOORD" && param.SemanticIndex >= 4 && param.SemanticIndex <= 7)
+			{
+				isInstanceData = true;
+			}
+
 			m_elements[i] = {
 				param.SemanticName,
 				param.SemanticIndex,
 				getDXGIFormatFromMask(param.ComponentType, param.Mask),
-				0,
+				isInstanceData ? 1u : 0u, // Input Slot: 1 for instances, 0 for vertices
 				D3D11_APPEND_ALIGNED_ELEMENT,
-				D3D11_INPUT_PER_VERTEX_DATA,
-				0
+				isInstanceData ? D3D11_INPUT_PER_INSTANCE_DATA : D3D11_INPUT_PER_VERTEX_DATA,
+				isInstanceData ? 1u : 0u  // InstanceDataStepRate: 1 for instances, 0 for vertices
 			};
 		}
 	}

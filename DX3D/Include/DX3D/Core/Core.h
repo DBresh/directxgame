@@ -1,7 +1,7 @@
 #pragma once
 #include <stdexcept>
 #include <memory>
-
+#include <DirectXMath.h>
 
 namespace dx3d
 {
@@ -27,6 +27,8 @@ namespace dx3d
 	class MaterialLoader;
 	class StructuredBuffer;
 	class DepthTexture2D;
+	class InstanceBuffer;
+	class ModelGPU;
 
 	using SwapChainPtr = std::shared_ptr<SwapChain>;
 	using DeviceContextPtr = std::shared_ptr<DeviceContext>;
@@ -40,4 +42,5 @@ namespace dx3d
 	using Texture2DPtr = std::shared_ptr<Texture2D>;
 	using DepthTexture2DPtr = std::shared_ptr<DepthTexture2D>;
 	using StructuredBufferPtr = std::shared_ptr<StructuredBuffer>;
+	using InstanceBufferPtr = std::shared_ptr<InstanceBuffer>;
 }

@@ -2,6 +2,7 @@
 #include <DX3D/Graphics/GraphicsLogUtils.h>
 #include <DX3D/Graphics/Texture2D.h>
 #include <DX3D/Graphics/StructuredBuffer.h>
+#include <DX3D/Graphics/InstanceBuffer.h>
 
 #include <DirectXMath.h>
 #include <cstring>
@@ -22,9 +23,10 @@ namespace dx3d
         DeviceContextPtr context)
         : m_device(std::move(device)), m_context(std::move(context))
     {
+        
+        m_instancedDepthVS = m_device->createVertexShaderFromFile("DX3D/Assets/Shaders/ShadowDepthInstancedVS.hlsl", "VSMain");
         m_cameraBuffer = m_device->createConstantBuffer({ nullptr, sizeof(CameraData) });
         m_lightManager = std::make_unique<LightManager>(m_device);
-
         m_lightManager->initShadowArray(512, 4);
 
         m_materialBuffer = m_device->createConstantBuffer({ nullptr, sizeof(MaterialDataGPU) });
@@ -52,6 +54,11 @@ namespace dx3d
     void RenderSystem::setPipeline(GraphicsPipelineStatePtr pipeline) noexcept
     {
         m_pipeline = std::move(pipeline);
+    }
+
+    void RenderSystem::setInstancedPipeline(GraphicsPipelineStatePtr pipeline) noexcept
+    {
+        m_instancedPipeline = std::move(pipeline);
     }
 
     void RenderSystem::setPSSampler(ID3D11SamplerState* sampler) noexcept
@@ -171,11 +178,12 @@ namespace dx3d
         m_context->setPSConstantBuffer(*m_cameraBuffer, 1);
     }
 
-    void RenderSystem::renderShadows(SceneManager& scene)
+    void RenderSystem::renderShadows(
+        const std::vector<GameObject*>& singleDraws,
+        const std::vector<InstancedBatch>& instancedBatches,
+        InstanceBuffer& instanceBuffer)
     {
-        if (m_pipeline)
-            m_context->setGraphicsPipelineState(*m_pipeline);
-
+        m_context->m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         m_context->m_context->RSSetState(m_shadowRasterizer.Get());
 
         ID3D11Buffer* nullBuf = nullptr;
@@ -186,7 +194,6 @@ namespace dx3d
             ctx->VSSetConstantBuffers(slot, 1, &nullBuf);
             ctx->PSSetConstantBuffers(slot, 1, &nullBuf);
         }
-
         m_context->m_context->PSSetShaderResources(2, 1, &nullSRV);
 
         const auto& lights = m_lightManager->getLights();
@@ -196,15 +203,12 @@ namespace dx3d
         vp.height = (float)m_lightManager->getShadowMapSize();
         m_context->setViewportSize(vp);
 
-        m_context->setVertexShader(m_depthVS.Get());
-        m_context->setPixelShader(nullptr);
-
         int shadowIndex = 0;
 
         for (int i = 0; i < lights.size(); ++i)
         {
             const auto& light = lights[i];
-            if (!light.castShadows) continue;
+            if (!light.castShadows || !light.shadow) continue;
 
             ID3D11DepthStencilView* dsv = m_lightManager->getShadowDSV(shadowIndex);
             if (!dsv) break;
@@ -212,43 +216,80 @@ namespace dx3d
             m_context->setDepthTargetArraySlice(dsv);
             m_context->clearDepth(*dsv);
 
-            if (!light.shadow) continue;
-
             XMMATRIX V = XMLoadFloat4x4(&light.shadow->view);
             XMMATRIX P = XMLoadFloat4x4(&light.shadow->proj);
+            XMMATRIX VP = V * P;
 
-            for (auto& objPtr : scene.getAllObjects())
+            if (m_pipeline) m_context->setGraphicsPipelineState(*m_pipeline);
+            m_context->setVertexShader(m_depthVS.Get());
+            m_context->setPixelShader(nullptr);
+
+            for (auto* obj : singleDraws)
             {
-                auto& obj = *objPtr;
-                const auto& model = obj.model;
+                const auto& model = obj->model;
                 if (!model || !model->mesh) continue;
 
-                XMMATRIX W = XMLoadFloat4x4(&obj.transform.getWorldMatrix());
-                XMMATRIX WVP = W * V * P;
-                XMMATRIX WVP_t = XMMatrixTranspose(WVP);
-
+                XMMATRIX W = XMLoadFloat4x4(&obj->transform.getWorldMatrix());
                 XMFLOAT4X4 cb;
-                XMStoreFloat4x4(&cb, WVP_t);
+                XMStoreFloat4x4(&cb, XMMatrixTranspose(W * VP));
 
                 m_context->updateConstantBuffer(*m_depthCB, &cb, sizeof(cb));
                 m_context->setVSConstantBuffer(*m_depthCB, 0);
 
                 m_context->setVertexBuffer(model->mesh->getVertexBuffer());
                 m_context->setIndexBuffer(model->mesh->getIndexBuffer());
-                m_context->drawIndexedTriangleList(
-                    model->mesh->getIndexBuffer().getIndexCount(), 0, 0
-                );
+                m_context->drawIndexedTriangleList(model->mesh->getIndexBuffer().getIndexCount(), 0, 0);
             }
+
+            if (m_instancedPipeline) m_context->setGraphicsPipelineState(*m_instancedPipeline);
+
+            m_context->setVertexShader(m_instancedDepthVS.Get());
+            m_context->setPixelShader(nullptr);
+
+            XMFLOAT4X4 vpFloat4x4;
+            XMStoreFloat4x4(&vpFloat4x4, XMMatrixTranspose(VP));
+            m_context->updateConstantBuffer(*m_depthCB, &vpFloat4x4, sizeof(vpFloat4x4));
+            m_context->setVSConstantBuffer(*m_depthCB, 0);
+
+            for (const auto& batch : instancedBatches)
+            {
+                if (!batch.model) continue;
+
+                instanceBuffer.resize((unsigned int)batch.matrices.size());
+                auto mapped = m_context->mapBuffer(instanceBuffer.getBuffer());
+                memcpy(mapped.pData, batch.matrices.data(), batch.matrices.size() * sizeof(XMFLOAT4X4));
+                m_context->unmapBuffer(instanceBuffer.getBuffer());
+
+                m_context->setInstanceBuffer(instanceBuffer, 1);
+
+                if (!batch.model->submeshes.empty()) {
+                    for (const auto& sm : batch.model->submeshes) {
+                        if (!sm.mesh) continue;
+                        m_context->setVertexBuffer(sm.mesh->getVertexBuffer());
+                        m_context->setIndexBuffer(sm.mesh->getIndexBuffer());
+                        m_context->drawIndexedInstanced(sm.mesh->getIndexBuffer().getIndexCount(), (unsigned int)batch.matrices.size(), 0, 0, 0);
+                    }
+                }
+                else if (batch.model->mesh) {
+                    m_context->setVertexBuffer(batch.model->mesh->getVertexBuffer());
+                    m_context->setIndexBuffer(batch.model->mesh->getIndexBuffer());
+                    for (const auto& group : batch.model->materialGroups) {
+                        m_context->drawIndexedInstanced(group.indexCount, (unsigned int)batch.matrices.size(), group.startIndex, 0, 0);
+                    }
+                }
+            }
+
+            unsigned int stride = 0;
+            unsigned int offset = 0;
+            m_context->m_context->IASetVertexBuffers(1, 1, &nullBuf, &stride, &offset);
+
             shadowIndex++;
         }
 
-        if (m_pipeline)
-            m_context->setGraphicsPipelineState(*m_pipeline);
-        else
-            m_context->m_context->RSSetState(nullptr);
+        if (m_pipeline) m_context->setGraphicsPipelineState(*m_pipeline);
+        else m_context->m_context->RSSetState(nullptr);
 
         m_context->setDepthTarget(nullptr);
-
         m_context->setPSConstantBuffer(*m_lightMatrixBuffer, 2);
         m_context->setVSConstantBuffer(*m_lightMatrixBuffer, 2);
     }
@@ -370,5 +411,96 @@ namespace dx3d
     {
         device.executeCommandList(*m_context);
         swapChain.present(vsync);
+    }
+
+    void RenderSystem::drawModelInstanced(
+        DeviceContext& context,
+        const ModelGPU& model,
+        const ConstantBuffer& objectCB,
+        const InstanceBuffer& instanceBuffer,
+        unsigned int instanceCount)
+    {
+        TransformData cbData{};
+
+        // The vertex shader ignores the world matrix, but we pass Identity just to keep memory clean
+        XMStoreFloat4x4(&cbData.world, XMMatrixIdentity());
+        cbData.view = m_viewGPU;
+        cbData.projection = m_projGPU;
+
+        context.updateConstantBuffer(objectCB, &cbData, sizeof(cbData));
+        context.setVSConstantBuffer(objectCB, 0);
+
+        // Bind the dynamic instance buffer to Slot 1
+        context.setInstanceBuffer(instanceBuffer, 1);
+
+        if (!model.submeshes.empty())
+        {
+            for (const auto& sm : model.submeshes)
+            {
+                if (!sm.mesh) continue;
+                const Material* mat = nullptr;
+                if (sm.materialIndex >= 0 && sm.materialIndex < static_cast<int>(model.materials.size())) {
+                    mat = &model.materials[sm.materialIndex];
+                }
+
+                MaterialDataGPU matData = {};
+                if (mat) {
+                    matData.albedo = mat->diffuseColor;
+                    matData.roughness = mat->roughness;
+                    matData.metallic = mat->metallic;
+                }
+                else {
+                    matData.albedo = { 1.0f, 1.0f, 1.0f };
+                    matData.roughness = 0.5f;
+                    matData.metallic = 0.0f;
+                }
+
+                context.updateConstantBuffer(*m_materialBuffer, &matData, sizeof(matData));
+                context.setPSConstantBuffer(*m_materialBuffer, 3);
+
+                if (mat && mat->diffuseTexture) context.setPSTexture(mat->diffuseTexture->getSRV(), 0);
+                else context.setPSTexture(nullptr, 0);
+
+                context.setVertexBuffer(sm.mesh->getVertexBuffer()); // Slot 0
+                context.setIndexBuffer(sm.mesh->getIndexBuffer());
+
+                context.drawIndexedInstanced(
+                    sm.mesh->getIndexBuffer().getIndexCount(),
+                    instanceCount,
+                    0, 0, 0
+                );
+            }
+        }
+        else if (model.mesh)
+        {
+            context.setVertexBuffer(model.mesh->getVertexBuffer()); // Slot 0
+            context.setIndexBuffer(model.mesh->getIndexBuffer());
+
+            for (const auto& group : model.materialGroups)
+            {
+                const Material* mat = nullptr;
+                if (group.materialIndex >= 0 && group.materialIndex < static_cast<int>(model.materials.size())) {
+                    mat = &model.materials[group.materialIndex];
+                }
+                MaterialDataGPU matData = {};
+                if (mat) {
+                    matData.albedo = mat->diffuseColor; matData.roughness = mat->roughness; matData.metallic = mat->metallic;
+                }
+                else {
+                    matData.albedo = { 1.0f, 1.0f, 1.0f }; matData.roughness = 0.5f; matData.metallic = 0.0f;
+                }
+                context.updateConstantBuffer(*m_materialBuffer, &matData, sizeof(matData));
+                context.setPSConstantBuffer(*m_materialBuffer, 3);
+                if (mat && mat->diffuseTexture) context.setPSTexture(mat->diffuseTexture->getSRV(), 0);
+                else context.setPSTexture(nullptr, 0);
+
+                context.drawIndexedInstanced(group.indexCount, instanceCount, group.startIndex, 0, 0);
+            }
+        }
+
+        ID3D11Buffer* nullBuf = nullptr;
+        unsigned int stride = 0;
+        unsigned int offset = 0;
+        context.getD3D11Context()->IASetVertexBuffers(1, 1, &nullBuf, &stride, &offset);
     }
 }

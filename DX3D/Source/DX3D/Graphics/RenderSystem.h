@@ -19,73 +19,87 @@
 
 namespace dx3d
 {
-    using namespace DirectX;
+	using namespace DirectX;
 
-    struct MaterialDataGPU
-    {
-        DirectX::XMFLOAT3 albedo;
-        float roughness;
-        float metallic;
-        DirectX::XMFLOAT3 padding;
-    };
+	struct MaterialDataGPU
+	{
+		DirectX::XMFLOAT3 albedo;
+		float roughness;
+		float metallic;
+		DirectX::XMFLOAT3 padding;
+	};
 
-    class RenderSystem
-    {
-    public:
-        RenderSystem(std::shared_ptr<GraphicsDevice> device,
-            DeviceContextPtr context);
+	class RenderSystem
+	{
+	public:
+		RenderSystem(std::shared_ptr<GraphicsDevice> device,
+			DeviceContextPtr context);
 
-        void setPipeline(GraphicsPipelineStatePtr pipeline) noexcept;
-        void setPSSampler(ID3D11SamplerState* sampler) noexcept;
+		void setPipeline(GraphicsPipelineStatePtr pipeline) noexcept;
+		void setPSSampler(ID3D11SamplerState* sampler) noexcept;
 
-        void beginFrame(SwapChain& swapChain, const XMFLOAT4& clearColor);
-        void endFrame(GraphicsDevice& device, SwapChain& swapChain, bool vsync);
+		void beginFrame(SwapChain& swapChain, const XMFLOAT4& clearColor);
+		void endFrame(GraphicsDevice& device, SwapChain& swapChain, bool vsync);
 
-        void setCameraMatrices(const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj);
+		void setCameraMatrices(const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj);
 
-        void setFrameResources(DeviceContext& context);
+		void setFrameResources(DeviceContext& context);
 
-        void drawModel(
-            DeviceContext& context,
-            const ModelGPU& model,
-            const ConstantBuffer& objectCB,
-            const DirectX::XMFLOAT4X4& world);
+		void drawModel(
+			DeviceContext& context,
+			const ModelGPU& model,
+			const ConstantBuffer& objectCB,
+			const DirectX::XMFLOAT4X4& world);
 
-        void setCameraPosition(const XMFLOAT3& pos) noexcept { m_cameraPosition = pos; }
+		void drawModelInstanced(
+			DeviceContext& context,
+			const ModelGPU& model,
+			const ConstantBuffer& objectCB,
+			const InstanceBuffer& instanceBuffer,
+			unsigned int instanceCount);
 
-        LightManager* getLightManager() const noexcept { return m_lightManager.get(); }
+		void setCameraPosition(const XMFLOAT3& pos) noexcept { m_cameraPosition = pos; }
 
-        void renderShadows(SceneManager& scene);
+		LightManager* getLightManager() const noexcept { return m_lightManager.get(); }
+		
+		void setInstancedPipeline(GraphicsPipelineStatePtr pipeline) noexcept;
 
-    private:
-        std::shared_ptr<GraphicsDevice> m_device;
-        DeviceContextPtr                m_context;
-        GraphicsPipelineStatePtr        m_pipeline;
-        std::unique_ptr<LightManager>   m_lightManager;
+		void renderShadows(
+			const std::vector<GameObject*>& singleDraws,
+			const std::vector<InstancedBatch>& instancedBatches,
+			InstanceBuffer& instanceBuffer);
 
-        ConstantBufferPtr m_materialBuffer;
+	private:
+		std::shared_ptr<GraphicsDevice> m_device;
+		DeviceContextPtr                m_context;
+		GraphicsPipelineStatePtr        m_pipeline;
+		std::unique_ptr<LightManager>   m_lightManager;
 
-        Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_shadowRasterizer;
+		ConstantBufferPtr m_materialBuffer;
 
-        ConstantBufferPtr m_cameraBuffer;
-        XMFLOAT3          m_cameraPosition{ 0, 0, 0 };
+		Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_shadowRasterizer;
 
-        // Cached GPU-ready (transposed) matrices
-        DirectX::XMFLOAT4X4 m_viewGPU;
-        DirectX::XMFLOAT4X4 m_projGPU;
+		ConstantBufferPtr m_cameraBuffer;
+		XMFLOAT3          m_cameraPosition{ 0, 0, 0 };
 
-        Microsoft::WRL::ComPtr<ID3D11VertexShader> m_depthVS;
-        ConstantBufferPtr m_depthCB;           // worldViewProj for shadow pass
-        ConstantBufferPtr m_lightMatrixBuffer; // array of light matrices (viewProj)
+		DirectX::XMFLOAT4X4 m_viewGPU{};
+		DirectX::XMFLOAT4X4 m_projGPU{};
 
-        Microsoft::WRL::ComPtr<ID3D11SamplerState> m_psSampler;
-        Microsoft::WRL::ComPtr<ID3D11SamplerState> m_shadowSampler;
+		Microsoft::WRL::ComPtr<ID3D11VertexShader> m_depthVS;
+		ConstantBufferPtr m_depthCB;
+		ConstantBufferPtr m_lightMatrixBuffer;
 
-        struct TransformData
-        {
-            XMFLOAT4X4 world;
-            XMFLOAT4X4 view;
-            XMFLOAT4X4 projection;
-        };
-    };
+		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_psSampler;
+		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_shadowSampler;
+
+		GraphicsPipelineStatePtr m_instancedPipeline;
+		Microsoft::WRL::ComPtr<ID3D11VertexShader> m_instancedDepthVS;
+
+		struct TransformData
+		{
+			XMFLOAT4X4 world;
+			XMFLOAT4X4 view;
+			XMFLOAT4X4 projection;
+		};
+	};
 }

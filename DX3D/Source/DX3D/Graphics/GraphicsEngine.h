@@ -9,7 +9,11 @@
 #include <DX3D/Game/SceneManager.h>
 #include <DirectXMath.h>
 #include <DX3D/InputSystem/InputSystem.h>
+#include <DX3D/Graphics/InstanceBuffer.h>
+#include <DX3D/Core/Common.h>
+
 #include <vector>
+#include <unordered_map>
 
 namespace dx3d
 {
@@ -25,8 +29,14 @@ namespace dx3d
     private:
         SceneManager m_scene;
         void createCubeMesh();
+        void buildRenderBatches();
+        void executeSingleDraws(SwapChain& swapChain);
+        void executeInstancedDraws(SwapChain& swapChain);
 
     private:
+        std::vector<GameObject*> m_singleDrawObjects;
+        std::vector<InstancedBatch> m_instancedBatches;
+
         std::shared_ptr<GraphicsDevice> m_graphicsDevice{};
         DeviceContextPtr m_deviceContext{};
         GraphicsPipelineStatePtr m_pipeline{};
@@ -35,5 +45,7 @@ namespace dx3d
         std::shared_ptr<AssetManager>  m_assets;
         std::vector<DeviceContextPtr> m_deferredContexts;
         std::vector<Microsoft::WRL::ComPtr<ID3D11CommandList>> m_commandLists;
+        GraphicsPipelineStatePtr m_instancedPipeline{};
+        std::shared_ptr<InstanceBuffer> m_testInstanceBuffer{};
     };
 }

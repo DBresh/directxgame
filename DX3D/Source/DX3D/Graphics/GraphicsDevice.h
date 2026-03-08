@@ -31,6 +31,7 @@ namespace dx3d
 		StructuredBufferPtr createStructuredBuffer(const void* data, size_t elementSize, size_t elementCount);
 		DepthTexture2DPtr createDepthTexture2D(UINT width, UINT height);
 		DeviceContextPtr createDeferredContext();
+		InstanceBufferPtr createInstanceBuffer(const InstanceBufferDesc& desc);
 
 		template<typename T>
 		StructuredBufferPtr createStructuredBuffer(const std::vector<T>& elements)
