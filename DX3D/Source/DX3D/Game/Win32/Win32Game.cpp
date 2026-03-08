@@ -3,60 +3,85 @@
 #include <DX3D/InputSystem/InputSystem.h>
 #include <DX3D/Core/Logger.h>
 #include <DX3D/Graphics/GraphicsLogUtils.h>
+
+#include <imgui.h>
 #include <Windows.h>
 #include <string>
 
-void dx3d::Game::run()
+namespace dx3d
 {
-	MSG msg{};
-
-	LARGE_INTEGER frequency;
-	QueryPerformanceFrequency(&frequency);
-
-	LARGE_INTEGER lastTime;
-	QueryPerformanceCounter(&lastTime);
-
-	int frameCount = 0;
-	double elapsed = 0.0;
-
-	while (m_isRunning)
+	void Game::run()
 	{
-		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		MSG msg{};
+
+		LARGE_INTEGER frequency;
+		QueryPerformanceFrequency(&frequency);
+
+		LARGE_INTEGER lastTime;
+		QueryPerformanceCounter(&lastTime);
+
+		int frameCount = 0;
+		double elapsed = 0.0;
+
+		while (m_isRunning)
 		{
-			if (msg.message == WM_QUIT)
+			while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 			{
-				m_isRunning = false;
-				break;
+				if (msg.message == WM_QUIT)
+				{
+					m_isRunning = false;
+					break;
+				}
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
 			}
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+
+			dx3d::InputSystem::get()->update();
+
+			// Compute delta time
+			LARGE_INTEGER now;
+			QueryPerformanceCounter(&now);
+			double realDelta = double(now.QuadPart - lastTime.QuadPart) / double(frequency.QuadPart);
+			lastTime = now;
+
+			// Update Time singleton
+			dx3d::Time::Instance()->Update(realDelta);
+
+			// Count frames
+			frameCount++;
+			elapsed += realDelta;
+
+			// Every second, print FPS
+			if (elapsed >= 1.0)
+			{
+				m_currentFPS = frameCount / elapsed;
+				// DX3D_LOG_INFO("FPS: {:.2f}", m_currentFPS);
+
+				frameCount = 0;
+				elapsed = 0.0;
+			}
+
+			onInternalUpdate();
 		}
+	}
 
-		dx3d::InputSystem::get()->update();
+	void dx3d::Game::onGUI()
+	{
+		ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always);
+		ImGui::SetNextWindowBgAlpha(0.0f);
 
-		// Compute delta time
-		LARGE_INTEGER now;
-		QueryPerformanceCounter(&now);
-		double realDelta = double(now.QuadPart - lastTime.QuadPart) / double(frequency.QuadPart);
-		lastTime = now;
+		ImGuiWindowFlags overlayFlags = ImGuiWindowFlags_NoDecoration |
+			ImGuiWindowFlags_AlwaysAutoResize |
+			ImGuiWindowFlags_NoSavedSettings |
+			ImGuiWindowFlags_NoFocusOnAppearing |
+			ImGuiWindowFlags_NoNav |
+			ImGuiWindowFlags_NoMove;
 
-		// Update Time singleton
-		dx3d::Time::Instance()->Update(realDelta);
-
-		// Count frames
-		frameCount++;
-		elapsed += realDelta;
-
-		// Every second, print FPS
-		if (elapsed >= 1.0)
+		if (ImGui::Begin("FPS_Overlay", nullptr, overlayFlags))
 		{
-			double fps = frameCount / elapsed;
-			DX3D_LOG_INFO("FPS: {:.2f}", fps);
-
-			frameCount = 0;
-			elapsed = 0.0;
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "FPS: %.0f", m_currentFPS);
+			// ImGui::Text("ImGui FPS: %.1f", ImGui::GetIO().Framerate);
 		}
-
-		onInternalUpdate();
+		ImGui::End();
 	}
 }

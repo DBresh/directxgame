@@ -10,6 +10,9 @@
 #include <DX3D/Graphics/Importers/AssetManager.h>
 #include <DX3D/Core/JobSystem.h>
 
+#include <imgui_impl_win32.h>
+#include <imgui_impl_dx11.h>
+#include <imgui.h>
 #include <unordered_map>
 #include <DirectXMath.h>
 #include <fstream>
@@ -34,6 +37,10 @@ namespace dx3d
 		m_graphicsDevice = std::make_shared<GraphicsDevice>(GraphicsDeviceDesc{});
 		auto& device = *m_graphicsDevice;
 		m_deviceContext = device.createDeviceContext();
+
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGui::StyleColorsDark();
 
 		const std::string shaderFileData = loadFileText("DX3D/Assets/Shaders/Basic.hlsl");
 		const char* shaderSourceCode = shaderFileData.c_str();
@@ -73,7 +80,19 @@ namespace dx3d
 		InputSystem::get()->addListener(m_camera.get());
 	}
 
-	GraphicsEngine::~GraphicsEngine() = default;
+	GraphicsEngine::~GraphicsEngine()
+	{
+		ImGui_ImplDX11_Shutdown();
+		ImGui_ImplWin32_Shutdown();
+		ImGui::DestroyContext();
+	}
+
+	void GraphicsEngine::initUI(void* hwnd)
+	{
+		ImGui_ImplWin32_Init(static_cast<HWND>(hwnd));
+		ImGui_ImplDX11_Init(m_graphicsDevice->getD3D11Device(),
+			m_deviceContext->getD3D11Context());
+	}
 
 	GraphicsDevice& GraphicsEngine::getGraphicsDevice() noexcept
 	{
@@ -146,19 +165,30 @@ namespace dx3d
 		);
 	}
 
-	void GraphicsEngine::render(SwapChain& swapChain)
+	void GraphicsEngine::render(SwapChain& swapChain, const std::function<void()>& onGUI)
 	{
+		ImGui_ImplDX11_NewFrame();
+		ImGui_ImplWin32_NewFrame();
+		ImGui::NewFrame();
+
+		if (onGUI) {
+			onGUI();
+		}
+
 		m_camera->update();
 		const XMFLOAT4X4& view = m_camera->getViewMatrix();
 		const XMFLOAT4X4& proj = m_camera->getProjectionMatrix();
 
 		m_renderSystem->setCameraMatrices(view, proj);
-
 		m_renderSystem->buildBatches(m_scene);
 		m_renderSystem->renderShadows(*m_testInstanceBuffer);
+
 		m_renderSystem->beginFrame(swapChain, { 0.2f, 0.2f, 0.2f, 1.0f });
 		executeSingleDraws(swapChain);
 		executeInstancedDraws(swapChain);
+
+		ImGui::Render();
+		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 		m_renderSystem->endFrame(*m_graphicsDevice, swapChain, false);
 	}

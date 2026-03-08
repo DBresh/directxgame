@@ -20,8 +20,7 @@ namespace dx3d
 
 		m_graphicsEngine = std::make_unique<GraphicsEngine>(GraphicsEngineDesc{});
 		m_display = std::make_unique<Display>(DisplayDesc{ WindowDesc{desc.windowSize}, m_graphicsEngine->getGraphicsDevice() });
-		//JobSystem::Initialize();
-
+		m_graphicsEngine->initUI(m_display->getHWND());
 		Time::Instance()->Update(0.0);
 		
 		DX3D_LOG_INFO("Game initialized.");
@@ -38,6 +37,8 @@ namespace dx3d
 		auto dt = Time::Instance()->deltaTime();        // for interpolation / animations
 		auto fdt = Time::Instance()->fixedDeltaTime();  // for physics steps
 
-		m_graphicsEngine->render(m_display->getSwapChain());
+		m_graphicsEngine->render(m_display->getSwapChain(), [&]() {
+			this->onGUI();
+			});
 	}
 }

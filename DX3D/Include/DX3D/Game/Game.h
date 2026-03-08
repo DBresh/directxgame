@@ -12,6 +12,9 @@ namespace dx3d
 		virtual ~Game() override;
 		virtual void run() final;
 
+	protected:
+		virtual void onGUI();
+
 	private:
 		void onInternalUpdate();
 
@@ -19,6 +22,9 @@ namespace dx3d
 		std::unique_ptr<GraphicsEngine> m_graphicsEngine{};
 		std::unique_ptr<Display> m_display{};
 		bool m_isRunning{ true };
+
+		// temp
+		double m_currentFPS{ 0.0 };
 	};
 }
 

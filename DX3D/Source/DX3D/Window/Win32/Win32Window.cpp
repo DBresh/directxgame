@@ -1,6 +1,7 @@
 #include <DX3D/Window/Window.h>
 #include <DX3D/InputSystem/InputSystem.h>
 #include <DX3D/Graphics/GraphicsLogUtils.h>
+#include <imgui.h>
 #include <Windows.h>
 #include <windowsx.h>
 #include <stdexcept>
@@ -8,8 +9,18 @@
 
 static LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
+	extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+	if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
+		return true;
+
 	auto input = dx3d::InputSystem::get();
 
+	ImGuiIO* io = nullptr;
+	if (ImGui::GetCurrentContext()) {
+		io = &ImGui::GetIO();
+	}
+	
 	switch (msg)
 	{
 	case WM_CLOSE:
@@ -25,7 +36,8 @@ static LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPAR
 		break;
 
 	case WM_KEYDOWN:
-		if (input->hasFocus())
+	case WM_SYSKEYDOWN:
+		if (input->hasFocus() && (io == nullptr || !io->WantCaptureKeyboard))
 			input->setKeyDown((int)wparam);
 		break;
 
@@ -40,16 +52,17 @@ static LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPAR
 		break;
 
 	case WM_LBUTTONDOWN:
-		if (input->hasFocus())
+		if (input->hasFocus() && (io == nullptr || !io->WantCaptureMouse))
 			input->setMouseDown(0);
 		break;
+
 	case WM_LBUTTONUP:
 		if (input->hasFocus())
 			input->setMouseUp(0);
 		break;
 
 	case WM_RBUTTONDOWN:
-		if (input->hasFocus())
+		if (input->hasFocus() && (io == nullptr || !io->WantCaptureMouse))
 			input->setMouseDown(1);
 		break;
 	case WM_RBUTTONUP:
@@ -58,7 +71,7 @@ static LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPAR
 		break;
 
 	case WM_MBUTTONDOWN:
-		if (input->hasFocus())
+		if (input->hasFocus() && (io == nullptr || !io->WantCaptureMouse))
 			input->setMouseDown(2);
 		break;
 	case WM_MBUTTONUP:
