@@ -10,6 +10,7 @@ namespace dx3d
 	public:
 		explicit Window(const WindowDesc& desc);
 		virtual ~Window() override;
+		void* getHWND() const noexcept { return m_handle; }
 
 	protected:
 		void* m_handle{};

@@ -12,6 +12,7 @@
 #include <DX3D/Graphics/Buffers/InstanceBuffer.h>
 #include <DX3D/Core/Common.h>
 
+#include <functional>
 #include <vector>
 #include <unordered_map>
 
@@ -24,7 +25,8 @@ namespace dx3d
         virtual ~GraphicsEngine() override;
 
         GraphicsDevice& getGraphicsDevice() noexcept;
-        void render(SwapChain& swapChain);
+        void render(SwapChain& swapChain, const std::function<void()>& onGUI);
+        void initUI(void* hwnd);
 
     private:
         SceneManager m_scene;

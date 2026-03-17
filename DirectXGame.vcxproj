@@ -73,7 +73,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>Bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>Intermediate\$(Platform)\$(Configuration)\</IntDir>
-    <IncludePath>DX3D/Include;DX3D/Source;$(IncludePath)</IncludePath>
+    <IncludePath>DX3D/Source/ThirdParty/ImGui/backends;DX3D/Source/ThirdParty/ImGui;DX3D/Include;DX3D/Source;$(IncludePath)</IncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -154,6 +154,12 @@
     <ClCompile Include="DX3D\Source\DX3D\Game\Game.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Game\Win32\Win32Game.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Game\GameObject.cpp" />
+    <ClCompile Include="DX3D\Source\ThirdParty\ImGui\backends\imgui_impl_dx11.cpp" />
+    <ClCompile Include="DX3D\Source\ThirdParty\ImGui\backends\imgui_impl_win32.cpp" />
+    <ClCompile Include="DX3D\Source\ThirdParty\ImGui\imgui.cpp" />
+    <ClCompile Include="DX3D\Source\ThirdParty\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="DX3D\Source\ThirdParty\ImGui\imgui_tables.cpp" />
+    <ClCompile Include="DX3D\Source\ThirdParty\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="Game\main.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Window\Win32\Win32Window.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Graphics\Rendering\GraphicsEngine.cpp" />
@@ -230,6 +236,14 @@
     <ClInclude Include="DX3D\Source\DX3D\Graphics\Importers\ModelCache.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\Rendering\LightManager.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\Buffers\StructuredBuffer.h" />
+    <ClInclude Include="DX3D\Source\ThirdParty\ImGui\backends\imgui_impl_dx11.h" />
+    <ClInclude Include="DX3D\Source\ThirdParty\ImGui\backends\imgui_impl_win32.h" />
+    <ClInclude Include="DX3D\Source\ThirdParty\ImGui\imconfig.h" />
+    <ClInclude Include="DX3D\Source\ThirdParty\ImGui\imgui.h" />
+    <ClInclude Include="DX3D\Source\ThirdParty\ImGui\imgui_internal.h" />
+    <ClInclude Include="DX3D\Source\ThirdParty\ImGui\imstb_rectpack.h" />
+    <ClInclude Include="DX3D\Source\ThirdParty\ImGui\imstb_textedit.h" />
+    <ClInclude Include="DX3D\Source\ThirdParty\ImGui\imstb_truetype.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
