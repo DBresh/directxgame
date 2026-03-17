@@ -9,6 +9,16 @@
 
 static LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
+	dx3d::Window* window = nullptr;
+	if (msg == WM_NCCREATE) {
+		CREATESTRUCT* pCreate = reinterpret_cast<CREATESTRUCT*>(lparam);
+		window = reinterpret_cast<dx3d::Window*>(pCreate->lpCreateParams);
+		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(window));
+	}
+	else {
+		window = reinterpret_cast<dx3d::Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+	}
+
 	extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 	if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
@@ -25,6 +35,23 @@ static LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPAR
 	{
 	case WM_CLOSE:
 		PostQuitMessage(0);
+		break;
+
+	case WM_SIZE:
+		if (window && wparam != SIZE_MINIMIZED)
+		{
+			int width = LOWORD(lparam);
+			int height = HIWORD(lparam);
+			window->onResize(width, height);
+		}
+		break;
+
+	case WM_ENTERSIZEMOVE:
+		if (window) window->onEnterSizeMove();
+		break;
+
+	case WM_EXITSIZEMOVE:
+		if (window) window->onExitSizeMove();
 		break;
 
 	case WM_SETFOCUS:
@@ -93,33 +120,34 @@ static LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPAR
 
 dx3d::Window::Window(const WindowDesc& desc) : Base(BaseDesc{}), m_size(desc.size)
 {
-
-	auto registerWindowClassFunction = []()
-		{
-			WNDCLASSEX wc{};
-			wc.cbSize = sizeof(WNDCLASSEX);
-			wc.lpszClassName = L"DX3DWindow";
-			wc.lpfnWndProc = &WindowProcedure;
-			return RegisterClassEx(&wc);
+	auto registerWindowClassFunction = []() {
+		WNDCLASSEX wc{};
+		wc.cbSize = sizeof(WNDCLASSEX);
+		wc.lpszClassName = L"DX3DWindow";
+		wc.lpfnWndProc = &WindowProcedure;
+		return RegisterClassEx(&wc);
 		};
 
 	static const auto windowClassId = std::invoke(registerWindowClassFunction);
-
-	if (!windowClassId)
-		DX3D_LOG_THROW_ERROR("RegisterClassEx failed.");
+	if (!windowClassId) DX3D_LOG_THROW_ERROR("RegisterClassEx failed.");
 
 	RECT rc{ 0,0, m_size.width, m_size.height };
-	AdjustWindowRect(&rc, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, false);
+
+	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, false);
 
 	m_handle = CreateWindowEx(NULL, MAKEINTATOM(windowClassId), L"DX3D Engine Tests",
-		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, CW_USEDEFAULT, CW_USEDEFAULT,
+		WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
 		rc.right - rc.left, rc.bottom - rc.top,
-		NULL, NULL, NULL, NULL);
+		NULL, NULL, NULL, this);
 
-	if (!m_handle)
-		DX3D_LOG_THROW_ERROR("CreateWindowEx failed.");
-
+	if (!m_handle) DX3D_LOG_THROW_ERROR("CreateWindowEx failed.");
 	ShowWindow(static_cast<HWND>(m_handle), SW_SHOW);
+}
+
+void dx3d::Window::onResize(int width, int height)
+{
+	m_size.width = width;
+	m_size.height = height;
 }
 
 dx3d::Window::~Window()

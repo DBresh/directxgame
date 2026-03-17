@@ -80,4 +80,33 @@ namespace dx3d
 		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(m_device.CreateDepthStencilView(depthStencilTexture.Get(), &dsvDesc, &m_dsv),
 			"CreateDepthStencilView failed.");
 	}
+
+	void SwapChain::resize(int width, int height)
+	{
+		if (m_size.width == width && m_size.height == height) return;
+		if (width <= 0 || height <= 0) return;
+
+		m_size.width = width;
+		m_size.height = height;
+
+		Microsoft::WRL::ComPtr<ID3D11Device> d3dDevice;
+		m_swapChain->GetDevice(__uuidof(ID3D11Device), (void**)&d3dDevice);
+
+		Microsoft::WRL::ComPtr<ID3D11DeviceContext> ctx;
+		d3dDevice->GetImmediateContext(&ctx);
+
+		ctx->ClearState();
+
+		m_rtv.Reset();
+		m_dsv.Reset();
+
+		ctx->Flush();
+
+		DX3D_GRAPHICS_LOG_THROW_ON_FAIL(
+			m_swapChain->ResizeBuffers(2, width, height, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING),
+			"ResizeBuffers failed."
+		);
+
+		reloadBuffers();
+	}
 }

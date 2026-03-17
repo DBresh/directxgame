@@ -12,6 +12,10 @@ namespace dx3d
 		virtual ~Window() override;
 		void* getHWND() const noexcept { return m_handle; }
 
+		virtual void onResize(int width, int height);
+		virtual void onEnterSizeMove() {}
+		virtual void onExitSizeMove() {}
+
 	protected:
 		void* m_handle{};
 		Rect m_size{};
