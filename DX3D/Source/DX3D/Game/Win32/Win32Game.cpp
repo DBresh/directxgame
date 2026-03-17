@@ -67,7 +67,7 @@ namespace dx3d
 
 	void dx3d::Game::onGUI()
 	{
-		ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always);
+		ImGui::SetNextWindowPos(ImVec2(20.0f, 20.0f), ImGuiCond_Always);
 		ImGui::SetNextWindowBgAlpha(0.0f);
 
 		ImGuiWindowFlags overlayFlags = ImGuiWindowFlags_NoDecoration |
@@ -79,8 +79,7 @@ namespace dx3d
 
 		if (ImGui::Begin("FPS_Overlay", nullptr, overlayFlags))
 		{
-			ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "FPS: %.0f", m_currentFPS);
-			// ImGui::Text("ImGui FPS: %.1f", ImGui::GetIO().Framerate);
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "ImGui FPS: %.1f", ImGui::GetIO().Framerate);
 		}
 		ImGui::End();
 	}

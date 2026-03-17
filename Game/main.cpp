@@ -1,9 +1,12 @@
 #include <DX3D/All.h>
+#include <Windows.h>
 
 int main()
 {
 	try
 	{
+		SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+
 		dx3d::Game game({ {1024, 640} });
 		game.run();
 	}

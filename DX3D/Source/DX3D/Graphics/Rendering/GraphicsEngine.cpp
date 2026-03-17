@@ -100,6 +100,22 @@ namespace dx3d
 		{
 			m_camera->setScreenSize((float)width, (float)height);
 		}
+
+		if (ImGui::GetCurrentContext())
+		{
+			float scaleFactor = (static_cast<float>(height) / 1080.0f) * 1.25f;
+
+			if (scaleFactor < 1.0f) {
+				scaleFactor = 1.0f;
+			}
+
+			ImGui::GetIO().FontGlobalScale = scaleFactor;
+
+			ImGuiStyle& style = ImGui::GetStyle();
+			style = ImGuiStyle();
+			ImGui::StyleColorsDark();
+			style.ScaleAllSizes(scaleFactor);
+		}
 	}
 
 	GraphicsDevice& GraphicsEngine::getGraphicsDevice() noexcept
