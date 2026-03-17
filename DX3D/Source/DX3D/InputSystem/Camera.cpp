@@ -17,6 +17,15 @@ namespace dx3d
         XMStoreFloat4x4(&m_proj, P);
     }
 
+    void Camera::setScreenSize(float width, float height)
+    {
+        if (height <= 0.0f) return;
+
+        float aspect = width / height;
+
+        setPerspective(degToRad(90.0f), aspect, 0.1f, 100.0f);
+    }
+
     void Camera::setPosition(float x, float y, float z)
     {
         m_position = XMFLOAT3(x, y, z);

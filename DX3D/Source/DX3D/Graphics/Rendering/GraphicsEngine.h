@@ -27,6 +27,7 @@ namespace dx3d
         GraphicsDevice& getGraphicsDevice() noexcept;
         void render(SwapChain& swapChain, const std::function<void()>& onGUI);
         void initUI(void* hwnd);
+        void onWindowResized(int width, int height);
 
     private:
         SceneManager m_scene;

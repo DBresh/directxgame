@@ -22,6 +22,7 @@ namespace dx3d
 
 		if (m_swapChain) {
 			m_swapChain->resize(width, height);
+			if (onWindowResized) onWindowResized(width, height);
 		}
 	}
 
@@ -38,6 +39,7 @@ namespace dx3d
 		{
 			if (m_swapChain) {
 				m_swapChain->resize((int)m_size.width, (int)m_size.height);
+				if (onWindowResized) onWindowResized((int)m_size.width, (int)m_size.height);
 			}
 			m_wasResized = false;
 		}

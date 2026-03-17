@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include <DX3D/Window/Window.h>
 
 namespace dx3d
@@ -14,6 +15,8 @@ namespace dx3d
 
 		virtual void onEnterSizeMove() override;
 		virtual void onExitSizeMove() override;
+
+		std::function<void(int, int)> onWindowResized;
 
 	private:
 

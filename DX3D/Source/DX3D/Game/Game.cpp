@@ -20,6 +20,10 @@ namespace dx3d
 
 		m_graphicsEngine = std::make_unique<GraphicsEngine>(GraphicsEngineDesc{});
 		m_display = std::make_unique<Display>(DisplayDesc{ WindowDesc{desc.windowSize}, m_graphicsEngine->getGraphicsDevice() });
+		m_display->onWindowResized = [this](int w, int h) {
+			m_graphicsEngine->onWindowResized(w, h);
+			};
+
 		m_graphicsEngine->initUI(m_display->getHWND());
 		Time::Instance()->Update(0.0);
 		

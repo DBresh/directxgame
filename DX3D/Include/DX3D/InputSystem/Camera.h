@@ -21,6 +21,7 @@ namespace dx3d
         void setPerspective(float fov, float aspect, float zNear, float zFar);
         void setPosition(float x, float y, float z);
         XMFLOAT3 getPosition() const noexcept { return m_position; }
+        void setScreenSize(float width, float height);
 
         void onKeyDown(int key) override;
         void onKeyUp(int key) override;

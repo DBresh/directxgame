@@ -94,6 +94,14 @@ namespace dx3d
 			m_deviceContext->getD3D11Context());
 	}
 
+	void GraphicsEngine::onWindowResized(int width, int height)
+	{
+		if (m_camera)
+		{
+			m_camera->setScreenSize((float)width, (float)height);
+		}
+	}
+
 	GraphicsDevice& GraphicsEngine::getGraphicsDevice() noexcept
 	{
 		return *m_graphicsDevice;
