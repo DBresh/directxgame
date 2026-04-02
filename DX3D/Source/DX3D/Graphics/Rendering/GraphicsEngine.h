@@ -16,6 +16,10 @@
 #include <vector>
 #include <unordered_map>
 
+// kepler testing
+#include <Game/Kepler/OrbitData.h>
+#include <Game/Kepler/KeplerPhysics.h>
+
 namespace dx3d
 {
     class GraphicsEngine final : public Base
@@ -35,6 +39,9 @@ namespace dx3d
         void executeSingleDraws(SwapChain& swapChain);
         void executeInstancedDraws(SwapChain& swapChain);
 
+        // kepler testing
+        void initSandboxSimulation();
+
     private:
         std::shared_ptr<GraphicsDevice> m_graphicsDevice{};
         DeviceContextPtr m_deviceContext{};
@@ -46,5 +53,12 @@ namespace dx3d
         std::vector<Microsoft::WRL::ComPtr<ID3D11CommandList>> m_commandLists;
         GraphicsPipelineStatePtr m_instancedPipeline{};
         std::shared_ptr<InstanceBuffer> m_testInstanceBuffer{};
+
+
+        // kepler testing
+        std::shared_ptr<GameObject> m_earth{};
+        std::shared_ptr<GameObject> m_moon{};
+        Simulator::OrbitData m_moonOrbit{};
+        float m_timeWarp = 1.0f;
     };
 }

@@ -8,7 +8,7 @@ namespace dx3d
     Camera::Camera()
     {
         updateViewMatrix();
-        setPerspective(degToRad(90.0f), 16.0f / 9.0f, 0.1f, 100.0f);
+        setPerspective(degToRad(90.0f), 16.0f / 9.0f, 0.1f, 10000.0f);
     }
 
     void Camera::setPerspective(float fov, float aspect, float zNear, float zFar)
@@ -23,7 +23,7 @@ namespace dx3d
 
         float aspect = width / height;
 
-        setPerspective(degToRad(90.0f), aspect, 0.1f, 100.0f);
+        setPerspective(degToRad(90.0f), aspect, 0.1f, 10000.0f);
     }
 
     void Camera::setPosition(float x, float y, float z)

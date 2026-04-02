@@ -114,6 +114,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -244,6 +245,10 @@
     <ClInclude Include="DX3D\Source\ThirdParty\ImGui\imstb_rectpack.h" />
     <ClInclude Include="DX3D\Source\ThirdParty\ImGui\imstb_textedit.h" />
     <ClInclude Include="DX3D\Source\ThirdParty\ImGui\imstb_truetype.h" />
+    <ClInclude Include="Game\Kepler\KeplerPhysics.h" />
+    <ClInclude Include="Game\Kepler\OrbitData.h" />
+    <ClInclude Include="Game\Kepler\TimeController.h" />
+    <ClInclude Include="Game\Utility\Vec3d.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

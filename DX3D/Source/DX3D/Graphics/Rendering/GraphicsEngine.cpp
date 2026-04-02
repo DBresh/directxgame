@@ -123,70 +123,46 @@ namespace dx3d
 		return *m_graphicsDevice;
 	}
 
+	void GraphicsEngine::initSandboxSimulation()
+	{
+		auto cubeModel = m_assets->getModel("cube.obj");
+
+		m_earth = m_scene.createObject("Earth");
+		m_earth->model = cubeModel;
+		m_earth->transform.setPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
+		m_earth->transform.setScale(XMFLOAT3(50.0f, 50.0f, 50.0f));
+		m_earth->constantBuffer = m_graphicsDevice->createConstantBuffer({ nullptr, sizeof(XMFLOAT4X4) * 3 });
+
+		m_moon = m_scene.createObject("Moon");
+		m_moon->model = cubeModel;
+		m_moon->transform.setScale(XMFLOAT3(10.0f, 10.0f, 10.0f));
+		m_moon->constantBuffer = m_graphicsDevice->createConstantBuffer({ nullptr, sizeof(XMFLOAT4X4) * 3 });
+
+		m_moonOrbit.AttractorMass = 100000.0;
+		m_moonOrbit.GravConst = 1.0;
+		m_moonOrbit.positionRelativeToAttractor = Simulator::Vec3d(100.0, 30.0, 0.0);
+		m_moonOrbit.velocityRelativeToAttractor = Simulator::Vec3d(0.0, 0.0, 31.62);
+
+		Simulator::Kepler::CalculateOrbitStateFromOrbitalVectors(m_moonOrbit);
+	}
+
 	void GraphicsEngine::createCubeMesh()
 	{
-		auto model = m_assets->getModel("cube.obj");
-
-		for (int i = 1; i <= 3; i++)
-		{
-			for (int j = 1; j <= 3; j++)
-			{
-				auto cube = m_scene.createObject("cube");
-				cube->model = model;
-
-				cube->transform.setPosition(XMFLOAT3(i * 1.5f, 0.0f, j * -2.0f));
-				cube->transform.setScale(XMFLOAT3(1.0f, 1.0f, 1.0f));
-
-				cube->constantBuffer =
-					m_graphicsDevice->createConstantBuffer({ nullptr, sizeof(XMFLOAT4X4) * 3 });
-			}
-		}
+		initSandboxSimulation();
 
 		auto planeModel = m_assets->getModel("plane.obj");
 
 		auto plane = m_scene.createObject("plane");
 		plane->model = planeModel;
-		plane->transform.setPosition(XMFLOAT3(0.0f, -2.0f, 0.0f));
-		plane->transform.setScale(XMFLOAT3(5.0f, 5.0f, 5.0f));
+		plane->transform.setPosition(XMFLOAT3(0.0f, -70.0f, 0.0f));
+		plane->transform.setScale(XMFLOAT3(50.0f, 10.0f, 50.0f));
 		plane->constantBuffer =
-			m_graphicsDevice->createConstantBuffer({ nullptr, sizeof(XMFLOAT4X4) * 3 });
-
-		auto plane1 = m_scene.createObject("plane");
-		plane1->model = planeModel;
-		plane1->transform.setPosition(XMFLOAT3(1.5f, 1.25f, 5.0f));
-		plane1->transform.setScale(XMFLOAT3(0.1f, 0.1f, 0.1f));
-		plane1->constantBuffer =
 			m_graphicsDevice->createConstantBuffer({ nullptr, sizeof(XMFLOAT4X4) * 3 });
 
 		auto lights = m_renderSystem->getLightManager();
 		lights->clear();
 
-		lights->addSpot(
-			XMFLOAT3(1.5f, 1.25f, 5.f),
-			XMFLOAT3(1.5f, -0.59f, -2.9f),
-			50.0f,
-			XMFLOAT3(1.f, 0.95f, 0.85f),
-			25.0f,
-			25.0f,
-			true
-		);
-
-		//lights->addDirectional(
-		//	XMFLOAT3(0.f, -1.f, 0.f),
-		//	XMFLOAT3(1.f, 0.f, 0.f),
-		//	10.5f,
-		//	true
-		//);
-
-		lights->addSpot(
-			XMFLOAT3(1.5f, 1.25f, -10.f),
-			XMFLOAT3(1.5f, -0.59f, 2.9f),
-			50.0f,
-			XMFLOAT3(1.f, 0.2f, 0.1f),
-			25.0f,
-			25.0f,
-			true
-		);
+		lights->addDirectional(XMFLOAT3(0.f, -1.f, 0.2f), XMFLOAT3(1.f, 1.f, 1.f), 10.f, true);
 	}
 
 	void GraphicsEngine::render(SwapChain& swapChain, const std::function<void()>& onGUI)
@@ -194,6 +170,20 @@ namespace dx3d
 		ImGui_ImplDX11_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
+
+		double dt = static_cast<double>(ImGui::GetIO().DeltaTime);
+		double scaledDt = dt * static_cast<double>(m_timeWarp);
+
+		Simulator::Kepler::UpdateOrbitAnomaliesByTime(m_moonOrbit, scaledDt);
+
+		DirectX::XMFLOAT3 newMoonPos = m_moonOrbit.positionRelativeToAttractor.toFloat3();
+		m_moon->transform.setPosition(newMoonPos);
+
+		ImGui::Begin("Simulator Test");
+		ImGui::SliderFloat("Time Warp", &m_timeWarp, 0.0f, 50.0f);
+		ImGui::Text("Moon Pos: X:%.1f Y:%.1f Z:%.1f", newMoonPos.x, newMoonPos.y, newMoonPos.z);
+		ImGui::Text("Eccentricity: %.4f", m_moonOrbit.Eccentricity);
+		ImGui::End();
 
 		if (onGUI) {
 			onGUI();
