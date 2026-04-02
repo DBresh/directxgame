@@ -57,6 +57,17 @@ namespace dx3d
 		m_instancedPipeline = device.createGraphicsPipelineState({ *vsSigInstanced, *ps });
 		m_testInstanceBuffer = device.createInstanceBuffer({ 10000, sizeof(XMFLOAT4X4) });
 
+		const std::string lineShaderFileData = loadFileText("DX3D/Assets/Shaders/Line.hlsl");
+		const char* lineShaderSourceCode = lineShaderFileData.c_str();
+		const size_t lineShaderSize = lineShaderFileData.size();
+
+		auto lineVs = device.compileShader({ "Line.hlsl", lineShaderSourceCode, lineShaderSize, "VSMain", ShaderType::VertexShader });
+		auto linePs = device.compileShader({ "Line.hlsl", lineShaderSourceCode, lineShaderSize, "PSMain", ShaderType::PixelShader });
+		auto lineVsSig = device.createVertexShaderSignature({ lineVs });
+		m_linePipeline = device.createGraphicsPipelineState({ *lineVsSig, *linePs });
+
+		m_moonOrbitVisualizer.init(device);
+
 		AssetManagerDesc aDesc{};
 		aDesc.graphicsDevice = m_graphicsDevice;
 		aDesc.assetsRoot = std::filesystem::path("DX3D/Assets/Models");
@@ -175,6 +186,7 @@ namespace dx3d
 		double scaledDt = dt * static_cast<double>(m_timeWarp);
 
 		Simulator::Kepler::UpdateOrbitAnomaliesByTime(m_moonOrbit, scaledDt);
+		m_moonOrbitVisualizer.update(*m_graphicsDevice, m_moonOrbit, Simulator::Vec3d(0.0, 0.0, 0.0));
 
 		DirectX::XMFLOAT3 newMoonPos = m_moonOrbit.positionRelativeToAttractor.toFloat3();
 		m_moon->transform.setPosition(newMoonPos);
@@ -198,6 +210,12 @@ namespace dx3d
 		m_renderSystem->renderShadows(*m_testInstanceBuffer);
 
 		m_renderSystem->beginFrame(swapChain, { 0.2f, 0.2f, 0.2f, 1.0f });
+
+		m_deviceContext->setGraphicsPipelineState(*m_linePipeline);
+		m_moonOrbitVisualizer.draw(*m_deviceContext, view, proj);
+		
+		m_deviceContext->setGraphicsPipelineState(*m_pipeline);
+
 		executeSingleDraws(swapChain);
 		executeInstancedDraws(swapChain);
 

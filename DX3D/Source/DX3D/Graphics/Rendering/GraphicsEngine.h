@@ -19,6 +19,7 @@
 // kepler testing
 #include <Game/Kepler/OrbitData.h>
 #include <Game/Kepler/KeplerPhysics.h>
+#include <Game/Kepler/OrbitVisualizer.h>
 
 namespace dx3d
 {
@@ -59,6 +60,8 @@ namespace dx3d
         std::shared_ptr<GameObject> m_earth{};
         std::shared_ptr<GameObject> m_moon{};
         Simulator::OrbitData m_moonOrbit{};
+        Simulator::OrbitVisualizer m_moonOrbitVisualizer;
         float m_timeWarp = 1.0f;
+        std::shared_ptr<dx3d::GraphicsPipelineState> m_linePipeline;
     };
 }

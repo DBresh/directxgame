@@ -44,5 +44,8 @@ namespace Simulator
         double OrbitCompressionRatio = 0.0;
         double OrbitNormalDotEclipticNormal = 0.0;
         double SphereOfInfluenceRadius = 0.0;
+
+        // Rendering state
+        bool isPathDirty = true; // if path dirty, then visualisator will update orbit points once
     };
 }

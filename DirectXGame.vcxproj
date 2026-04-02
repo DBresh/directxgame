@@ -247,6 +247,7 @@
     <ClInclude Include="DX3D\Source\ThirdParty\ImGui\imstb_truetype.h" />
     <ClInclude Include="Game\Kepler\KeplerPhysics.h" />
     <ClInclude Include="Game\Kepler\OrbitData.h" />
+    <ClInclude Include="Game\Kepler\OrbitVisualizer.h" />
     <ClInclude Include="Game\Kepler\TimeController.h" />
     <ClInclude Include="Game\Utility\Vec3d.h" />
   </ItemGroup>
