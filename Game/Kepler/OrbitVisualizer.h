@@ -23,14 +23,15 @@ namespace Simulator
             m_constantBuffer = device.createConstantBuffer({ nullptr, sizeof(DirectX::XMFLOAT4X4) * 3 });
         }
 
-        void update(dx3d::GraphicsDevice& device, OrbitData& orbitData, const Vec3d& attractorOrigin)
+        void update(dx3d::GraphicsDevice& device, OrbitData& orbitData)
         {
             if (!orbitData.isPathDirty) return;
 
             const int numPoints = 150;
             std::vector<Vec3d> rawPoints;
 
-            Kepler::GetOrbitPoints(orbitData, rawPoints, numPoints, attractorOrigin, 1500.0);
+            // ALWAYS generate the path at the local origin
+            Kepler::GetOrbitPoints(orbitData, rawPoints, numPoints, Simulator::Vec3d(0.0, 0.0, 0.0), 1500.0);
 
             m_vertexCount = static_cast<uint32_t>(rawPoints.size());
             if (m_vertexCount == 0) return;
@@ -43,6 +44,7 @@ namespace Simulator
                     static_cast<float>(rawPoints[i].y),
                     static_cast<float>(rawPoints[i].z)
                 );
+                // Cyan color for orbits
                 vertices[i].color = DirectX::XMFLOAT4(0.2f, 0.8f, 1.0f, 1.0f);
             }
 
@@ -51,11 +53,15 @@ namespace Simulator
             orbitData.isPathDirty = false;
         }
 
-        void draw(dx3d::DeviceContext& context, const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj)
+        void draw(dx3d::DeviceContext& context, const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj, const Simulator::Vec3d& parentWorldPos)
         {
             if (!m_vertexBuffer || m_vertexCount == 0 || !m_constantBuffer) return;
 
-            DirectX::XMMATRIX w = DirectX::XMMatrixIdentity();
+            DirectX::XMMATRIX w = DirectX::XMMatrixTranslation(
+                static_cast<float>(parentWorldPos.x),
+                static_cast<float>(parentWorldPos.y),
+                static_cast<float>(parentWorldPos.z)
+            );
             DirectX::XMMATRIX v = DirectX::XMLoadFloat4x4(&view);
             DirectX::XMMATRIX p = DirectX::XMLoadFloat4x4(&proj);
 
@@ -63,7 +69,7 @@ namespace Simulator
             DirectX::XMStoreFloat4x4(&matrices[0], DirectX::XMMatrixTranspose(w));
             DirectX::XMStoreFloat4x4(&matrices[1], DirectX::XMMatrixTranspose(v));
             DirectX::XMStoreFloat4x4(&matrices[2], DirectX::XMMatrixTranspose(p));
-            
+
             context.updateConstantBuffer(*m_constantBuffer, matrices, sizeof(DirectX::XMFLOAT4X4) * 3);
             context.setVSConstantBuffer(*m_constantBuffer, 0);
 

@@ -57,11 +57,22 @@ namespace dx3d
 
 
         // kepler testing
-        std::shared_ptr<GameObject> m_earth{};
-        std::shared_ptr<GameObject> m_moon{};
-        Simulator::OrbitData m_moonOrbit{};
-        Simulator::OrbitVisualizer m_moonOrbitVisualizer;
+
+        struct CelestialBody
+        {
+            std::string name;
+            std::shared_ptr<dx3d::GameObject> renderObject = nullptr;
+            Simulator::OrbitData orbit;
+            Simulator::OrbitVisualizer visualizer;
+
+            int parentIndex = -1; // -1 means it is the center of the universe (e.g., the Sun)
+            Simulator::Vec3d worldPosition;
+        };
+
+        std::vector<CelestialBody> m_celestialBodies;
         float m_timeWarp = 1.0f;
         std::shared_ptr<dx3d::GraphicsPipelineState> m_linePipeline;
+
+
     };
 }
