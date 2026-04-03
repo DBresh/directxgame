@@ -16,6 +16,11 @@
 #include <vector>
 #include <unordered_map>
 
+// kepler testing
+#include <Game/Kepler/OrbitData.h>
+#include <Game/Kepler/KeplerPhysics.h>
+#include <Game/Kepler/OrbitVisualizer.h>
+
 namespace dx3d
 {
     class GraphicsEngine final : public Base
@@ -29,11 +34,17 @@ namespace dx3d
         void initUI(void* hwnd);
         void onWindowResized(int width, int height);
 
+        // temp
+        std::shared_ptr<GameObject> pickObject(int mouseX, int mouseY, int screenW, int screenH);
+
     private:
         SceneManager m_scene;
         void createCubeMesh();
         void executeSingleDraws(SwapChain& swapChain);
         void executeInstancedDraws(SwapChain& swapChain);
+
+        // kepler testing
+        void initSandboxSimulation();
 
     private:
         std::shared_ptr<GraphicsDevice> m_graphicsDevice{};
@@ -46,5 +57,25 @@ namespace dx3d
         std::vector<Microsoft::WRL::ComPtr<ID3D11CommandList>> m_commandLists;
         GraphicsPipelineStatePtr m_instancedPipeline{};
         std::shared_ptr<InstanceBuffer> m_testInstanceBuffer{};
+
+
+        // kepler testing
+
+        struct CelestialBody
+        {
+            std::string name;
+            std::shared_ptr<dx3d::GameObject> renderObject = nullptr;
+            Simulator::OrbitData orbit;
+            Simulator::OrbitVisualizer visualizer;
+
+            int parentIndex = -1; // -1 means it is the center of the universe (e.g., the Sun)
+            Simulator::Vec3d worldPosition;
+        };
+
+        std::vector<CelestialBody> m_celestialBodies;
+        float m_timeWarp = 1.0f;
+        std::shared_ptr<dx3d::GraphicsPipelineState> m_linePipeline;
+
+
     };
 }

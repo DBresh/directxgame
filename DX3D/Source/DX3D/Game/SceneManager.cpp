@@ -52,4 +52,29 @@ namespace dx3d {
         }
     }
 
+    std::shared_ptr<GameObject> SceneManager::pickObject(const DirectX::XMVECTOR& rayOrigin, const DirectX::XMVECTOR& rayDir) const
+    {
+        std::shared_ptr<GameObject> pickedObj = nullptr;
+        float minDistance = FLT_MAX;
+
+        for (const auto& obj : m_objects)
+        {
+            if (!obj->model) continue;
+
+            AABB bounds = obj->getWorldAABB();
+            float tMin = 0.0f;
+
+            if (bounds.intersectRay(rayOrigin, rayDir, tMin))
+            {
+                if (tMin < minDistance)
+                {
+                    minDistance = tMin;
+                    pickedObj = obj;
+                }
+            }
+        }
+
+        return pickedObj;
+    }
+
 }

@@ -5,124 +5,154 @@ using namespace DirectX;
 
 namespace dx3d
 {
-    Camera::Camera()
-    {
-        updateViewMatrix();
-        setPerspective(degToRad(90.0f), 16.0f / 9.0f, 0.1f, 100.0f);
-    }
+	Camera::Camera()
+	{
+		updateViewMatrix();
+		setPerspective(degToRad(90.0f), 16.0f / 9.0f, 0.1f, 100000.0f);
+	}
 
-    void Camera::setPerspective(float fov, float aspect, float zNear, float zFar)
-    {
-        XMMATRIX P = XMMatrixPerspectiveFovLH(fov, aspect, zNear, zFar);
-        XMStoreFloat4x4(&m_proj, P);
-    }
+	void Camera::setPerspective(float fov, float aspect, float zNear, float zFar)
+	{
+		XMMATRIX P = XMMatrixPerspectiveFovLH(fov, aspect, zNear, zFar);
+		XMStoreFloat4x4(&m_proj, P);
+	}
 
-    void Camera::setScreenSize(float width, float height)
-    {
-        if (height <= 0.0f) return;
+	void Camera::setScreenSize(float width, float height)
+	{
+		if (height <= 0.0f) return;
 
-        float aspect = width / height;
+		float aspect = width / height;
 
-        setPerspective(degToRad(90.0f), aspect, 0.1f, 100.0f);
-    }
+		setPerspective(degToRad(90.0f), aspect, 0.1f, 100000.0f);
+	}
 
-    void Camera::setPosition(float x, float y, float z)
-    {
-        m_position = XMFLOAT3(x, y, z);
-        updateViewMatrix();
-    }
+	void Camera::setPosition(float x, float y, float z)
+	{
+		m_position = XMFLOAT3(x, y, z);
+		updateViewMatrix();
+	}
 
-    void Camera::updateViewMatrix()
-    {
-        float cosPitch = cosf(m_pitch);
-        float sinPitch = sinf(m_pitch);
-        float cosYaw = cosf(m_yaw);
-        float sinYaw = sinf(m_yaw);
+	void Camera::updateViewMatrix()
+	{
+		float cosPitch = cosf(m_pitch);
+		float sinPitch = sinf(m_pitch);
+		float cosYaw = cosf(m_yaw);
+		float sinYaw = sinf(m_yaw);
 
-        XMVECTOR forward = XMVectorSet(
-            cosPitch * sinYaw,
-            sinPitch,
-            -cosPitch * cosYaw,
-            0.0f
-        );
-        forward = XMVector3Normalize(forward);
-        XMStoreFloat3(&m_forward, forward);
+		XMVECTOR forward = XMVectorSet(
+			cosPitch * sinYaw,
+			sinPitch,
+			-cosPitch * cosYaw,
+			0.0f
+		);
+		forward = XMVector3Normalize(forward);
+		XMStoreFloat3(&m_forward, forward);
 
-        XMVECTOR eye = XMLoadFloat3(&m_position);
-        XMVECTOR up = XMVectorSet(0, 1, 0, 0);
+		XMVECTOR eye = XMLoadFloat3(&m_position);
+		XMVECTOR up = XMVectorSet(0, 1, 0, 0);
 
-        XMMATRIX V = XMMatrixLookAtLH(eye, eye + forward, up);
-        XMStoreFloat4x4(&m_view, V);
-    }
+		XMMATRIX V = XMMatrixLookAtLH(eye, eye + forward, up);
+		XMStoreFloat4x4(&m_view, V);
+	}
 
-    void Camera::update()
-    {
-        float dt = (float)Time::Instance()->deltaTime();
-        float move = m_speed * dt;
+	void Camera::update()
+	{
+		float dt = (float)Time::Instance()->deltaTime();
+		float move = m_speed * dt;
 
-        XMVECTOR forward = XMLoadFloat3(&m_forward);
-        XMVECTOR up = XMVectorSet(0, 1, 0, 0);
-        XMVECTOR right = XMVector3Normalize(XMVector3Cross(up, forward));
+		XMVECTOR forward = XMLoadFloat3(&m_forward);
+		XMVECTOR up = XMVectorSet(0, 1, 0, 0);
+		XMVECTOR right = XMVector3Normalize(XMVector3Cross(up, forward));
 
-        XMVECTOR pos = XMLoadFloat3(&m_position);
+		XMVECTOR pos = XMLoadFloat3(&m_position);
 
-        pos += forward * (m_moveForward * move);
-        pos += right * (m_moveRight * move);
-        pos += up * (m_moveUp * move);
+		pos += forward * (m_moveForward * move);
+		pos += right * (m_moveRight * move);
+		pos += up * (m_moveUp * move);
 
-        XMStoreFloat3(&m_position, pos);
+		XMStoreFloat3(&m_position, pos);
 
-        updateViewMatrix();
-    }
+		updateViewMatrix();
+	}
 
-    void Camera::onKeyDown(int key)
-    {
-        if (key == VK_SHIFT)
-            m_speed *= 5;
-    }
+	void Camera::screenPointToRay(int mouseX, int mouseY, int screenW, int screenH, XMVECTOR& outOrigin, XMVECTOR& outDir) const
+	{
+		if (screenW == 0 || screenH == 0) return;
 
-    void Camera::onKeyUp(int key)
-    {
-        if ((char)key == 'W' || (char)key == 'S') m_moveForward = 0;
-        if ((char)key == 'A' || (char)key == 'D') m_moveRight = 0;
-        if (key == VK_SPACE || key == VK_CONTROL) m_moveUp = 0;
+		float vx = (2.0f * mouseX / screenW - 1.0f);
+		float vy = (-2.0f * mouseY / screenH + 1.0f);
 
-        if (key == VK_SHIFT)
-            m_speed /= 5;
-    }
+		XMMATRIX P = XMLoadFloat4x4(&m_proj);
+		vx /= XMVectorGetX(P.r[0]);
+		vy /= XMVectorGetY(P.r[1]);
 
-    void Camera::onKeyPress(int key)
-    {
-        float dt = (float)Time::Instance()->deltaTime();
+		XMMATRIX V = XMLoadFloat4x4(&m_view);
+		XMMATRIX invV = XMMatrixInverse(nullptr, V);
 
-        if ((char)key == 'W') m_moveForward = 1;
-        if ((char)key == 'S') m_moveForward = -1;
+		outOrigin = invV.r[3];
 
-        if ((char)key == 'D') m_moveRight = 1;
-        if ((char)key == 'A') m_moveRight = -1;
+		XMVECTOR dir = XMVectorSet(
+			vx * XMVectorGetX(invV.r[0]) + vy * XMVectorGetX(invV.r[1]) + XMVectorGetX(invV.r[2]),
+			vx * XMVectorGetY(invV.r[0]) + vy * XMVectorGetY(invV.r[1]) + XMVectorGetY(invV.r[2]),
+			vx * XMVectorGetZ(invV.r[0]) + vy * XMVectorGetZ(invV.r[1]) + XMVectorGetZ(invV.r[2]),
+			0.0f
+		);
 
-        if (key == VK_SPACE)   m_moveUp = 1;
-        if (key == VK_CONTROL) m_moveUp = -1;
+		outDir = XMVector3Normalize(dir);
+	}
 
-        if ((char)key == 'I') m_pitch += m_sensitivity * 10 * dt;
-        if ((char)key == 'K') m_pitch -= m_sensitivity * 10 * dt;
-        if ((char)key == 'J') m_yaw += m_sensitivity * 10 * dt;
-        if ((char)key == 'L') m_yaw -= m_sensitivity * 10 * dt;
-    }
+	void Camera::onKeyDown(int key)
+	{
+		if (key == VK_SHIFT)
+			m_speed *= 5;
+	}
 
-    void Camera::onMouseMove(Point deltaMouse)
-    {
-        m_yaw -= deltaMouse.x * m_sensitivity * 0.01f;
-        m_pitch -= deltaMouse.y * m_sensitivity * 0.01f;
+	void Camera::onKeyUp(int key)
+	{
+		if ((char)key == 'W' || (char)key == 'S') m_moveForward = 0;
+		if ((char)key == 'A' || (char)key == 'D') m_moveRight = 0;
+		if (key == VK_SPACE || key == VK_CONTROL) m_moveUp = 0;
 
-        const float limit = 1.55f;
-        if (m_pitch > limit) m_pitch = limit;
-        if (m_pitch < -limit) m_pitch = -limit;
+		if (key == VK_SHIFT)
+			m_speed /= 5;
+	}
 
-        updateViewMatrix();
-    }
+	void Camera::onKeyPress(int key)
+	{
+		float dt = (float)Time::Instance()->deltaTime();
 
-    void Camera::onMouseDown(int) {}
-    void Camera::onMouseUp(int) {}
-    void Camera::onMouseWheel(int) {}
+		if ((char)key == 'W') m_moveForward = 1;
+		if ((char)key == 'S') m_moveForward = -1;
+
+		if ((char)key == 'D') m_moveRight = 1;
+		if ((char)key == 'A') m_moveRight = -1;
+
+		if (key == VK_SPACE)   m_moveUp = 1;
+		if (key == VK_CONTROL) m_moveUp = -1;
+
+		if ((char)key == 'I') m_pitch += m_sensitivity * 10 * dt;
+		if ((char)key == 'K') m_pitch -= m_sensitivity * 10 * dt;
+		if ((char)key == 'J') m_yaw += m_sensitivity * 10 * dt;
+		if ((char)key == 'L') m_yaw -= m_sensitivity * 10 * dt;
+	}
+
+	void Camera::onMouseMove(Point deltaMouse)
+	{
+		MouseState ms = InputSystem::get()->getMouseState();
+
+		if (ms.rightButton) {
+			m_yaw -= deltaMouse.x * m_sensitivity * 0.01f;
+			m_pitch -= deltaMouse.y * m_sensitivity * 0.01f;
+		}
+
+		const float limit = 1.55f;
+		if (m_pitch > limit) m_pitch = limit;
+		if (m_pitch < -limit) m_pitch = -limit;
+
+		updateViewMatrix();
+	}
+
+	void Camera::onMouseDown(int) {}
+	void Camera::onMouseUp(int) {}
+	void Camera::onMouseWheel(int) {}
 }

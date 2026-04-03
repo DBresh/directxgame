@@ -50,6 +50,13 @@ namespace dx3d {
             return parent.lock();
         }
 
+        AABB getWorldAABB() const {
+            if (model) {
+                return model->boundingBox.transform(transform.getWorldMatrix());
+            }
+            return AABB{};
+        }
+
     private:
 
     };

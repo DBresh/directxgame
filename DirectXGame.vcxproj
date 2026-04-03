@@ -77,7 +77,7 @@
     <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>DX3D/Source;DX3D/Include;$(IncludePath)</IncludePath>
+    <IncludePath>DX3D/Source/ThirdParty/ImGui/backends;DX3D/Source/ThirdParty/ImGui;DX3D/Source;DX3D/Include;$(IncludePath)</IncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -114,6 +114,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -134,6 +135,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -184,6 +186,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DX3D\Include\DX3D\Core\JobSystem.h" />
+    <ClInclude Include="DX3D\Include\DX3D\Math\Frustrum.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\Utils.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\Resources\DepthTexture2D.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\Importers\AssetManager.h" />
@@ -244,6 +247,11 @@
     <ClInclude Include="DX3D\Source\ThirdParty\ImGui\imstb_rectpack.h" />
     <ClInclude Include="DX3D\Source\ThirdParty\ImGui\imstb_textedit.h" />
     <ClInclude Include="DX3D\Source\ThirdParty\ImGui\imstb_truetype.h" />
+    <ClInclude Include="Game\Kepler\KeplerPhysics.h" />
+    <ClInclude Include="Game\Kepler\OrbitData.h" />
+    <ClInclude Include="Game\Kepler\OrbitVisualizer.h" />
+    <ClInclude Include="Game\Kepler\TimeController.h" />
+    <ClInclude Include="Game\Utility\Vec3d.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
