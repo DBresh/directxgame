@@ -295,7 +295,7 @@ namespace dx3d
 		}
 
 		ImGui::Begin("Simulator Test");
-		ImGui::SliderFloat("Time Warp", &m_timeWarp, 0.0f, 5000.0f);
+		ImGui::SliderFloat("Time Warp", &m_timeWarp, 0.0f, 20000.0f);
 		ImGui::SliderFloat("Player Speed", &m_camera->m_speed, 2.0f, 500.0f);
 		ImGui::End();
 

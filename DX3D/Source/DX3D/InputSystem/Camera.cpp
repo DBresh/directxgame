@@ -48,6 +48,13 @@ namespace dx3d
 		forward = XMVector3Normalize(forward);
 		XMStoreFloat3(&m_forward, forward);
 
+		if (m_isOrbiting)
+		{
+			XMVECTOR tar = XMLoadFloat3(&m_orbitTarget);
+			XMVECTOR pos = XMVectorSubtract(tar, XMVectorScale(forward, m_orbitDistance));
+			XMStoreFloat3(&m_position, pos);
+		}
+
 		XMVECTOR eye = XMLoadFloat3(&m_position);
 		XMVECTOR up = XMVectorSet(0, 1, 0, 0);
 
@@ -57,6 +64,8 @@ namespace dx3d
 
 	void Camera::update()
 	{
+		if (m_isOrbiting) return;
+
 		float dt = (float)Time::Instance()->deltaTime();
 		float move = m_speed * dt;
 
@@ -154,5 +163,35 @@ namespace dx3d
 
 	void Camera::onMouseDown(int) {}
 	void Camera::onMouseUp(int) {}
-	void Camera::onMouseWheel(int) {}
+	
+
+	void Camera::onMouseWheel(int delta)
+	{
+		if (m_isOrbiting)
+		{
+			m_orbitDistance -= delta * m_speed * 0.01f;
+			if (m_orbitDistance < 1.0f) m_orbitDistance = 1.0f;
+			updateViewMatrix();
+		}
+	}
+
+	void Camera::setOrbitMode(bool enabled)
+	{
+		m_isOrbiting = enabled;
+		if (enabled)
+		{
+			XMVECTOR pos = XMLoadFloat3(&m_position);
+			XMVECTOR tar = XMLoadFloat3(&m_orbitTarget);
+			m_orbitDistance = XMVectorGetX(XMVector3Length(XMVectorSubtract(pos, tar)));
+
+			if (m_orbitDistance < 2.0f) m_orbitDistance = 10.0f;
+		}
+		updateViewMatrix();
+	}
+
+	void Camera::setOrbitTarget(const XMFLOAT3& target)
+	{
+		m_orbitTarget = target;
+		if (m_isOrbiting) updateViewMatrix();
+	}
 }

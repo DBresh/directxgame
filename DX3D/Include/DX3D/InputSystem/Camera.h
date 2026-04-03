@@ -32,6 +32,10 @@ namespace dx3d
 		void onMouseUp(int button) override;
 		void onMouseWheel(int delta) override;
 
+		void setOrbitTarget(const DirectX::XMFLOAT3& target);
+		void setOrbitMode(bool enabled);
+		bool isOrbiting() const noexcept { return m_isOrbiting; }
+
 		void screenPointToRay(int mouseX, int mouseY, int screenW, int screenH, DirectX::XMVECTOR& outOrigin, DirectX::XMVECTOR& outDir) const;
 
 		static constexpr float degToRad(float deg) { return deg * 3.1415926535f / 180.0f; }
@@ -56,5 +60,9 @@ namespace dx3d
 		int m_moveForward{ 0 };
 		int m_moveRight{ 0 };
 		int m_moveUp{ 0 };
+
+		bool m_isOrbiting{ false };
+		DirectX::XMFLOAT3 m_orbitTarget{ 0.0f, 0.0f, 0.0f };
+		float m_orbitDistance{ 15.0f };
 	};
 }

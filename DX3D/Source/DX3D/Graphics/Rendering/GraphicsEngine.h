@@ -33,6 +33,7 @@ namespace dx3d
         void render(SwapChain& swapChain, const std::function<void()>& onGUI);
         void initUI(void* hwnd);
         void onWindowResized(int width, int height);
+        Camera& getCamera() { return *m_camera; }
 
         // temp
         std::shared_ptr<GameObject> pickObject(int mouseX, int mouseY, int screenW, int screenH);

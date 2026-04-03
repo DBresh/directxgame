@@ -65,6 +65,25 @@ namespace dx3d
 		}
 	}
 
+	void Game::onKeyDown(int key)
+	{
+		if (key == 'F')
+		{
+			auto& camera = m_graphicsEngine->getCamera();
+
+			if (m_selectedObject)
+			{
+				bool currentState = camera.isOrbiting();
+				camera.setOrbitTarget(m_selectedObject->transform.getPosition());
+				camera.setOrbitMode(!currentState);
+			}
+			else
+			{
+				camera.setOrbitMode(false);
+			}
+		}
+	}
+
 	void Game::onInternalUpdate()
 	{
 		auto dt = Time::Instance()->deltaTime();        // for interpolation / animations

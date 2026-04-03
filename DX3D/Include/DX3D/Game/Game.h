@@ -15,7 +15,7 @@ namespace dx3d
 		virtual void run() final;
 
 		virtual void onMouseDown(int button) override;
-		virtual void onKeyDown(int) override {}
+		virtual void onKeyDown(int key) override;
 		virtual void onKeyUp(int) override {}
 		virtual void onKeyPress(int) override {}
 		virtual void onMouseMove(Point) override {}
