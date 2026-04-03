@@ -77,7 +77,7 @@
     <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>DX3D/Source;DX3D/Include;$(IncludePath)</IncludePath>
+    <IncludePath>DX3D/Source/ThirdParty/ImGui/backends;DX3D/Source/ThirdParty/ImGui;DX3D/Source;DX3D/Include;$(IncludePath)</IncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -135,6 +135,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -185,6 +186,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DX3D\Include\DX3D\Core\JobSystem.h" />
+    <ClInclude Include="DX3D\Include\DX3D\Math\Frustrum.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\Utils.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\Resources\DepthTexture2D.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\Importers\AssetManager.h" />

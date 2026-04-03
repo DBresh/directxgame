@@ -249,6 +249,13 @@ namespace dx3d
 		lights->addDirectional(XMFLOAT3(0.f, -1.f, 0.2f), XMFLOAT3(1.f, 1.f, 1.f), 10.f, true);
 	}
 
+	std::shared_ptr<GameObject> GraphicsEngine::pickObject(int mouseX, int mouseY, int screenW, int screenH)
+	{
+		DirectX::XMVECTOR origin, dir;
+		m_camera->screenPointToRay(mouseX, mouseY, screenW, screenH, origin, dir);
+		return m_scene.pickObject(origin, dir);
+	}
+
 	void GraphicsEngine::render(SwapChain& swapChain, const std::function<void()>& onGUI)
 	{
 		ImGui_ImplDX11_NewFrame();
@@ -301,7 +308,7 @@ namespace dx3d
 		const XMFLOAT4X4& proj = m_camera->getProjectionMatrix();
 
 		m_renderSystem->setCameraMatrices(view, proj);
-		m_renderSystem->buildBatches(m_scene);
+		m_renderSystem->buildBatches(m_scene, *m_camera);
 		m_renderSystem->renderShadows(*m_testInstanceBuffer);
 
 		m_renderSystem->beginFrame(swapChain, { 0.2f, 0.2f, 0.2f, 1.0f });

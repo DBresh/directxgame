@@ -34,6 +34,9 @@ namespace dx3d
         void initUI(void* hwnd);
         void onWindowResized(int width, int height);
 
+        // temp
+        std::shared_ptr<GameObject> pickObject(int mouseX, int mouseY, int screenW, int screenH);
+
     private:
         SceneManager m_scene;
         void createCubeMesh();

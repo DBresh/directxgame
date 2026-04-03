@@ -15,6 +15,7 @@
 #include <DX3D/Graphics/Resources/ModelData.h>
 #include <DX3D/Graphics/Rendering/LightManager.h>
 #include <DX3D/Graphics/Buffers/StructuredBuffer.h>
+#include <DX3D/InputSystem/Camera.h>
 #include <DX3D/Game/SceneManager.h>
 
 namespace dx3d
@@ -62,7 +63,7 @@ namespace dx3d
 
 		void renderShadows(InstanceBuffer& instanceBuffer);
 
-		void buildBatches(SceneManager& scene);
+		void buildBatches(SceneManager& scene, const Camera& camera);
 		const std::vector<GameObject*>& getSingleDrawObjects() const noexcept { return m_singleDrawObjects; }
 
 	private:

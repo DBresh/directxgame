@@ -3,6 +3,7 @@
 #include <DX3D/Graphics/Resources/Texture2D.h>
 #include <DX3D/Graphics/Buffers/StructuredBuffer.h>
 #include <DX3D/Graphics/Buffers/InstanceBuffer.h>
+#include <DX3D/Math/Frustrum.h>
 
 #include <DirectXMath.h>
 #include <cstring>
@@ -410,10 +411,13 @@ namespace dx3d
         swapChain.present(vsync);
     }
 
-    void RenderSystem::buildBatches(SceneManager& scene)
+    void RenderSystem::buildBatches(SceneManager& scene, const Camera& camera)
     {
         m_singleDrawObjects.clear();
         m_instancedBatches.clear();
+
+        Frustum frustum;
+        frustum.constructFromViewProj(camera.getViewMatrix(), camera.getProjectionMatrix());
 
         auto& allObjects = scene.getAllObjects();
         std::unordered_map<ModelGPU*, std::vector<GameObject*>> modelGroups;
@@ -421,7 +425,10 @@ namespace dx3d
         for (auto& objPtr : allObjects)
         {
             if (objPtr->model) {
-                modelGroups[objPtr->model.get()].push_back(objPtr.get());
+                AABB worldBounds = objPtr->getWorldAABB();
+                if (frustum.checkAABB(worldBounds)) {
+                    modelGroups[objPtr->model.get()].push_back(objPtr.get());
+                }
             }
         }
 

@@ -3,6 +3,7 @@
 #include <DirectXMath.h>
 #include <DX3D/Core/Time.h>
 #include <DX3D/InputSystem/InputListener.h>
+#include <DX3D/InputSystem/InputSystem.h>
 
 namespace dx3d
 {
@@ -30,6 +31,8 @@ namespace dx3d
 		void onMouseDown(int button) override;
 		void onMouseUp(int button) override;
 		void onMouseWheel(int delta) override;
+
+		void screenPointToRay(int mouseX, int mouseY, int screenW, int screenH, DirectX::XMVECTOR& outOrigin, DirectX::XMVECTOR& outDir) const;
 
 		static constexpr float degToRad(float deg) { return deg * 3.1415926535f / 180.0f; }
 

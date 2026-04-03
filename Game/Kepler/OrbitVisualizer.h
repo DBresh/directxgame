@@ -30,7 +30,6 @@ namespace Simulator
             const int numPoints = 150;
             std::vector<Vec3d> rawPoints;
 
-            // ALWAYS generate the path at the local origin
             Kepler::GetOrbitPoints(orbitData, rawPoints, numPoints, Simulator::Vec3d(0.0, 0.0, 0.0), 1500.0);
 
             m_vertexCount = static_cast<uint32_t>(rawPoints.size());
