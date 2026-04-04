@@ -67,24 +67,6 @@ namespace dx3d
         m_psSampler = sampler;
     }
 
-    static void LogMatrix(const char* name, CXMMATRIX M)
-    {
-        XMFLOAT4X4 m;
-        XMStoreFloat4x4(&m, M);
-        DX3D_LOG_INFO(
-            "Matrix Log: {} [as Row-Major]\n"
-            "  [{: 8.2f}, {: 8.2f}, {: 8.2f}, {: 8.2f}]\n"
-            "  [{: 8.2f}, {: 8.2f}, {: 8.2f}, {: 8.2f}]\n"
-            "  [{: 8.2f}, {: 8.2f}, {: 8.2f}, {: 8.2f}]\n"
-            "  [{: 8.2f}, {: 8.2f}, {: 8.2f}, {: 8.2f}]",
-            name,
-            m._11, m._12, m._13, m._14,
-            m._21, m._22, m._23, m._24,
-            m._31, m._32, m._33, m._34,
-            m._41, m._42, m._43, m._44
-        );
-    }
-
     void RenderSystem::setFrameResources(DeviceContext& context)
     {
         // 1. Bind Camera (Slot 1)
@@ -179,7 +161,7 @@ namespace dx3d
         m_context->setPSConstantBuffer(*m_cameraBuffer, 1);
     }
 
-    void RenderSystem::renderShadows(InstanceBuffer& instanceBuffer)
+    void RenderSystem::renderShadows(SceneManager& scene, InstanceBuffer& instanceBuffer)
     {
         m_context->m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         m_context->m_context->RSSetState(m_shadowRasterizer.Get());
@@ -194,13 +176,12 @@ namespace dx3d
         }
         m_context->m_context->PSSetShaderResources(2, 1, &nullSRV);
 
-        const auto& lights = m_lightManager->getLights();
-
         Rect vp;
         vp.width = (float)m_lightManager->getShadowMapSize();
         vp.height = (float)m_lightManager->getShadowMapSize();
         m_context->setViewportSize(vp);
 
+        const auto& lights = m_lightManager->getLights();
         int shadowIndex = 0;
 
         for (int i = 0; i < lights.size(); ++i)
@@ -208,26 +189,55 @@ namespace dx3d
             const auto& light = lights[i];
             if (!light.castShadows || !light.shadow) continue;
 
-            ID3D11DepthStencilView* dsv = m_lightManager->getShadowDSV(shadowIndex);
-            if (!dsv) break;
+            renderSingleLightShadows(light, shadowIndex, scene, instanceBuffer);
+            shadowIndex++;
+        }
 
-            m_context->setDepthTargetArraySlice(dsv);
-            m_context->clearDepth(*dsv);
+        if (m_pipeline) m_context->setGraphicsPipelineState(*m_pipeline);
+        else m_context->m_context->RSSetState(nullptr);
 
-            XMMATRIX V = XMLoadFloat4x4(&light.shadow->view);
-            XMMATRIX P = XMLoadFloat4x4(&light.shadow->proj);
-            XMMATRIX VP = V * P;
+        m_context->setDepthTarget(nullptr);
+        m_context->setPSConstantBuffer(*m_lightMatrixBuffer, 2);
+        m_context->setVSConstantBuffer(*m_lightMatrixBuffer, 2);
+    }
 
-            if (m_pipeline) m_context->setGraphicsPipelineState(*m_pipeline);
-            m_context->setVertexShader(m_depthVS.Get());
-            m_context->setPixelShader(nullptr);
+    void RenderSystem::renderSingleLightShadows(const Light& light, int shadowIndex, SceneManager& scene, InstanceBuffer& instanceBuffer)
+    {
+        ID3D11DepthStencilView* dsv = m_lightManager->getShadowDSV(shadowIndex);
+        if (!dsv) return;
 
-            for (auto* obj : m_singleDrawObjects)
+        m_context->setDepthTargetArraySlice(dsv);
+        m_context->clearDepth(*dsv);
+
+        XMMATRIX V = XMLoadFloat4x4(&light.shadow->view);
+        XMMATRIX P = XMLoadFloat4x4(&light.shadow->proj);
+        XMMATRIX VP = V * P;
+
+        Frustum lightFrustum{};
+        lightFrustum.constructFromViewProj(light.shadow->view, light.shadow->proj);
+
+        std::unordered_map<ModelGPU*, std::vector<DirectX::XMFLOAT4X4>> lightBatchesMap;
+
+        for (auto& objPtr : scene.getAllObjects())
+        {
+            const auto& model = objPtr->model;
+            if (!model || !model->mesh) continue;
+
+            if (lightFrustum.checkAABB(objPtr->getWorldAABB()))
             {
-                const auto& model = obj->model;
-                if (!model || !model->mesh) continue;
+                lightBatchesMap[model.get()].push_back(objPtr->transform.getWorldMatrix());
+            }
+        }
 
-                XMMATRIX W = XMLoadFloat4x4(&obj->transform.getWorldMatrix());
+        for (const auto& [model, matrices] : lightBatchesMap)
+        {
+            if (matrices.size() == 1)
+            {
+                if (m_pipeline) m_context->setGraphicsPipelineState(*m_pipeline);
+                m_context->setVertexShader(m_depthVS.Get());
+                m_context->setPixelShader(nullptr);
+
+                XMMATRIX W = XMLoadFloat4x4(&matrices[0]);
                 XMFLOAT4X4 cb;
                 XMStoreFloat4x4(&cb, XMMatrixTranspose(W * VP));
 
@@ -238,58 +248,46 @@ namespace dx3d
                 m_context->setIndexBuffer(model->mesh->getIndexBuffer());
                 m_context->drawIndexedTriangleList(model->mesh->getIndexBuffer().getIndexCount(), 0, 0);
             }
-
-            if (m_instancedPipeline) m_context->setGraphicsPipelineState(*m_instancedPipeline);
-
-            m_context->setVertexShader(m_instancedDepthVS.Get());
-            m_context->setPixelShader(nullptr);
-
-            XMFLOAT4X4 vpFloat4x4;
-            XMStoreFloat4x4(&vpFloat4x4, XMMatrixTranspose(VP));
-            m_context->updateConstantBuffer(*m_depthCB, &vpFloat4x4, sizeof(vpFloat4x4));
-            m_context->setVSConstantBuffer(*m_depthCB, 0);
-
-            for (const auto& batch : m_instancedBatches)
+            else
             {
-                if (!batch.model) continue;
+                if (m_instancedPipeline) m_context->setGraphicsPipelineState(*m_instancedPipeline);
+                m_context->setVertexShader(m_instancedDepthVS.Get());
+                m_context->setPixelShader(nullptr);
 
-                instanceBuffer.resize((unsigned int)batch.matrices.size());
+                XMFLOAT4X4 vpFloat4x4;
+                XMStoreFloat4x4(&vpFloat4x4, XMMatrixTranspose(VP));
+                m_context->updateConstantBuffer(*m_depthCB, &vpFloat4x4, sizeof(vpFloat4x4));
+                m_context->setVSConstantBuffer(*m_depthCB, 0);
+
+                instanceBuffer.resize((unsigned int)matrices.size());
                 auto mapped = m_context->mapBuffer(instanceBuffer.getBuffer());
-                memcpy(mapped.pData, batch.matrices.data(), batch.matrices.size() * sizeof(XMFLOAT4X4));
+                memcpy(mapped.pData, matrices.data(), matrices.size() * sizeof(XMFLOAT4X4));
                 m_context->unmapBuffer(instanceBuffer.getBuffer());
 
                 m_context->setInstanceBuffer(instanceBuffer, 1);
 
-                if (!batch.model->submeshes.empty()) {
-                    for (const auto& sm : batch.model->submeshes) {
+                if (!model->submeshes.empty()) {
+                    for (const auto& sm : model->submeshes) {
                         if (!sm.mesh) continue;
                         m_context->setVertexBuffer(sm.mesh->getVertexBuffer());
                         m_context->setIndexBuffer(sm.mesh->getIndexBuffer());
-                        m_context->drawIndexedInstanced(sm.mesh->getIndexBuffer().getIndexCount(), (unsigned int)batch.matrices.size(), 0, 0, 0);
+                        m_context->drawIndexedInstanced(sm.mesh->getIndexBuffer().getIndexCount(), (unsigned int)matrices.size(), 0, 0, 0);
                     }
                 }
-                else if (batch.model->mesh) {
-                    m_context->setVertexBuffer(batch.model->mesh->getVertexBuffer());
-                    m_context->setIndexBuffer(batch.model->mesh->getIndexBuffer());
-                    for (const auto& group : batch.model->materialGroups) {
-                        m_context->drawIndexedInstanced(group.indexCount, (unsigned int)batch.matrices.size(), group.startIndex, 0, 0);
+                else if (model->mesh) {
+                    m_context->setVertexBuffer(model->mesh->getVertexBuffer());
+                    m_context->setIndexBuffer(model->mesh->getIndexBuffer());
+                    for (const auto& group : model->materialGroups) {
+                        m_context->drawIndexedInstanced(group.indexCount, (unsigned int)matrices.size(), group.startIndex, 0, 0);
                     }
                 }
             }
-
-            unsigned int stride = 0;
-            unsigned int offset = 0;
-            m_context->m_context->IASetVertexBuffers(1, 1, &nullBuf, &stride, &offset);
-
-            shadowIndex++;
         }
 
-        if (m_pipeline) m_context->setGraphicsPipelineState(*m_pipeline);
-        else m_context->m_context->RSSetState(nullptr);
-
-        m_context->setDepthTarget(nullptr);
-        m_context->setPSConstantBuffer(*m_lightMatrixBuffer, 2);
-        m_context->setVSConstantBuffer(*m_lightMatrixBuffer, 2);
+        ID3D11Buffer* nullBuf = nullptr;
+        unsigned int stride = 0;
+        unsigned int offset = 0;
+        m_context->m_context->IASetVertexBuffers(1, 1, &nullBuf, &stride, &offset);
     }
 
     void RenderSystem::drawModel(
@@ -562,5 +560,23 @@ namespace dx3d
         unsigned int stride = 0;
         unsigned int offset = 0;
         context.getD3D11Context()->IASetVertexBuffers(1, 1, &nullBuf, &stride, &offset);
+    }
+
+    static void LogMatrix(const char* name, CXMMATRIX M)
+    {
+        XMFLOAT4X4 m;
+        XMStoreFloat4x4(&m, M);
+        DX3D_LOG_INFO(
+            "Matrix Log: {} [as Row-Major]\n"
+            "  [{: 8.2f}, {: 8.2f}, {: 8.2f}, {: 8.2f}]\n"
+            "  [{: 8.2f}, {: 8.2f}, {: 8.2f}, {: 8.2f}]\n"
+            "  [{: 8.2f}, {: 8.2f}, {: 8.2f}, {: 8.2f}]\n"
+            "  [{: 8.2f}, {: 8.2f}, {: 8.2f}, {: 8.2f}]",
+            name,
+            m._11, m._12, m._13, m._14,
+            m._21, m._22, m._23, m._24,
+            m._31, m._32, m._33, m._34,
+            m._41, m._42, m._43, m._44
+        );
     }
 }

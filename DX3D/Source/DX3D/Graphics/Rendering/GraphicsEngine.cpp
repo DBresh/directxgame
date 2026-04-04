@@ -82,7 +82,7 @@ namespace dx3d
 
 		m_renderSystem->setCameraMatrices(view, proj);
 		m_renderSystem->buildBatches(scene, camera);
-		m_renderSystem->renderShadows(*m_instanceBuffer);
+		m_renderSystem->renderShadows(scene, *m_instanceBuffer);
 
 		m_renderSystem->beginFrame(swapChain, { 0.2f, 0.2f, 0.2f, 1.0f });
 
