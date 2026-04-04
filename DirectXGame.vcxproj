@@ -145,6 +145,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DX3D\Source\DX3D\Core\JobSystem.cpp" />
+    <ClCompile Include="Game\Kepler\KeplerSandbox.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Graphics\Resources\DepthTexture2D.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Graphics\Importers\AssetManager.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Graphics\Buffers\InstanceBuffer.cpp" />
@@ -186,6 +187,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DX3D\Include\DX3D\Core\JobSystem.h" />
+    <ClInclude Include="Game\Kepler\KeplerSandbox.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\Frustrum.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\Utils.h" />
     <ClInclude Include="DX3D\Source\DX3D\Graphics\Resources\DepthTexture2D.h" />

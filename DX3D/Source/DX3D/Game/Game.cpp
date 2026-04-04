@@ -6,6 +6,7 @@
 #include <DX3D/Game/Display.h>
 #include <DX3D/Core/Time.h>
 #include <DX3D/Core/JobSystem.h>
+#include <imgui.h>
 
 namespace dx3d
 {
@@ -22,15 +23,47 @@ namespace dx3d
 		m_graphicsEngine = std::make_unique<GraphicsEngine>(GraphicsEngineDesc{});
 		m_display = std::make_unique<Display>(DisplayDesc{ WindowDesc{desc.windowSize}, m_graphicsEngine->getGraphicsDevice() });
 		m_display->onWindowResized = [this](int w, int h) {
-			m_graphicsEngine->onWindowResized(w, h);
+			this->onWindowResized(w, h);
 			};
 
 		m_graphicsEngine->initUI(m_display->getHWND());
+
+		AssetManagerDesc aDesc{};
+		aDesc.graphicsDevice = m_graphicsEngine->getGraphicsDevicePtr();
+		aDesc.assetsRoot = std::filesystem::path("DX3D/Assets/Models");
+		m_assets = std::make_shared<AssetManager>(aDesc);
+
+		m_camera = std::make_unique<Camera>();
+		InputSystem::get()->addListener(m_camera.get());
+
 		Time::Instance()->Update(0.0);
 		InputSystem::get()->addListener(this);
 
-
 		DX3D_LOG_INFO("Game initialized.");
+	}
+
+	void Game::onWindowResized(int width, int height)
+	{
+		if (m_camera)
+		{
+			m_camera->setScreenSize((float)width, (float)height);
+		}
+
+		if (ImGui::GetCurrentContext())
+		{
+			float scaleFactor = (static_cast<float>(height) / 1080.0f) * 1.25f;
+
+			if (scaleFactor < 1.0f) {
+				scaleFactor = 1.0f;
+			}
+
+			ImGui::GetIO().FontGlobalScale = scaleFactor;
+
+			ImGuiStyle& style = ImGui::GetStyle();
+			style = ImGuiStyle();
+			ImGui::StyleColorsDark();
+			style.ScaleAllSizes(scaleFactor);
+		}
 	}
 
 	Game::~Game()
@@ -40,57 +73,17 @@ namespace dx3d
 		DX3D_LOG_INFO("Game is shutting down.");
 	}
 
-	void Game::onMouseDown(int button)
-	{
-		if (button == 0)
-		{
-			auto mouseState = InputSystem::get()->getMouseState();
-
-			RECT clientRect;
-			HWND hwnd = static_cast<HWND>(m_display->getHWND());
-			GetClientRect(hwnd, &clientRect);
-			int width = clientRect.right - clientRect.left;
-			int height = clientRect.bottom - clientRect.top;
-
-			m_selectedObject = m_graphicsEngine->pickObject(mouseState.coords.x, mouseState.coords.y, width, height);
-
-			if (m_selectedObject)
-			{
-				DX3D_LOG_INFO("Picked object: {}", m_selectedObject->name);
-			}
-			else
-			{
-				DX3D_LOG_INFO("Clicked empty space.");
-			}
-		}
-	}
-
-	void Game::onKeyDown(int key)
-	{
-		if (key == 'F')
-		{
-			auto& camera = m_graphicsEngine->getCamera();
-
-			if (m_selectedObject)
-			{
-				bool currentState = camera.isOrbiting();
-				camera.setOrbitTarget(m_selectedObject->transform.getPosition());
-				camera.setOrbitMode(!currentState);
-			}
-			else
-			{
-				camera.setOrbitMode(false);
-			}
-		}
-	}
-
 	void Game::onInternalUpdate()
 	{
-		auto dt = Time::Instance()->deltaTime();        // for interpolation / animations
-		auto fdt = Time::Instance()->fixedDeltaTime();  // for physics steps
+		auto dt = Time::Instance()->deltaTime();
+		auto fdt = Time::Instance()->fixedDeltaTime();
 
-		m_graphicsEngine->render(m_display->getSwapChain(), [&]() {
-			this->onGUI();
+		onUpdate(dt, fdt);
+
+		m_graphicsEngine->render(m_scene, *m_camera, m_display->getSwapChain(),
+			[&]() { this->onGUI(); },
+			[&](DeviceContext& ctx, const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj) {
+				this->onDrawDebug(ctx, view, proj);
 			});
 	}
 }

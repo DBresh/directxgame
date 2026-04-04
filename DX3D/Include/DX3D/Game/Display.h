@@ -16,6 +16,9 @@ namespace dx3d
 		virtual void onEnterSizeMove() override;
 		virtual void onExitSizeMove() override;
 
+		int getClientWidth() const;
+		int getClientHeight() const;
+
 		std::function<void(int, int)> onWindowResized;
 
 	private:

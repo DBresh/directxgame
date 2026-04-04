@@ -49,4 +49,18 @@ namespace dx3d
 	{
 		return *m_swapChain;
 	}
+
+	int Display::getClientWidth() const
+	{
+		RECT rect;
+		GetClientRect(static_cast<HWND>(getHWND()), &rect);
+		return rect.right - rect.left;
+	}
+
+	int Display::getClientHeight() const
+	{
+		RECT rect;
+		GetClientRect(static_cast<HWND>(getHWND()), &rect);
+		return rect.bottom - rect.top;
+	}
 }

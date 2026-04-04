@@ -29,54 +29,33 @@ namespace dx3d
         explicit GraphicsEngine(const GraphicsEngineDesc& desc);
         virtual ~GraphicsEngine() override;
 
-        GraphicsDevice& getGraphicsDevice() noexcept;
-        void render(SwapChain& swapChain, const std::function<void()>& onGUI);
-        void initUI(void* hwnd);
-        void onWindowResized(int width, int height);
-        Camera& getCamera() { return *m_camera; }
+        GraphicsDevice& getGraphicsDevice() noexcept { return *m_graphicsDevice; };
+        std::shared_ptr<GraphicsDevice> getGraphicsDevicePtr() const noexcept { return m_graphicsDevice; }
+        LightManager* getLightManager() const noexcept { return m_renderSystem->getLightManager(); }
 
-        // temp
-        std::shared_ptr<GameObject> pickObject(int mouseX, int mouseY, int screenW, int screenH);
+        void render(SceneManager& scene, Camera& camera, SwapChain& swapChain,
+            const std::function<void()>& onGUI,
+            const std::function<void(DeviceContext&, const DirectX::XMFLOAT4X4&, const DirectX::XMFLOAT4X4&)>& onDrawDebug = nullptr);
+        
+        void initUI(void* hwnd);
 
     private:
-        SceneManager m_scene;
         void createCubeMesh();
+        void compileShaders();
+        void initializeThreading();
         void executeSingleDraws(SwapChain& swapChain);
         void executeInstancedDraws(SwapChain& swapChain);
-
-        // kepler testing
-        void initSandboxSimulation();
+        GraphicsPipelineStatePtr createPipeline(const std::string& path, const char* vsEntry, const char* psEntry, ID3D11PixelShader* existingPS);
 
     private:
         std::shared_ptr<GraphicsDevice> m_graphicsDevice{};
         DeviceContextPtr m_deviceContext{};
         GraphicsPipelineStatePtr m_pipeline{};
+        GraphicsPipelineStatePtr m_instancedPipeline{};
+        std::shared_ptr<InstanceBuffer> m_instanceBuffer{};
+        std::shared_ptr<dx3d::GraphicsPipelineState> m_linePipeline;
         std::unique_ptr<RenderSystem> m_renderSystem;
-        std::unique_ptr<Camera> m_camera;
-        std::shared_ptr<AssetManager>  m_assets;
         std::vector<DeviceContextPtr> m_deferredContexts;
         std::vector<Microsoft::WRL::ComPtr<ID3D11CommandList>> m_commandLists;
-        GraphicsPipelineStatePtr m_instancedPipeline{};
-        std::shared_ptr<InstanceBuffer> m_testInstanceBuffer{};
-
-
-        // kepler testing
-
-        struct CelestialBody
-        {
-            std::string name;
-            std::shared_ptr<dx3d::GameObject> renderObject = nullptr;
-            Simulator::OrbitData orbit;
-            Simulator::OrbitVisualizer visualizer;
-
-            int parentIndex = -1; // -1 means it is the center of the universe (e.g., the Sun)
-            Simulator::Vec3d worldPosition;
-        };
-
-        std::vector<CelestialBody> m_celestialBodies;
-        float m_timeWarp = 1.0f;
-        std::shared_ptr<dx3d::GraphicsPipelineState> m_linePipeline;
-
-
     };
 }
