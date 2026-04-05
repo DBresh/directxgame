@@ -3,130 +3,110 @@
 #include <DX3D/Graphics/Rendering/GraphicsEngine.h>
 #include <DX3D/Game/Display.h>
 #include <DX3D/Core/Logger.h>
+#include <DX3D/Editor/HierarchyPanel.h>
+#include <DX3D/Editor/InspectorPanel.h>
+#include <DX3D/Editor/TimelinePanel.h>
 #include <imgui.h>
 
 namespace dx3d
 {
-    KeplerSandbox::KeplerSandbox(const GameDesc& desc) : Game(desc)
-    {
-        initSandboxSimulation();
-    }
+	KeplerSandbox::KeplerSandbox(const GameDesc& desc) : Game(desc)
+	{
+		initSandboxSimulation();
+		initUI();
+		
+	}
 
-    KeplerSandbox::~KeplerSandbox() = default;
+	KeplerSandbox::~KeplerSandbox() = default;
 
-    void KeplerSandbox::onUpdate(double dt, double fdt)
-    {
-        double scaledDt = dt * static_cast<double>(m_timeWarp);
-        for (auto& body : m_celestialBodies)
-        {
-            if (body.parentIndex != -1) {
-                Simulator::Kepler::UpdateOrbitAnomaliesByTime(body.orbit, scaledDt);
-                body.worldPosition = m_celestialBodies[body.parentIndex].worldPosition + body.orbit.positionRelativeToAttractor;
-                body.visualizer.update(m_graphicsEngine->getGraphicsDevice(), body.orbit);
-            }
-            else {
-                body.worldPosition = Simulator::Vec3d(0.0, 0.0, 0.0);
-            }
+	void KeplerSandbox::initUI()
+	{
+		m_uiManager.addPanel(std::make_shared<HierarchyPanel>(m_scene, m_selectedObject));
+		m_uiManager.addPanel(std::make_shared<InspectorPanel>(m_selectedObject));
+		m_uiManager.addPanel(std::make_shared<TimelinePanel>(m_timeWarp, *m_camera));
+	}
 
-            if (body.renderObject) {
-                body.renderObject->transform.setPosition(body.worldPosition.toFloat3());
-            }
-        }
+	void KeplerSandbox::onWindowResized(int width, int height)
+	{
+		Game::onWindowResized(width, height);
 
-        if (m_selectedObject && m_camera->isOrbiting()) {
-            m_camera->setOrbitTarget(m_selectedObject->transform.getPosition());
-        }
-    }
+		if (ImGui::GetCurrentContext())
+		{
+			float scaleFactor = (static_cast<float>(height) / 1080.0f) * 1.25f;
 
-    void KeplerSandbox::onDrawDebug(DeviceContext& ctx, const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj)
-    {
-        for (auto& body : m_celestialBodies) {
-            if (body.parentIndex != -1) {
-                body.visualizer.draw(ctx, view, proj, m_celestialBodies[body.parentIndex].worldPosition);
-            }
-        }
-    }
+			if (scaleFactor < 1.0f) {
+				scaleFactor = 1.0f;
+			}
 
-    void KeplerSandbox::onMouseDown(int button)
-    {
-        if (button == 0)
-        {
-            auto mouseState = InputSystem::get()->getMouseState();
+			ImGui::GetIO().FontGlobalScale = scaleFactor;
 
-            // Clean Win32 Encapsulation
-            int width = m_display->getClientWidth();
-            int height = m_display->getClientHeight();
+			ImGuiStyle& style = ImGui::GetStyle();
+			style = ImGuiStyle();
+			ImGui::StyleColorsDark();
+			style.ScaleAllSizes(scaleFactor);
+
+			m_uiManager.setScale(scaleFactor);
+		}
+	}
+
+	void KeplerSandbox::onUpdate(double dt, double fdt)
+	{
+		double scaledDt = dt * static_cast<double>(m_timeWarp);
+		for (auto& body : m_celestialBodies)
+		{
+			if (body.parentIndex != -1) {
+				Simulator::Kepler::UpdateOrbitAnomaliesByTime(body.orbit, scaledDt);
+				body.worldPosition = m_celestialBodies[body.parentIndex].worldPosition + body.orbit.positionRelativeToAttractor;
+				body.visualizer.update(m_graphicsEngine->getGraphicsDevice(), body.orbit);
+			}
+			else {
+				body.worldPosition = Simulator::Vec3d(0.0, 0.0, 0.0);
+			}
+
+			if (body.renderObject) {
+				body.renderObject->transform.setPosition(body.worldPosition.toFloat3());
+			}
+		}
+
+		if (m_selectedObject && m_camera->isOrbiting()) {
+			m_camera->setOrbitTarget(m_selectedObject->transform.getPosition());
+		}
+	}
+
+	void KeplerSandbox::onDrawDebug(DeviceContext& ctx, const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj)
+	{
+		for (auto& body : m_celestialBodies) {
+			if (body.parentIndex != -1) {
+				body.visualizer.draw(ctx, view, proj, m_celestialBodies[body.parentIndex].worldPosition);
+			}
+		}
+	}
+
+	void KeplerSandbox::onMouseDown(int button)
+	{
+		if (button == 0)
+		{
+			auto mouseState = InputSystem::get()->getMouseState();
+
+			int width = m_display->getClientWidth();
+			int height = m_display->getClientHeight();
 
 			DirectX::XMVECTOR origin, dir;
 			m_camera->screenPointToRay(mouseState.coords.x, mouseState.coords.y, width, height, origin, dir);
-			m_selectedObject = m_scene.pickObject(origin, dir);
-
-            if (m_selectedObject) {
-                DX3D_LOG_INFO("Picked object: {}", m_selectedObject->name);
-            }
-            else {
-                DX3D_LOG_INFO("Clicked empty space.");
-            }
-        }
-    }
+			std::shared_ptr<GameObject> pick = m_scene.pickObject(origin, dir);
+			if (pick)
+				m_selectedObject = pick;
+		}
+	}
 
 	void dx3d::KeplerSandbox::onGUI()
 	{
-		ImGui::Begin("Simulator Test");
-		ImGui::SliderFloat("Time Warp", &m_timeWarp, 0.0f, 5000.0f);
-		ImGui::SliderFloat("Player Speed", &m_camera->m_speed, 2.0f, 500.0f);
-		ImGui::End();
+		m_uiManager.update();
 
 		if (m_selectedObject && m_camera->isOrbiting())
 		{
 			m_camera->setOrbitTarget(m_selectedObject->transform.getPosition());
 		}
-
-		if (m_selectedObject)
-		{
-			ImGui::Begin("Inspector");
-			ImGui::Text("Name: %s", m_selectedObject->name.c_str());
-			ImGui::Separator();
-
-			DirectX::XMFLOAT3 pos = m_selectedObject->transform.getPosition();
-			if (ImGui::DragFloat3("Position", &pos.x, 0.1f))
-			{
-				m_selectedObject->transform.setPosition(pos);
-			}
-
-			DirectX::XMFLOAT3 rot = m_selectedObject->transform.getEuler();
-			if (ImGui::DragFloat3("Rotation", &rot.x, 0.05f))
-			{
-				m_selectedObject->transform.setEuler(rot);
-			}
-
-			DirectX::XMFLOAT3 sca = m_selectedObject->transform.getScale();
-			if (ImGui::DragFloat3("Scale", &sca.x, 0.1f))
-			{
-				m_selectedObject->transform.setScale(sca);
-			}
-
-			ImGui::End();
-		}
-
-		ImGui::SetNextWindowPos(ImVec2(20.0f, 20.0f), ImGuiCond_Always);
-		ImGui::SetNextWindowBgAlpha(0.0f);
-
-		ImGuiWindowFlags overlayFlags = ImGuiWindowFlags_NoDecoration |
-			ImGuiWindowFlags_AlwaysAutoResize |
-			ImGuiWindowFlags_NoSavedSettings |
-			ImGuiWindowFlags_NoFocusOnAppearing |
-			ImGuiWindowFlags_NoNav |
-			ImGuiWindowFlags_NoMove;
-
-		if (ImGui::Begin("FPS_Overlay", nullptr, overlayFlags))
-		{
-			ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "ImGui FPS: %.1f", ImGui::GetIO().Framerate);
-			if (m_selectedObject) {
-				ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Picked Object: %s", m_selectedObject.get()->name.c_str());
-			}
-		}
-		ImGui::End();
 	}
 
 	void KeplerSandbox::initSandboxSimulation()

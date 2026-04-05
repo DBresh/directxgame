@@ -3,6 +3,7 @@
 #include <Game/Kepler/OrbitData.h>
 #include <Game/Kepler/KeplerPhysics.h>
 #include <Game/Kepler/OrbitVisualizer.h>
+#include <DX3D/Editor/UIManager.h>
 
 namespace dx3d
 {
@@ -19,9 +20,14 @@ namespace dx3d
         void onUpdate(double dt, double fdt) override;
         void onGUI() override;
         void onDrawDebug(DeviceContext& ctx, const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj) override;
+        void onWindowResized(int width, int height) override;
 
     private:
+        void initUI();
         void initSandboxSimulation();
+
+    private:
+        UIManager m_uiManager;
 
         struct CelestialBody
         {

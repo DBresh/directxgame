@@ -16,11 +16,6 @@
 #include <vector>
 #include <unordered_map>
 
-// kepler testing
-#include <Game/Kepler/OrbitData.h>
-#include <Game/Kepler/KeplerPhysics.h>
-#include <Game/Kepler/OrbitVisualizer.h>
-
 namespace dx3d
 {
     class GraphicsEngine final : public Base
@@ -45,7 +40,6 @@ namespace dx3d
         void initializeThreading();
         void executeSingleDraws(SwapChain& swapChain);
         void executeInstancedDraws(SwapChain& swapChain);
-        GraphicsPipelineStatePtr createPipeline(const std::string& path, const char* vsEntry, const char* psEntry, ID3D11PixelShader* existingPS);
 
     private:
         std::shared_ptr<GraphicsDevice> m_graphicsDevice{};

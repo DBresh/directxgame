@@ -28,7 +28,7 @@ namespace dx3d
         virtual void onGUI() {}
         virtual void onUpdate(double dt, double fdt) {}
         virtual void onDrawDebug(DeviceContext& ctx, const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj) {}
-        void onWindowResized(int width, int height);
+        virtual void onWindowResized(int width, int height);
 
     protected:
         std::unique_ptr<GraphicsEngine> m_graphicsEngine{};
