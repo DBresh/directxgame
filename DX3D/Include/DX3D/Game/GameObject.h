@@ -17,7 +17,7 @@ namespace dx3d {
         std::string tag;
 
         bool inheritPosition = true;
-        bool inheritRotation = false;
+        bool inheritRotation = true;
         bool inheritScale = true;
 
         Transform transform{};
@@ -52,7 +52,7 @@ namespace dx3d {
 
         AABB getWorldAABB() const {
             if (model) {
-                return model->boundingBox.transform(transform.getWorldMatrix());
+                return model->boundingBox.transform(getWorldTransform().getWorldMatrix());
             }
             return AABB{};
         }

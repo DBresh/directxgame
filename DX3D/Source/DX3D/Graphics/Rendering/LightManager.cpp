@@ -42,7 +42,6 @@ namespace dx3d
 
 		XMVECTOR lightDir = XMLoadFloat3(&l.direction);
 
-		// Use XMVectorScale instead of operator*
 		XMVECTOR offset = XMVectorScale(lightDir, sceneDiameter);
 		XMVECTOR lightPos = XMVectorSubtract(targetPos, offset);
 
@@ -52,15 +51,11 @@ namespace dx3d
 		l.shadow->shadowMap = m_device->createDepthTexture2D(m_shadowMapSize, m_shadowMapSize);
 
 		XMVECTOR up = XMVectorSet(0, 1, 0, 0);
-		// Use XMVector3NearEqual for safe vector comparison
 		if (XMVector3NearEqual(XMVectorAbs(lightDir), XMVectorSet(0, 1, 0, 0), XMVectorReplicate(0.1f)))
 			up = XMVectorSet(0, 0, 1, 0);
 
 		XMMATRIX V = XMMatrixLookAtLH(lightPos, targetPos, up);
-
-		// Orthographic projection for directional light
 		XMMATRIX P = XMMatrixOrthographicLH(sceneDiameter, sceneDiameter, 1.0f, sceneDiameter * 4.0f);
-
 		XMMATRIX VP = XMMatrixMultiply(V, P);
 
 		XMStoreFloat4x4(&l.shadow->view, V);
@@ -140,12 +135,9 @@ namespace dx3d
 		if (!l.shadow)
 			l.shadow = std::make_shared<LightShadowData>();
 
-		// Створюємо / оновлюємо depth-текстуру
 		l.shadow->shadowMap = m_device->createDepthTexture2D(m_shadowMapSize, m_shadowMapSize);
-
-		// --- Обчислюємо view матрицю (row-major на CPU) ---
 		XMVECTOR pos = XMLoadFloat3(&l.position);
-		XMVECTOR forward = XMLoadFloat3(&l.direction); // l.direction вже нормалізований
+		XMVECTOR forward = XMLoadFloat3(&l.direction);
 		XMVECTOR up = XMVectorSet(0, 1, 0, 0);
 
 		{
@@ -168,7 +160,6 @@ namespace dx3d
 		XMMATRIX P = XMMatrixPerspectiveFovLH(fov, aspect, znear, zfar);
 		XMMATRIX VP = V * P; // row-major матриця V*P
 
-		// --- Зберігаємо row-major V та P для shadow pass ---
 		XMStoreFloat4x4(&l.shadow->view, V);
 		XMStoreFloat4x4(&l.shadow->proj, P);
 

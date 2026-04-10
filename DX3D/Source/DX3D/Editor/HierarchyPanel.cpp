@@ -1,5 +1,7 @@
 #include <DX3D/Editor/HierarchyPanel.h>
 #include <imgui.h>
+#include <functional>
+#include <unordered_set>
 
 namespace dx3d
 {
@@ -16,12 +18,61 @@ namespace dx3d
         ImGui::Separator();
 
         auto& objects = m_scene.getAllObjects();
+
+        bool selectionChanged = (m_lastSelectedObject != m_selectedObject);
+        m_lastSelectedObject = m_selectedObject;
+
+        std::unordered_set<GameObject*> ancestorsToExpand;
+        if (selectionChanged && m_selectedObject)
+        {
+            auto curr = m_selectedObject->getParent();
+            while (curr)
+            {
+                ancestorsToExpand.insert(curr.get());
+                curr = curr->getParent();
+            }
+        }
+
+        std::function<void(const std::shared_ptr<GameObject>&)> drawNode;
+        drawNode = [&](const std::shared_ptr<GameObject>& obj)
+            {
+                ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
+
+                // Expand all by default at startup
+                flags |= ImGuiTreeNodeFlags_DefaultOpen;
+
+                if (m_selectedObject == obj) {
+                    flags |= ImGuiTreeNodeFlags_Selected;
+                }
+
+                if (obj->children.empty()) {
+                    flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+                }
+
+                if (ancestorsToExpand.count(obj.get())) {
+                    ImGui::SetNextItemOpen(true, ImGuiCond_Always);
+                }
+
+                bool nodeOpen = ImGui::TreeNodeEx((void*)obj.get(), flags, "%s", obj->name.c_str());
+
+                if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
+                    m_selectedObject = obj;
+                    m_lastSelectedObject = obj;
+                }
+
+                if (nodeOpen && !obj->children.empty()) {
+                    for (auto& child : obj->children) {
+                        drawNode(child);
+                    }
+                    ImGui::TreePop();
+                }
+            };
+
         for (auto& obj : objects)
         {
-            bool isSelected = (m_selectedObject == obj);
-            if (ImGui::Selectable(obj->name.c_str(), isSelected))
+            if (!obj->hasParent())
             {
-                m_selectedObject = obj;
+                drawNode(obj);
             }
         }
     }

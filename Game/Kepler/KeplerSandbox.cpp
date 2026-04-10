@@ -56,20 +56,31 @@ namespace dx3d
 		{
 			if (body.parentIndex != -1) {
 				Simulator::Kepler::UpdateOrbitAnomaliesByTime(body.orbit, scaledDt);
+
 				body.worldPosition = m_celestialBodies[body.parentIndex].worldPosition + body.orbit.positionRelativeToAttractor;
 				body.visualizer.update(m_graphicsEngine->getGraphicsDevice(), body.orbit);
+
+				if (body.renderObject) {
+					body.renderObject->transform.setPosition(body.orbit.positionRelativeToAttractor.toFloat3());
+				}
 			}
 			else {
 				body.worldPosition = Simulator::Vec3d(0.0, 0.0, 0.0);
 			}
-
-			if (body.renderObject) {
-				body.renderObject->transform.setPosition(body.worldPosition.toFloat3());
-			}
 		}
 
 		if (m_selectedObject && m_camera->isOrbiting()) {
-			m_camera->setOrbitTarget(m_selectedObject->transform.getPosition());
+			m_camera->setOrbitTarget(m_selectedObject->getWorldTransform().getPosition());
+		}
+	}
+
+	void dx3d::KeplerSandbox::onGUI()
+	{
+		m_uiManager.update();
+
+		if (m_selectedObject && m_camera->isOrbiting())
+		{
+			m_camera->setOrbitTarget(m_selectedObject->getWorldTransform().getPosition());
 		}
 	}
 
@@ -96,16 +107,6 @@ namespace dx3d
 			std::shared_ptr<GameObject> pick = m_scene.pickObject(origin, dir);
 			if (pick)
 				m_selectedObject = pick;
-		}
-	}
-
-	void dx3d::KeplerSandbox::onGUI()
-	{
-		m_uiManager.update();
-
-		if (m_selectedObject && m_camera->isOrbiting())
-		{
-			m_camera->setOrbitTarget(m_selectedObject->transform.getPosition());
 		}
 	}
 
@@ -141,6 +142,9 @@ namespace dx3d
 
 				body.visualizer.init(gd);
 
+				body.renderObject->inheritPosition = false;
+				body.renderObject->inheritScale = false;
+
 				if (parent != -1)
 				{
 					double attractorMass = m_celestialBodies[parent].orbit.BodyMass;
@@ -153,11 +157,15 @@ namespace dx3d
 
 					Simulator::Kepler::CalculateOrbitStateFromOrbitalVectors(body.orbit);
 					body.orbit.isPathDirty = true;
+
+					m_celestialBodies[parent].renderObject->addChild(body.renderObject);
+					body.renderObject->transform.setPosition(body.orbit.positionRelativeToAttractor.toFloat3());
 				}
 				else
 				{
 					body.orbit.BodyMass = mass;
 					body.worldPosition = Simulator::Vec3d(0.0, 0.0, 0.0);
+					body.renderObject->transform.setPosition(DirectX::XMFLOAT3(0, 0, 0));
 				}
 			};
 

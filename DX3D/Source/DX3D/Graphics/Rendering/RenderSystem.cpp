@@ -225,7 +225,7 @@ namespace dx3d
 
             if (lightFrustum.checkAABB(objPtr->getWorldAABB()))
             {
-                lightBatchesMap[model.get()].push_back(objPtr->transform.getWorldMatrix());
+                lightBatchesMap[model.get()].push_back(objPtr->getWorldTransform().getWorldMatrix());
             }
         }
 
@@ -444,7 +444,7 @@ namespace dx3d
                 batch.matrices.reserve(objects.size());
 
                 for (auto* obj : objects) {
-                    batch.matrices.push_back(obj->transform.getWorldMatrix());
+                    batch.matrices.push_back(obj->getWorldTransform().getWorldMatrix());
                 }
                 m_instancedBatches.push_back(std::move(batch));
             }

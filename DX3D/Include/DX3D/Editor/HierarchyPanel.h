@@ -15,5 +15,6 @@ namespace dx3d
     private:
         SceneManager& m_scene;
         std::shared_ptr<GameObject>& m_selectedObject;
+        std::shared_ptr<GameObject> m_lastSelectedObject{ nullptr };
     };
 }
