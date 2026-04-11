@@ -73,7 +73,15 @@ namespace dx3d
 				}
 			}
 			else {
-				body.worldPosition = Simulator::Vec3d(0.0, 0.0, 0.0);
+				if (body.renderObject)
+				{
+					auto pos = body.renderObject->transform.getPosition();
+					body.worldPosition = Simulator::Vec3d(pos.x, pos.y, pos.z);
+				}
+				else
+				{
+					body.worldPosition = Simulator::Vec3d(0.0, 0.0, 0.0);
+				}
 			}
 		}
 
@@ -84,6 +92,34 @@ namespace dx3d
 
 	void dx3d::KeplerSandbox::onGUI()
 	{
+		ImGuiIO& io = ImGui::GetIO();
+
+		if (ImGui::IsAnyItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+		{
+			ImVec2 pos = io.MousePos;
+			bool wrapped = false;
+
+			if (pos.x <= 0.0f)
+			{
+				pos.x = io.DisplaySize.x - 2.0f;
+				wrapped = true;
+			}
+			else if (pos.x >= io.DisplaySize.x - 1.0f)
+			{
+				pos.x = 1.0f;
+				wrapped = true;
+			}
+
+			if (wrapped)
+			{
+				io.WantSetMousePos = true;
+				io.MousePos = pos;
+
+				io.MouseDelta = ImVec2(0.0f, 0.0f);
+				io.MousePosPrev = pos;
+			}
+		}
+
 		m_uiManager.update();
 
 		if (m_selectedObject && m_camera->isOrbiting())

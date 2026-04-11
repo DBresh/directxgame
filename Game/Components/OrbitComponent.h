@@ -16,11 +16,23 @@ namespace dx3d
         {
             if (ImGui::CollapsingHeader("Orbit Parameters", ImGuiTreeNodeFlags_DefaultOpen))
             {
-                if (ImGui::DragScalar("Body Mass", ImGuiDataType_Double, &orbit->BodyMass, 1.0f)) {
+                if (ImGui::DragScalar("Body Mass", ImGuiDataType_Double, &orbit->BodyMass, 1.0f))
+                {
                     orbit->isPathDirty = true;
+
+                    for (auto& child : gameObject->children)
+                    {
+                        auto childOrbit = child->getComponent<OrbitComponent>();
+                        if (childOrbit)
+                        {
+                            childOrbit->orbit->AttractorMass = orbit->BodyMass;
+                            childOrbit->orbit->isPathDirty = true;
+                        }
+                    }
                 }
 
-                if (ImGui::DragScalar("Attractor Mass", ImGuiDataType_Double, &orbit->AttractorMass, 1.0f)) {
+                if (ImGui::DragScalar("Attractor Mass", ImGuiDataType_Double, &orbit->AttractorMass, 1.0f))
+                {
                     orbit->isPathDirty = true;
                 }
 

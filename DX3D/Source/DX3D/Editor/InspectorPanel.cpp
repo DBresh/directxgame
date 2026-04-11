@@ -17,6 +17,19 @@ namespace dx3d
             ImGui::Text("Name: %s", m_selectedObject->name.c_str());
             ImGui::Separator();
 
+            if (ImGui::CollapsingHeader("General", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                char nameBuf[128];
+                strncpy_s(nameBuf, m_selectedObject->name.c_str(), sizeof(nameBuf));
+                if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf))) {
+                    m_selectedObject->name = nameBuf;
+                }
+
+                ImGui::Checkbox("Inherit Position", &m_selectedObject->inheritPosition);
+                ImGui::Checkbox("Inherit Rotation", &m_selectedObject->inheritRotation);
+                ImGui::Checkbox("Inherit Scale", &m_selectedObject->inheritScale);
+            }
+
             if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 DirectX::XMFLOAT3 pos = m_selectedObject->transform.getPosition();
