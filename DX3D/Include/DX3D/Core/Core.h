@@ -29,6 +29,7 @@ namespace dx3d
 	class DepthTexture2D;
 	class InstanceBuffer;
 	class ModelGPU;
+	class GameObject;
 
 	using SwapChainPtr = std::shared_ptr<SwapChain>;
 	using DeviceContextPtr = std::shared_ptr<DeviceContext>;

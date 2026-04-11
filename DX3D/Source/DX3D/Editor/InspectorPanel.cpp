@@ -6,7 +6,6 @@ namespace dx3d
     InspectorPanel::InspectorPanel(std::shared_ptr<GameObject>& selectedObject)
         : UIPanel("Inspector"), m_selectedObject(selectedObject)
     {
-        // Tell the base class to pin this to the right side!
         this->alignment = PanelAlignment::Right;
         this->width = 300.0f;
     }
@@ -18,22 +17,22 @@ namespace dx3d
             ImGui::Text("Name: %s", m_selectedObject->name.c_str());
             ImGui::Separator();
 
-            DirectX::XMFLOAT3 pos = m_selectedObject->transform.getPosition();
-            if (ImGui::DragFloat3("Position", &pos.x, 0.1f))
+            if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
             {
-                m_selectedObject->transform.setPosition(pos);
+                DirectX::XMFLOAT3 pos = m_selectedObject->transform.getPosition();
+                if (ImGui::DragFloat3("Position", &pos.x, 0.1f)) m_selectedObject->transform.setPosition(pos);
+
+                DirectX::XMFLOAT3 rot = m_selectedObject->transform.getEuler();
+                if (ImGui::DragFloat3("Rotation", &rot.x, 0.05f)) m_selectedObject->transform.setEuler(rot);
+
+                DirectX::XMFLOAT3 sca = m_selectedObject->transform.getScale();
+                if (ImGui::DragFloat3("Scale", &sca.x, 0.1f)) m_selectedObject->transform.setScale(sca);
             }
 
-            DirectX::XMFLOAT3 rot = m_selectedObject->transform.getEuler();
-            if (ImGui::DragFloat3("Rotation", &rot.x, 0.05f))
+            for (auto& comp : m_selectedObject->components)
             {
-                m_selectedObject->transform.setEuler(rot);
-            }
-
-            DirectX::XMFLOAT3 sca = m_selectedObject->transform.getScale();
-            if (ImGui::DragFloat3("Scale", &sca.x, 0.1f))
-            {
-                m_selectedObject->transform.setScale(sca);
+                ImGui::Separator();
+                comp->onInspectorGUI();
             }
         }
         else

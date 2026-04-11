@@ -6,6 +6,7 @@
 #include <DX3D/Editor/HierarchyPanel.h>
 #include <DX3D/Editor/InspectorPanel.h>
 #include <DX3D/Editor/TimelinePanel.h>
+#include <Game/Components/OrbitComponent.h>
 #include <imgui.h>
 
 namespace dx3d
@@ -54,11 +55,18 @@ namespace dx3d
 		double scaledDt = dt * static_cast<double>(m_timeWarp);
 		for (auto& body : m_celestialBodies)
 		{
+			if (body.orbit.isPathDirty)
+			{
+				Simulator::Kepler::CalculateOrbitStateFromOrbitalVectors(body.orbit);
+			}
+
 			if (body.parentIndex != -1) {
 				Simulator::Kepler::UpdateOrbitAnomaliesByTime(body.orbit, scaledDt);
 
 				body.worldPosition = m_celestialBodies[body.parentIndex].worldPosition + body.orbit.positionRelativeToAttractor;
 				body.visualizer.update(m_graphicsEngine->getGraphicsDevice(), body.orbit);
+
+				body.orbit.isPathDirty = false;
 
 				if (body.renderObject) {
 					body.renderObject->transform.setPosition(body.orbit.positionRelativeToAttractor.toFloat3());
@@ -141,6 +149,8 @@ namespace dx3d
 				body.renderObject->constantBuffer = gd.createConstantBuffer({ nullptr, sizeof(DirectX::XMFLOAT4X4) * 3 });
 
 				body.visualizer.init(gd);
+
+				body.renderObject->addComponent<OrbitComponent>(&body.orbit);
 
 				body.renderObject->inheritPosition = false;
 				body.renderObject->inheritScale = false;

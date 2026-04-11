@@ -5,6 +5,7 @@
 #include <DX3D/Graphics/Resources/Material.h>
 #include <DX3D/Graphics/Resources/ModelData.h>
 #include <DX3D/Graphics/Resources/ModelGPU.h>
+#include <DX3D/Game/Component.h>
 #include <memory>
 #include <string>
 #include <vector>
@@ -55,6 +56,30 @@ namespace dx3d {
                 return model->boundingBox.transform(getWorldTransform().getWorldMatrix());
             }
             return AABB{};
+        }
+
+        std::vector<std::shared_ptr<Component>> components;
+
+        template<typename T, typename... Args>
+        std::shared_ptr<T> addComponent(Args&&... args)
+        {
+            auto comp = std::make_shared<T>(std::forward<Args>(args)...);
+            comp->gameObject = this;
+            components.push_back(comp);
+            return comp;
+        }
+
+        template<typename T>
+        std::shared_ptr<T> getComponent() const
+        {
+            for (auto& comp : components)
+            {
+                if (auto casted = std::dynamic_pointer_cast<T>(comp))
+                {
+                    return casted;
+                }
+            }
+            return nullptr;
         }
 
     private:
