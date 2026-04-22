@@ -18,7 +18,6 @@ namespace dx3d
 
             ImGuiIO& io = ImGui::GetIO();
 
-            // Multiply all our hardcoded base sizes by the scale factor
             float scaledWidth = width * scale;
             float scaledHeight = height * scale;
             float sMarginLeft = marginLeft * scale;
@@ -36,6 +35,10 @@ namespace dx3d
             }
             else if (alignment == PanelAlignment::Bottom) {
                 ImGui::SetNextWindowPos(ImVec2(sMarginLeft, io.DisplaySize.y - scaledHeight), ImGuiCond_Always);
+                ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x - sMarginLeft - sMarginRight, scaledHeight), ImGuiCond_Always);
+            }
+            else if (alignment == PanelAlignment::Top) {
+                ImGui::SetNextWindowPos(ImVec2(sMarginLeft, sMarginTop), ImGuiCond_Always);
                 ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x - sMarginLeft - sMarginRight, scaledHeight), ImGuiCond_Always);
             }
 

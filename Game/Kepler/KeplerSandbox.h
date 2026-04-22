@@ -3,7 +3,8 @@
 #include <Game/Kepler/OrbitData.h>
 #include <Game/Kepler/KeplerPhysics.h>
 #include <Game/Kepler/OrbitVisualizer.h>
-#include <DX3D/Editor/UIManager.h>
+#include <Game/Editor/UIManager.h>
+#include <Game/Kepler/TimeController.h>
 
 namespace dx3d
 {
@@ -40,7 +41,7 @@ namespace dx3d
         };
 
         std::vector<CelestialBody> m_celestialBodies;
-        float m_timeWarp = 1.0f;
+        Simulator::TimeController m_timeController;
         
         std::shared_ptr<GameObject> m_selectedObject{ nullptr };
     };

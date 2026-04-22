@@ -87,12 +87,6 @@ namespace dx3d
             pos = XMVector3Transform(pos, parentM);
             XMStoreFloat3(&worldPos, pos);
         }
-        else
-        {
-            worldPos.x += parentPos.x;
-            worldPos.y += parentPos.y;
-            worldPos.z += parentPos.z;
-        }
 
         // ---------------- WRITE TO RESULT ----------------
         result.setScale(worldScale);

@@ -135,13 +135,13 @@
     <ClCompile Include="Game\Kepler\KeplerSandbox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DX3D\Source\DX3D\Editor\HierarchyPanel.cpp">
+    <ClCompile Include="Game\Editor\HierarchyPanel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DX3D\Source\DX3D\Editor\InspectorPanel.cpp">
+    <ClCompile Include="Game\Editor\InspectorPanel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DX3D\Source\DX3D\Editor\TimelinePanel.cpp">
+    <ClCompile Include="Game\Editor\TimelinePanel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -350,19 +350,19 @@
     <ClInclude Include="Game\Kepler\KeplerSandbox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DX3D\Include\DX3D\Editor\UIPanel.h">
+    <ClInclude Include="Game\Editor\UIPanel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DX3D\Include\DX3D\Editor\UIManager.h">
+    <ClInclude Include="Game\Editor\UIManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DX3D\Include\DX3D\Editor\HierarchyPanel.h">
+    <ClInclude Include="Game\Editor\HierarchyPanel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DX3D\Include\DX3D\Editor\InspectorPanel.h">
+    <ClInclude Include="Game\Editor\InspectorPanel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DX3D\Include\DX3D\Editor\TimelinePanel.h">
+    <ClInclude Include="Game\Editor\TimelinePanel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DX3D\Include\DX3D\Game\Component.h">

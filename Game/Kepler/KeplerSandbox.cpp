@@ -3,9 +3,9 @@
 #include <DX3D/Graphics/Rendering/GraphicsEngine.h>
 #include <DX3D/Game/Display.h>
 #include <DX3D/Core/Logger.h>
-#include <DX3D/Editor/HierarchyPanel.h>
-#include <DX3D/Editor/InspectorPanel.h>
-#include <DX3D/Editor/TimelinePanel.h>
+#include <Game/Editor/HierarchyPanel.h>
+#include <Game/Editor/InspectorPanel.h>
+#include <Game/Editor/TimelinePanel.h>
 #include <Game/Components/OrbitComponent.h>
 #include <Game/Components/OrbitVisualizerComponent.h>
 #include <imgui.h>
@@ -25,7 +25,7 @@ namespace dx3d
 	{
 		m_uiManager.addPanel(std::make_shared<HierarchyPanel>(m_scene, m_selectedObject));
 		m_uiManager.addPanel(std::make_shared<InspectorPanel>(m_selectedObject));
-		m_uiManager.addPanel(std::make_shared<TimelinePanel>(m_timeWarp, *m_camera));
+		m_uiManager.addPanel(std::make_shared<TimelinePanel>(m_timeController, *m_camera));
 	}
 
 	void KeplerSandbox::onWindowResized(int width, int height)
@@ -53,7 +53,9 @@ namespace dx3d
 
 	void KeplerSandbox::onUpdate(double dt, double fdt)
 	{
-		double scaledDt = dt * static_cast<double>(m_timeWarp);
+		m_timeController.Update(dt);
+		double scaledDt = m_timeController.GetScaledDeltaTime(dt);
+
 		for (auto& body : m_celestialBodies)
 		{
 			if (body.orbit.isPathDirty)
@@ -87,7 +89,11 @@ namespace dx3d
 				body.orbit.isPathDirty = false;
 
 				if (body.renderObject) {
-					body.renderObject->transform.setPosition(body.orbit.positionRelativeToAttractor.toFloat3());
+					body.renderObject->transform.setPosition(DirectX::XMFLOAT3(
+						static_cast<float>(body.worldPosition.x),
+						static_cast<float>(body.worldPosition.y),
+						static_cast<float>(body.worldPosition.z)
+					));
 				}
 			}
 			else {
@@ -230,7 +236,12 @@ namespace dx3d
 					body.orbit.isPathDirty = true;
 
 					m_celestialBodies[parent].renderObject->addChild(body.renderObject);
-					body.renderObject->transform.setPosition(body.orbit.positionRelativeToAttractor.toFloat3());
+					body.worldPosition = m_celestialBodies[parent].worldPosition + body.orbit.positionRelativeToAttractor;
+					body.renderObject->transform.setPosition(DirectX::XMFLOAT3(
+						static_cast<float>(body.worldPosition.x),
+						static_cast<float>(body.worldPosition.y),
+						static_cast<float>(body.worldPosition.z)
+					));
 				}
 				else
 				{
@@ -312,6 +323,18 @@ namespace dx3d
 			{
 				m_camera->setOrbitMode(false);
 			}
+		}
+		if (key == VK_OEM_PERIOD)
+		{
+			m_timeController.IncreaseWarp();
+		}
+		if (key == VK_OEM_COMMA)
+		{
+			m_timeController.DecreaseWarp();
+		}
+		if (key == 'P')
+		{
+			m_timeController.SetPaused(!m_timeController.IsPaused());
 		}
 	}
 }

@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <memory>
-#include <DX3D/Editor/UIPanel.h>
+#include <Game/Editor/UIPanel.h>
 
 namespace dx3d
 {

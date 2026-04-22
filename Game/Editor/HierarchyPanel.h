@@ -1,5 +1,5 @@
 #pragma once
-#include <DX3D/Editor/UIPanel.h>
+#include <Game/Editor/UIPanel.h>
 #include <DX3D/Game/SceneManager.h>
 #include <DX3D/Game/GameObject.h>
 #include <memory>

@@ -110,6 +110,27 @@ namespace dx3d
 
 		const uint32_t groupSize = 250;
 
+		if (singleDrawObjects.size() <= groupSize)
+		{
+			m_deviceContext->setGraphicsPipelineState(*m_pipeline);
+			m_deviceContext->setViewportSize(swapChain.getSize());
+			m_deviceContext->setRenderTarget(swapChain);
+			m_renderSystem->setFrameResources(*m_deviceContext);
+
+			for (auto* obj : singleDrawObjects)
+			{
+				if (obj->model) {
+					m_renderSystem->drawModel(
+						*m_deviceContext,
+						*obj->model,
+						*obj->constantBuffer,
+						obj->transform.getWorldMatrix()
+					);
+				}
+			}
+			return;
+		}
+
 		JobSystem::Dispatch((uint32_t)singleDrawObjects.size(), groupSize, [&](JobDispatchArgs args)
 			{
 				int ctxIndex = args.groupIndex % m_deferredContexts.size();
@@ -140,7 +161,10 @@ namespace dx3d
 
 		JobSystem::Wait();
 
-		for (int i = 0; i < m_deferredContexts.size(); ++i)
+		uint32_t numGroups = ((uint32_t)singleDrawObjects.size() + groupSize - 1) / groupSize;
+		uint32_t contextsUsed = std::min(numGroups, (uint32_t)m_deferredContexts.size());
+
+		for (uint32_t i = 0; i < contextsUsed; ++i)
 		{
 			HRESULT hr = m_deferredContexts[i]->getD3D11Context()->FinishCommandList(
 				false, &m_commandLists[i]

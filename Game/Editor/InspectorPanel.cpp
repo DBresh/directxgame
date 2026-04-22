@@ -1,4 +1,4 @@
-#include <DX3D/Editor/InspectorPanel.h>
+#include <Game/Editor/InspectorPanel.h>
 #include <imgui.h>
 
 namespace dx3d

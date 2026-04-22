@@ -145,9 +145,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DX3D\Source\DX3D\Core\JobSystem.cpp" />
-    <ClCompile Include="DX3D\Source\DX3D\Editor\HierarchyPanel.cpp" />
-    <ClCompile Include="DX3D\Source\DX3D\Editor\InspectorPanel.cpp" />
-    <ClCompile Include="DX3D\Source\DX3D\Editor\TimelinePanel.cpp" />
+    <ClCompile Include="Game\Editor\HierarchyPanel.cpp" />
+    <ClCompile Include="Game\Editor\InspectorPanel.cpp" />
+    <ClCompile Include="Game\Editor\TimelinePanel.cpp" />
     <ClCompile Include="Game\Kepler\KeplerSandbox.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Graphics\Resources\DepthTexture2D.cpp" />
     <ClCompile Include="DX3D\Source\DX3D\Graphics\Importers\AssetManager.cpp" />
@@ -190,11 +190,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DX3D\Include\DX3D\Core\JobSystem.h" />
-    <ClInclude Include="DX3D\Include\DX3D\Editor\HierarchyPanel.h" />
-    <ClInclude Include="DX3D\Include\DX3D\Editor\InspectorPanel.h" />
-    <ClInclude Include="DX3D\Include\DX3D\Editor\TimelinePanel.h" />
-    <ClInclude Include="DX3D\Include\DX3D\Editor\UIManager.h" />
-    <ClInclude Include="DX3D\Include\DX3D\Editor\UIPanel.h" />
+    <ClInclude Include="Game\Editor\HierarchyPanel.h" />
+    <ClInclude Include="Game\Editor\InspectorPanel.h" />
+    <ClInclude Include="Game\Editor\TimelinePanel.h" />
+    <ClInclude Include="Game\Editor\UIManager.h" />
+    <ClInclude Include="Game\Editor\UIPanel.h" />
     <ClInclude Include="DX3D\Include\DX3D\Game\Component.h" />
     <ClInclude Include="Game\Components\OrbitComponent.h" />
     <ClInclude Include="Game\Components\OrbitVisualizerComponent.h" />

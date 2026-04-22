@@ -1,4 +1,4 @@
-#include <DX3D/Editor/HierarchyPanel.h>
+#include <Game/Editor/HierarchyPanel.h>
 #include <imgui.h>
 #include <functional>
 #include <unordered_set>
