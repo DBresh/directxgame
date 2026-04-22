@@ -197,6 +197,7 @@
     <ClInclude Include="DX3D\Include\DX3D\Editor\UIPanel.h" />
     <ClInclude Include="DX3D\Include\DX3D\Game\Component.h" />
     <ClInclude Include="Game\Components\OrbitComponent.h" />
+    <ClInclude Include="Game\Components\OrbitVisualizerComponent.h" />
     <ClInclude Include="Game\Kepler\KeplerSandbox.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\Frustrum.h" />
     <ClInclude Include="DX3D\Include\DX3D\Math\Utils.h" />

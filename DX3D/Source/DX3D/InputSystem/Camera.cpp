@@ -167,6 +167,11 @@ namespace dx3d
 
 	void Camera::onMouseWheel(int delta)
 	{
+		if (InputSystem::get()->isKeyDown(VK_SHIFT))
+		{
+			m_speed += delta;
+			return;
+		}
 		if (m_isOrbiting)
 		{
 			m_orbitDistance -= delta * m_speed * 0.01f;

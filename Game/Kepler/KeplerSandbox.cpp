@@ -7,6 +7,7 @@
 #include <DX3D/Editor/InspectorPanel.h>
 #include <DX3D/Editor/TimelinePanel.h>
 #include <Game/Components/OrbitComponent.h>
+#include <Game/Components/OrbitVisualizerComponent.h>
 #include <imgui.h>
 
 namespace dx3d
@@ -15,7 +16,7 @@ namespace dx3d
 	{
 		initSandboxSimulation();
 		initUI();
-		
+
 	}
 
 	KeplerSandbox::~KeplerSandbox() = default;
@@ -58,13 +59,30 @@ namespace dx3d
 			if (body.orbit.isPathDirty)
 			{
 				Simulator::Kepler::CalculateOrbitStateFromOrbitalVectors(body.orbit);
+
+				if (!body.orbit.freezeColor)
+				{
+					double currentSpeed = body.orbit.velocityRelativeToAttractor.magnitude();
+					double referenceSpeed = sqrt(body.orbit.GravConst * body.orbit.AttractorMass / body.orbit.SemiMajorAxis);
+					float speedRatio = static_cast<float>(currentSpeed / referenceSpeed);
+
+					body.orbit.orbitColor.x = speedRatio - 0.5f; // Red increases as we go fast
+					body.orbit.orbitColor.y = 1.0f - abs(speedRatio - 1.0f); // Green peaks at circular speed
+					body.orbit.orbitColor.z = 1.5f - speedRatio; // Blue for slow speeds
+					body.orbit.orbitColor.w = 1.0f;
+				}
 			}
 
 			if (body.parentIndex != -1) {
 				Simulator::Kepler::UpdateOrbitAnomaliesByTime(body.orbit, scaledDt);
 
 				body.worldPosition = m_celestialBodies[body.parentIndex].worldPosition + body.orbit.positionRelativeToAttractor;
-				body.visualizer.update(m_graphicsEngine->getGraphicsDevice(), body.orbit);
+				auto visComp = body.renderObject->getComponent<OrbitVisualizerComponent>();
+				bool shouldDraw = visComp ? visComp->isVisible : true;
+				if (shouldDraw)
+				{
+					body.visualizer.update(m_graphicsEngine->getGraphicsDevice(), body.orbit);
+				}
 
 				body.orbit.isPathDirty = false;
 
@@ -131,9 +149,15 @@ namespace dx3d
 	void KeplerSandbox::onDrawDebug(DeviceContext& ctx, const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj)
 	{
 		for (auto& body : m_celestialBodies) {
-			if (body.parentIndex != -1) {
-				body.visualizer.draw(ctx, view, proj, m_celestialBodies[body.parentIndex].worldPosition);
+			if (body.parentIndex != -1 && body.renderObject)
+			{
+				auto visComp = body.renderObject->getComponent<OrbitVisualizerComponent>();
+				if (visComp && visComp->isVisible)
+				{
+					body.visualizer.draw(ctx, view, proj, m_celestialBodies[body.parentIndex].worldPosition);
+				}
 			}
+
 		}
 	}
 
@@ -187,6 +211,7 @@ namespace dx3d
 				body.visualizer.init(gd);
 
 				body.renderObject->addComponent<OrbitComponent>(&body.orbit);
+				body.renderObject->addComponent<OrbitVisualizerComponent>(&body.visualizer, &body.orbit);
 
 				body.renderObject->inheritPosition = false;
 				body.renderObject->inheritScale = false;

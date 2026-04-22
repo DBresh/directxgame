@@ -44,7 +44,7 @@ namespace Simulator
                     static_cast<float>(rawPoints[i].z)
                 );
                 // Cyan color for orbits
-                vertices[i].color = DirectX::XMFLOAT4(0.2f, 0.8f, 1.0f, 1.0f);
+                vertices[i].color = orbitData.orbitColor;
             }
 
             m_vertexBuffer = device.createVertexBuffer({ vertices.data(), sizeof(dx3d::Vertex), m_vertexCount });
