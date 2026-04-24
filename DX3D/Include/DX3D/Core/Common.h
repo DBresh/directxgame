@@ -96,7 +96,6 @@ namespace dx3d
 	struct InstancedBatch 
 	{
 		ModelGPU* model;
-		ConstantBuffer* cb;
 		std::vector<DirectX::XMFLOAT4X4> matrices;
 	};
 

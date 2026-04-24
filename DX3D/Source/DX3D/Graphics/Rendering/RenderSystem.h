@@ -52,7 +52,6 @@ namespace dx3d
 		void drawModelInstanced(
 			DeviceContext& context,
 			const ModelGPU& model,
-			const ConstantBuffer& objectCB,
 			const InstanceBuffer& instanceBuffer,
 			unsigned int instanceCount);
 
@@ -97,6 +96,7 @@ namespace dx3d
 
 		std::vector<GameObject*> m_singleDrawObjects;
 		std::vector<InstancedBatch> m_instancedBatches;
+		ConstantBufferPtr m_instancedTransformCB;
 
 		struct TransformData
 		{

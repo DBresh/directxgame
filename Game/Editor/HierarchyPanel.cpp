@@ -1,12 +1,14 @@
 #include <Game/Editor/HierarchyPanel.h>
+#include <DX3D/InputSystem/Camera.h>
+#include <DX3D/Math/Frustrum.h>
 #include <imgui.h>
 #include <functional>
 #include <unordered_set>
 
 namespace dx3d
 {
-    HierarchyPanel::HierarchyPanel(SceneManager& scene, std::shared_ptr<GameObject>& selectedObject)
-        : UIPanel("Scene Hierarchy"), m_scene(scene), m_selectedObject(selectedObject)
+    HierarchyPanel::HierarchyPanel(SceneManager& scene, std::shared_ptr<GameObject>& selectedObject, Camera& camera)
+        : UIPanel("Scene Hierarchy"), m_scene(scene), m_selectedObject(selectedObject), m_camera(camera)
     {
         this->alignment = PanelAlignment::Left;
         this->width = 250.0f;
@@ -15,9 +17,27 @@ namespace dx3d
     void HierarchyPanel::updateContent()
     {
         ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "FPS: %.1f", ImGui::GetIO().Framerate);
-        ImGui::Separator();
+        ImGui::SameLine();
+        ImGui::TextDisabled(" | ");
+        ImGui::SameLine();
 
-        auto& objects = m_scene.getAllObjects();
+        Frustum frustum;
+        frustum.constructFromViewProj(m_camera.getViewMatrix(), m_camera.getProjectionMatrix());
+
+        size_t visibleCount = 0;
+        const auto& objects = m_scene.getAllObjects();
+        for (const auto& obj : objects)
+        {
+            if (obj->hasMesh()) {
+                AABB bounds = obj->getWorldAABB();
+                if (frustum.checkAABB(bounds)) {
+                    visibleCount++;
+                }
+            }
+        }
+
+        ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "Visible: %zu", visibleCount);
+        ImGui::Separator();
 
         bool selectionChanged = (m_lastSelectedObject != m_selectedObject);
         m_lastSelectedObject = m_selectedObject;

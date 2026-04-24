@@ -374,5 +374,8 @@
     <ClInclude Include="Game\Components\OrbitVisualizerComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Game\Kepler\OrbitSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

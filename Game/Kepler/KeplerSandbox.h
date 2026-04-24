@@ -5,6 +5,7 @@
 #include <Game/Kepler/OrbitVisualizer.h>
 #include <Game/Editor/UIManager.h>
 #include <Game/Kepler/TimeController.h>
+#include <Game/Kepler/OrbitSystem.h>
 
 namespace dx3d
 {
@@ -34,12 +35,13 @@ namespace dx3d
         {
             std::string name;
             std::shared_ptr<dx3d::GameObject> renderObject = nullptr;
-            Simulator::OrbitData orbit;
             Simulator::OrbitVisualizer visualizer;
+            int orbitIndex = -1;
             int parentIndex = -1;
             Simulator::Vec3d worldPosition;
         };
 
+        Simulator::OrbitSystem m_orbitSystem{};
         std::vector<CelestialBody> m_celestialBodies;
         Simulator::TimeController m_timeController;
         

@@ -265,6 +265,7 @@
     <ClInclude Include="Game\Kepler\OrbitVisualizer.h" />
     <ClInclude Include="Game\Kepler\TimeController.h" />
     <ClInclude Include="Game\Utility\Vec3d.h" />
+    <ClInclude Include="Game\Kepler\OrbitSystem.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

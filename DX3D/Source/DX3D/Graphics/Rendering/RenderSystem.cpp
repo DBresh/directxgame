@@ -27,6 +27,7 @@ namespace dx3d
         
         m_instancedDepthVS = m_device->createVertexShaderFromFile("DX3D/Assets/Shaders/ShadowDepthInstancedVS.hlsl", "VSMain");
         m_cameraBuffer = m_device->createConstantBuffer({ nullptr, sizeof(CameraData) });
+        m_instancedTransformCB = m_device->createConstantBuffer({ nullptr, sizeof(TransformData) });
         m_lightManager = std::make_unique<LightManager>(m_device);
         m_lightManager->initShadowArray(512, 4);
 
@@ -440,9 +441,7 @@ namespace dx3d
             {
                 InstancedBatch batch;
                 batch.model = model;
-                batch.cb = objects[0]->constantBuffer.get();
                 batch.matrices.reserve(objects.size());
-
                 for (auto* obj : objects) {
                     batch.matrices.push_back(obj->getWorldTransform().getWorldMatrix());
                 }
@@ -459,6 +458,14 @@ namespace dx3d
         context.getD3D11Context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         setFrameResources(context);
 
+        TransformData cbData{};
+        XMStoreFloat4x4(&cbData.world, XMMatrixIdentity());
+        cbData.view = m_viewGPU;
+        cbData.projection = m_projGPU;
+
+        context.updateConstantBuffer(*m_instancedTransformCB, &cbData, sizeof(cbData));
+        context.setVSConstantBuffer(*m_instancedTransformCB, 0);
+
         for (const auto& batch : m_instancedBatches)
         {
             instanceBuffer.resize((unsigned int)batch.matrices.size());
@@ -467,28 +474,16 @@ namespace dx3d
             memcpy(mapped.pData, batch.matrices.data(), batch.matrices.size() * sizeof(XMFLOAT4X4));
             context.unmapBuffer(instanceBuffer.getBuffer());
 
-            drawModelInstanced(context, *batch.model, *batch.cb, instanceBuffer, (unsigned int)batch.matrices.size());
+            drawModelInstanced(context, *batch.model, instanceBuffer, (unsigned int)batch.matrices.size());
         }
     }
 
     void RenderSystem::drawModelInstanced(
         DeviceContext& context,
         const ModelGPU& model,
-        const ConstantBuffer& objectCB,
         const InstanceBuffer& instanceBuffer,
         unsigned int instanceCount)
     {
-        TransformData cbData{};
-
-        // The vertex shader ignores the world matrix, but we pass Identity just to keep memory clean
-        XMStoreFloat4x4(&cbData.world, XMMatrixIdentity());
-        cbData.view = m_viewGPU;
-        cbData.projection = m_projGPU;
-
-        context.updateConstantBuffer(objectCB, &cbData, sizeof(cbData));
-        context.setVSConstantBuffer(objectCB, 0);
-
-        // Bind the dynamic instance buffer to Slot 1
         context.setInstanceBuffer(instanceBuffer, 1);
 
         if (!model.submeshes.empty())

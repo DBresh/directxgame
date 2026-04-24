@@ -23,7 +23,7 @@ namespace dx3d
 
 	void KeplerSandbox::initUI()
 	{
-		m_uiManager.addPanel(std::make_shared<HierarchyPanel>(m_scene, m_selectedObject));
+		m_uiManager.addPanel(std::make_shared<HierarchyPanel>(m_scene, m_selectedObject, *m_camera));
 		m_uiManager.addPanel(std::make_shared<InspectorPanel>(m_selectedObject));
 		m_uiManager.addPanel(std::make_shared<TimelinePanel>(m_timeController, *m_camera));
 	}
@@ -56,37 +56,24 @@ namespace dx3d
 		m_timeController.Update(dt);
 		double scaledDt = m_timeController.GetScaledDeltaTime(dt);
 
+		m_orbitSystem.UpdateAll(scaledDt);
+
 		for (auto& body : m_celestialBodies)
 		{
-			if (body.orbit.isPathDirty)
+			if (body.parentIndex != -1 && body.orbitIndex != -1)
 			{
-				Simulator::Kepler::CalculateOrbitStateFromOrbitalVectors(body.orbit);
+				Simulator::OrbitData& orbit = m_orbitSystem.GetOrbit(body.orbitIndex);
 
-				if (!body.orbit.freezeColor)
-				{
-					double currentSpeed = body.orbit.velocityRelativeToAttractor.magnitude();
-					double referenceSpeed = sqrt(body.orbit.GravConst * body.orbit.AttractorMass / body.orbit.SemiMajorAxis);
-					float speedRatio = static_cast<float>(currentSpeed / referenceSpeed);
+				body.worldPosition = m_celestialBodies[body.parentIndex].worldPosition + orbit.positionRelativeToAttractor;
 
-					body.orbit.orbitColor.x = speedRatio - 0.5f; // Red increases as we go fast
-					body.orbit.orbitColor.y = 1.0f - abs(speedRatio - 1.0f); // Green peaks at circular speed
-					body.orbit.orbitColor.z = 1.5f - speedRatio; // Blue for slow speeds
-					body.orbit.orbitColor.w = 1.0f;
-				}
-			}
-
-			if (body.parentIndex != -1) {
-				Simulator::Kepler::UpdateOrbitAnomaliesByTime(body.orbit, scaledDt);
-
-				body.worldPosition = m_celestialBodies[body.parentIndex].worldPosition + body.orbit.positionRelativeToAttractor;
 				auto visComp = body.renderObject->getComponent<OrbitVisualizerComponent>();
 				bool shouldDraw = visComp ? visComp->isVisible : true;
 				if (shouldDraw)
 				{
-					body.visualizer.update(m_graphicsEngine->getGraphicsDevice(), body.orbit);
+					body.visualizer.update(m_graphicsEngine->getGraphicsDevice(), orbit);
 				}
 
-				body.orbit.isPathDirty = false;
+				orbit.isPathDirty = false;
 
 				if (body.renderObject) {
 					body.renderObject->transform.setPosition(DirectX::XMFLOAT3(
@@ -96,15 +83,11 @@ namespace dx3d
 					));
 				}
 			}
-			else {
-				if (body.renderObject)
-				{
+			else
+			{
+				if (body.renderObject) {
 					auto pos = body.renderObject->transform.getPosition();
 					body.worldPosition = Simulator::Vec3d(pos.x, pos.y, pos.z);
-				}
-				else
-				{
-					body.worldPosition = Simulator::Vec3d(0.0, 0.0, 0.0);
 				}
 			}
 		}
@@ -216,27 +199,32 @@ namespace dx3d
 
 				body.visualizer.init(gd);
 
-				body.renderObject->addComponent<OrbitComponent>(&body.orbit);
-				body.renderObject->addComponent<OrbitVisualizerComponent>(&body.visualizer, &body.orbit);
-
 				body.renderObject->inheritPosition = false;
 				body.renderObject->inheritScale = false;
 
 				if (parent != -1)
 				{
-					double attractorMass = m_celestialBodies[parent].orbit.BodyMass;
-					body.orbit.BodyMass = mass;
-					body.orbit.AttractorMass = attractorMass;
-					body.orbit.GravConst = 1.0;
+					Simulator::OrbitData initialOrbit;
+					double attractorMass = m_orbitSystem.GetOrbit(m_celestialBodies[parent].orbitIndex).BodyMass;
+					initialOrbit.BodyMass = mass;
+					initialOrbit.AttractorMass = attractorMass;
+					initialOrbit.GravConst = 1.0;
+					initialOrbit.positionRelativeToAttractor = Simulator::Vec3d(distance, 0.0, 0.0);
+					initialOrbit.velocityRelativeToAttractor = velocity;
+					body.orbitIndex = m_orbitSystem.AddOrbit(initialOrbit);
+					Simulator::OrbitData& activeOrbit = m_orbitSystem.GetOrbit(body.orbitIndex);
 
-					body.orbit.positionRelativeToAttractor = Simulator::Vec3d(distance, 0.0, 0.0);
-					body.orbit.velocityRelativeToAttractor = velocity;
+					Simulator::Kepler::CalculateOrbitStateFromOrbitalVectors(activeOrbit);
+					activeOrbit.isPathDirty = true;
 
-					Simulator::Kepler::CalculateOrbitStateFromOrbitalVectors(body.orbit);
-					body.orbit.isPathDirty = true;
+					body.renderObject->addComponent<OrbitComponent>(&m_orbitSystem, body.orbitIndex);
+					body.renderObject->addComponent<OrbitVisualizerComponent>(&body.visualizer);
 
 					m_celestialBodies[parent].renderObject->addChild(body.renderObject);
-					body.worldPosition = m_celestialBodies[parent].worldPosition + body.orbit.positionRelativeToAttractor;
+					body.worldPosition = m_celestialBodies[parent].worldPosition + activeOrbit.positionRelativeToAttractor;
+
+					m_celestialBodies[parent].renderObject->addChild(body.renderObject);
+					body.worldPosition = m_celestialBodies[parent].worldPosition + activeOrbit.positionRelativeToAttractor;
 					body.renderObject->transform.setPosition(DirectX::XMFLOAT3(
 						static_cast<float>(body.worldPosition.x),
 						static_cast<float>(body.worldPosition.y),
@@ -245,7 +233,10 @@ namespace dx3d
 				}
 				else
 				{
-					body.orbit.BodyMass = mass;
+					Simulator::OrbitData sunOrbit;
+					sunOrbit.BodyMass = mass;
+					body.orbitIndex = m_orbitSystem.AddOrbit(sunOrbit);
+
 					body.worldPosition = Simulator::Vec3d(0.0, 0.0, 0.0);
 					body.renderObject->transform.setPosition(DirectX::XMFLOAT3(0, 0, 0));
 				}
