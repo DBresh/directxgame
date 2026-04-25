@@ -9,7 +9,7 @@ namespace dx3d
     {
     public:
         Simulator::OrbitVisualizer* visualizer;
-        bool isVisible = true;
+        
 
         OrbitVisualizerComponent(Simulator::OrbitVisualizer* visPtr)
             : visualizer(visPtr) {}

@@ -16,7 +16,6 @@ namespace dx3d
 	{
 		initSandboxSimulation();
 		initUI();
-
 	}
 
 	KeplerSandbox::~KeplerSandbox() = default;
@@ -63,14 +62,12 @@ namespace dx3d
 			if (body.parentIndex != -1 && body.orbitIndex != -1)
 			{
 				Simulator::OrbitData& orbit = m_orbitSystem.GetOrbit(body.orbitIndex);
-
 				body.worldPosition = m_celestialBodies[body.parentIndex].worldPosition + orbit.positionRelativeToAttractor;
 
-				auto visComp = body.renderObject->getComponent<OrbitVisualizerComponent>();
-				bool shouldDraw = visComp ? visComp->isVisible : true;
-				if (shouldDraw)
+				auto orbitComp = body.renderObject->getComponent<OrbitComponent>();
+				if (orbitComp && orbitComp->isVisible)
 				{
-					body.visualizer.update(m_graphicsEngine->getGraphicsDevice(), orbit);
+					orbitComp->visualizer.update(m_graphicsEngine->getGraphicsDevice(), orbit);
 				}
 
 				orbit.isPathDirty = false;
@@ -140,13 +137,12 @@ namespace dx3d
 		for (auto& body : m_celestialBodies) {
 			if (body.parentIndex != -1 && body.renderObject)
 			{
-				auto visComp = body.renderObject->getComponent<OrbitVisualizerComponent>();
-				if (visComp && visComp->isVisible)
+				auto orbitComp = body.renderObject->getComponent<OrbitComponent>();
+				if (orbitComp && orbitComp->isVisible)
 				{
-					body.visualizer.draw(ctx, view, proj, m_celestialBodies[body.parentIndex].worldPosition);
+					orbitComp->visualizer.draw(ctx, view, proj, m_celestialBodies[body.parentIndex].worldPosition);
 				}
 			}
-
 		}
 	}
 
@@ -211,14 +207,16 @@ namespace dx3d
 					initialOrbit.GravConst = 1.0;
 					initialOrbit.positionRelativeToAttractor = Simulator::Vec3d(distance, 0.0, 0.0);
 					initialOrbit.velocityRelativeToAttractor = velocity;
+					initialOrbit.ParentOrbitIndex = m_celestialBodies[parent].orbitIndex;
+
 					body.orbitIndex = m_orbitSystem.AddOrbit(initialOrbit);
 					Simulator::OrbitData& activeOrbit = m_orbitSystem.GetOrbit(body.orbitIndex);
 
 					Simulator::Kepler::CalculateOrbitStateFromOrbitalVectors(activeOrbit);
 					activeOrbit.isPathDirty = true;
 
-					body.renderObject->addComponent<OrbitComponent>(&m_orbitSystem, body.orbitIndex);
-					body.renderObject->addComponent<OrbitVisualizerComponent>(&body.visualizer);
+					auto orbitComp = body.renderObject->addComponent<OrbitComponent>(&m_orbitSystem, body.orbitIndex);
+					orbitComp->visualizer.init(gd);
 
 					m_celestialBodies[parent].renderObject->addChild(body.renderObject);
 					body.worldPosition = m_celestialBodies[parent].worldPosition + activeOrbit.positionRelativeToAttractor;

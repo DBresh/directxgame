@@ -26,10 +26,17 @@ namespace Simulator
         {
             for (auto& orbit : m_orbits)
             {
+                if (orbit.ParentOrbitIndex != -1) {
+                    double currentAttractorMass = m_orbits[orbit.ParentOrbitIndex].BodyMass;
+                    if (orbit.AttractorMass != currentAttractorMass) {
+                        orbit.AttractorMass = currentAttractorMass;
+                        orbit.isPathDirty = true;
+                    }
+                }
+
                 if (orbit.isPathDirty)
                 {
                     Simulator::Kepler::CalculateOrbitStateFromOrbitalVectors(orbit);
-
                     if (!orbit.freezeColor)
                     {
                         double currentSpeed = orbit.velocityRelativeToAttractor.magnitude();
@@ -43,7 +50,16 @@ namespace Simulator
                     }
                 }
 
-                Simulator::Kepler::UpdateOrbitAnomaliesByTime(orbit, dt);
+                if (!orbit.isFrozen)
+                {
+                    Simulator::Kepler::UpdateOrbitAnomaliesByTime(orbit, dt);
+
+                    // temp fallback
+                    if (std::isnan(orbit.positionRelativeToAttractor.x)) {
+                        orbit.isFrozen = true;
+                        orbit.positionRelativeToAttractor = Simulator::Vec3d(0.0, 0.0, 0.0);
+                    }
+                }
             }
         }
     };

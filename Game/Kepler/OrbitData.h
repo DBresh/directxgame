@@ -49,5 +49,7 @@ namespace Simulator
         bool isPathDirty = true; // if path dirty, then visualisator will update orbit points once
         bool freezeColor = false;
         DirectX::XMFLOAT4 orbitColor = { 1.f,1.f,1.f,1.f };
+        int ParentOrbitIndex = -1;
+        bool isFrozen = false;
     };
 }
