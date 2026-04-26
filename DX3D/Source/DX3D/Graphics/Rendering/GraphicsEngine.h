@@ -38,7 +38,7 @@ namespace dx3d
         void createCubeMesh();
         void compileShaders();
         void initializeThreading();
-        void executeSingleDraws(SwapChain& swapChain);
+        void executeSingleDraws(SwapChain& swapChain, const Camera& camera);
         void executeInstancedDraws(SwapChain& swapChain);
 
     private:

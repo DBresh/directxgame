@@ -28,9 +28,9 @@ namespace Simulator
             if (!orbitData.isPathDirty) return;
 
             const int numPoints = 150;
-            std::vector<Vec3d> rawPoints;
+            std::vector<dx3d::Vec3d> rawPoints;
 
-            Kepler::GetOrbitPoints(orbitData, rawPoints, numPoints, Simulator::Vec3d(0.0, 0.0, 0.0), 1500.0);
+            Kepler::GetOrbitPoints(orbitData, rawPoints, numPoints, dx3d::Vec3d(0.0, 0.0, 0.0), 1500.0);
 
             m_vertexCount = static_cast<uint32_t>(rawPoints.size());
             if (m_vertexCount == 0) return;
@@ -52,7 +52,7 @@ namespace Simulator
             orbitData.isPathDirty = false;
         }
 
-        void draw(dx3d::DeviceContext& context, const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj, const Simulator::Vec3d& parentWorldPos)
+        void draw(dx3d::DeviceContext& context, const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj, const dx3d::Vec3d& parentWorldPos)
         {
             if (!m_vertexBuffer || m_vertexCount == 0 || !m_constantBuffer) return;
 

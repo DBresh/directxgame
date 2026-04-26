@@ -60,13 +60,13 @@ namespace dx3d
 		void setInstancedPipeline(GraphicsPipelineStatePtr pipeline) noexcept;
 		void drawInstancedBatches(DeviceContext& context, InstanceBuffer& instanceBuffer);
 
-		void renderShadows(SceneManager& scene, InstanceBuffer& instanceBuffer);
+		void renderShadows(SceneManager& scene, InstanceBuffer& instanceBuffer, const Camera& camera);
 
 		void buildBatches(SceneManager& scene, const Camera& camera);
 		const std::vector<GameObject*>& getSingleDrawObjects() const noexcept { return m_singleDrawObjects; }
 
 	private:
-		void renderSingleLightShadows(const Light& light, int shadowIndex, SceneManager& scene, InstanceBuffer& instanceBuffer);
+		void renderSingleLightShadows(const Light& light, int shadowIndex, SceneManager& scene, InstanceBuffer& instanceBuffer, const Camera& camera);
 
 	private:
 		std::shared_ptr<GraphicsDevice> m_device;

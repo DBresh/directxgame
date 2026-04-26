@@ -52,15 +52,7 @@ namespace dx3d {
         }
     }
 
-    void SceneManager::shiftUniverse(double cameraX, double cameraY, double cameraZ)
-    {
-        for (auto& obj : m_objects)
-        {
-            obj->applyFloatingOriginOffset(cameraX, cameraY, cameraZ);
-        }
-    }
-
-    std::shared_ptr<GameObject> SceneManager::pickObject(const DirectX::XMVECTOR& rayOrigin, const DirectX::XMVECTOR& rayDir) const
+    std::shared_ptr<GameObject> SceneManager::pickObject(const DirectX::XMVECTOR& rayOrigin, const DirectX::XMVECTOR& rayDir, const dx3d::Vec3d& cameraPos) const
     {
         std::shared_ptr<GameObject> pickedObj = nullptr;
         float minDistance = FLT_MAX;
@@ -69,7 +61,7 @@ namespace dx3d {
         {
             if (!obj->model) continue;
 
-            AABB bounds = obj->getWorldAABB();
+            AABB bounds = obj->getRelativeAABB(cameraPos);
             float tMin = 0.0f;
 
             if (bounds.intersectRay(rayOrigin, rayDir, tMin))

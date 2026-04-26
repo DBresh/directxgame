@@ -2,7 +2,7 @@
 #include <cmath>
 #include <DirectXMath.h>
 
-namespace Simulator
+namespace dx3d
 {
     struct Vec3d
     {

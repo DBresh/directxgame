@@ -1,5 +1,5 @@
 #include <DX3D/InputSystem/Camera.h>
-#include <Game/Utility/Vec3d.h>
+#include <DX3D/Math/Vec3d.h>
 #include <Windows.h>
 
 #include <DX3D/Graphics/GraphicsLogUtils.h>
@@ -29,12 +29,6 @@ namespace dx3d
 		setPerspective(degToRad(90.0f), aspect, 0.1f, 100000.0f);
 	}
 
-	void Camera::setPosition(float x, float y, float z)
-	{
-		m_position = XMFLOAT3(x, y, z);
-		updateViewMatrix();
-	}
-
 	void Camera::updateViewMatrix()
 	{
 		float cosPitch = cosf(m_pitch);
@@ -53,11 +47,11 @@ namespace dx3d
 
 		if (m_isOrbiting)
 		{
-			Simulator::Vec3d fwdDouble(m_forward.x, m_forward.y, m_forward.z);
-			m_physicsPosition = m_orbitTarget - (fwdDouble * m_orbitDistance);
+			Vec3d fwdDouble(m_forward.x, m_forward.y, m_forward.z);
+			m_position = m_orbitTarget - (fwdDouble * m_orbitDistance);
 		}
 
-		XMVECTOR eye = XMLoadFloat3(&m_position);
+		XMVECTOR eye = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
 		XMVECTOR up = XMVectorSet(0, 1, 0, 0);
 
 		XMMATRIX V = XMMatrixLookAtLH(eye, eye + forward, up);
@@ -71,17 +65,13 @@ namespace dx3d
 		double dt = (float)Time::Instance()->deltaTime();
 		double move = m_speed * dt;
 
-		Simulator::Vec3d fwd(m_forward.x, m_forward.y, m_forward.z);
-		Simulator::Vec3d up(0.0, 1.0, 0.0);
-		Simulator::Vec3d right = Simulator::Vec3d::Cross(up, fwd).normalized();
+		Vec3d fwd(m_forward.x, m_forward.y, m_forward.z);
+		Vec3d up(0.0, 1.0, 0.0);
+		Vec3d right = Vec3d::Cross(up, fwd).normalized();
 
-		XMVECTOR pos = XMLoadFloat3(&m_position);
-
-		m_physicsPosition += fwd * (m_moveForward * move);
-		m_physicsPosition += right * (m_moveRight * move);
-		m_physicsPosition += up * (m_moveUp * move);
-
-		XMStoreFloat3(&m_position, pos);
+		m_position += fwd * (m_moveForward * move);
+		m_position += right * (m_moveRight * move);
+		m_position += up * (m_moveUp * move);
 
 		updateViewMatrix();
 	}
@@ -187,7 +177,7 @@ namespace dx3d
 		m_isOrbiting = enabled;
 		if (enabled)
 		{
-			Simulator::Vec3d diff = m_physicsPosition - m_orbitTarget;
+			Vec3d diff = m_position - m_orbitTarget;
 			m_orbitDistance = diff.magnitude();
 
 			if (m_orbitDistance < 2.0) m_orbitDistance = 10.0;
@@ -195,7 +185,7 @@ namespace dx3d
 		updateViewMatrix();
 	}
 
-	void Camera::setOrbitTarget(const Simulator::Vec3d& target)
+	void Camera::setOrbitTarget(const Vec3d& target)
 	{
 		m_orbitTarget = target;
 		if (m_isOrbiting) updateViewMatrix();

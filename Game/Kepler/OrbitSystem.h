@@ -57,7 +57,7 @@ namespace Simulator
                     // temp fallback
                     if (std::isnan(orbit.positionRelativeToAttractor.x)) {
                         orbit.isFrozen = true;
-                        orbit.positionRelativeToAttractor = Simulator::Vec3d(0.0, 0.0, 0.0);
+                        orbit.positionRelativeToAttractor = dx3d::Vec3d(0.0, 0.0, 0.0);
                     }
                 }
             }

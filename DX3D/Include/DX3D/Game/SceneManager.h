@@ -17,12 +17,11 @@ namespace dx3d {
         std::shared_ptr<GameObject> findObject(const std::string& name) const;
         std::vector<std::shared_ptr<GameObject>> findObjectsByTag(const std::string& tag) const;
         const std::vector<std::shared_ptr<GameObject>>& getAllObjects() const { return m_objects; }
-        void shiftUniverse(double cameraX, double cameraY, double cameraZ);
 
         void clear();
         void update(float deltaTime);
 
-        std::shared_ptr<GameObject> pickObject(const DirectX::XMVECTOR& rayOrigin, const DirectX::XMVECTOR& rayDir) const;
+        std::shared_ptr<GameObject> pickObject(const DirectX::XMVECTOR& rayOrigin, const DirectX::XMVECTOR& rayDir, const dx3d::Vec3d& cameraPos) const;
 
     private:
         std::vector<std::shared_ptr<GameObject>> m_objects;

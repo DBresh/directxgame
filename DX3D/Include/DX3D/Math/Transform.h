@@ -2,6 +2,7 @@
 #include <DirectXMath.h>
 #include <algorithm>
 #include <math.h>
+#include <DX3D/Math/Vec3d.h>
 
 namespace dx3d
 {
@@ -12,24 +13,37 @@ namespace dx3d
     public:
         Transform() = default;
 
-        XMFLOAT3 getPosition()    const noexcept { return m_position; }
-        XMFLOAT3 getScale()       const noexcept { return m_scale; }
-        XMFLOAT4 getQuaternion()  const noexcept { return m_quat; }
+        dx3d::Vec3d getPosition() const noexcept { return m_position; }
 
-        XMFLOAT3 getEuler() const noexcept { return m_euler; }
-
-        const XMFLOAT4X4& getWorldMatrix() const
-        {
-            if (m_dirty)
-                recalcMatrix();
-            return m_world;
-        }
-
-        void setPosition(const XMFLOAT3& p)
+        void setPosition(const dx3d::Vec3d& p)
         {
             m_position = p;
             m_dirty = true;
         }
+
+        void setPosition(const XMFLOAT3& p)
+        {
+            m_position.x = p.x;
+            m_position.y = p.y;
+            m_position.z = p.z;
+            m_dirty = true;
+        }
+
+        void setPosition(double x, double y, double z)
+        {
+            m_position = dx3d::Vec3d(x, y, z);
+            m_dirty = true;
+        }
+
+        void translate(const dx3d::Vec3d& d)
+        {
+            m_position += d;
+            m_dirty = true;
+        }
+
+        XMFLOAT3 getScale()       const noexcept { return m_scale; }
+        XMFLOAT4 getQuaternion()  const noexcept { return m_quat; }
+        XMFLOAT3 getEuler()       const noexcept { return m_euler; }
 
         void setScale(const XMFLOAT3& s)
         {
@@ -48,14 +62,6 @@ namespace dx3d
         {
             m_euler = e;
             updateQuaternionFromEuler();
-            m_dirty = true;
-        }
-
-        void translate(const XMFLOAT3& d)
-        {
-            m_position.x += d.x;
-            m_position.y += d.y;
-            m_position.z += d.z;
             m_dirty = true;
         }
 
@@ -81,11 +87,36 @@ namespace dx3d
             m_dirty = true;
         }
 
+        const XMFLOAT4X4& getWorldMatrix() const
+        {
+            if (m_dirty)
+                recalcMatrix();
+            return m_world;
+        }
+
+        XMFLOAT4X4 getWorldMatrixRelative(const dx3d::Vec3d& cameraOrigin) const
+        {
+            dx3d::Vec3d relPos = m_position - cameraOrigin;
+
+            XMMATRIX S = XMMatrixScaling(m_scale.x, m_scale.y, m_scale.z);
+            XMMATRIX R = XMMatrixRotationQuaternion(XMLoadFloat4(&m_quat));
+            XMMATRIX T = XMMatrixTranslation(
+                static_cast<float>(relPos.x),
+                static_cast<float>(relPos.y),
+                static_cast<float>(relPos.z)
+            );
+
+            XMMATRIX world = S * R * T;
+
+            XMFLOAT4X4 result;
+            XMStoreFloat4x4(&result, world);
+            return result;
+        }
+
     private:
         void updateQuaternionFromEuler()
         {
-            XMVECTOR q =
-                XMQuaternionRotationRollPitchYaw(m_euler.x, m_euler.y, m_euler.z);
+            XMVECTOR q = XMQuaternionRotationRollPitchYaw(m_euler.x, m_euler.y, m_euler.z);
             XMStoreFloat4(&m_quat, q);
         }
 
@@ -115,13 +146,16 @@ namespace dx3d
 
         void recalcMatrix() const
         {
-            XMVECTOR pos = XMLoadFloat3(&m_position);
             XMVECTOR sca = XMLoadFloat3(&m_scale);
             XMVECTOR rot = XMLoadFloat4(&m_quat);
 
             XMMATRIX S = XMMatrixScalingFromVector(sca);
             XMMATRIX R = XMMatrixRotationQuaternion(rot);
-            XMMATRIX T = XMMatrixTranslationFromVector(pos);
+            XMMATRIX T = XMMatrixTranslation(
+                static_cast<float>(m_position.x),
+                static_cast<float>(m_position.y),
+                static_cast<float>(m_position.z)
+            );
 
             XMMATRIX world = S * R * T;
 
@@ -130,15 +164,14 @@ namespace dx3d
             m_dirty = false;
         }
 
-
     private:
         mutable bool m_dirty = true;
         mutable XMFLOAT4X4 m_world;
 
-        XMFLOAT3 m_position{ 0,0,0 };
-        XMFLOAT3 m_scale{ 1,1,1 };
+        dx3d::Vec3d m_position{ 0.0, 0.0, 0.0 };
+        XMFLOAT3 m_scale{ 1.0f, 1.0f, 1.0f };
 
-        XMFLOAT4 m_quat{ 0,0,0,1 }; // rotation base
-        XMFLOAT3 m_euler{ 0,0,0 };  // for UI
+        XMFLOAT4 m_quat{ 0.0f, 0.0f, 0.0f, 1.0f };
+        XMFLOAT3 m_euler{ 0.0f, 0.0f, 0.0f };
     };
 }

@@ -33,11 +33,11 @@ namespace Simulator::Kepler
 		return H;
 	}
 
-	inline Vec3d GetCentralPositionAtEccentricAnomaly(const OrbitData& d, double eccentricAnomaly)
+	inline dx3d::Vec3d GetCentralPositionAtEccentricAnomaly(const OrbitData& d, double eccentricAnomaly)
 	{
 		if (d.Eccentricity < 1.0)
 		{
-			Vec3d r(
+			dx3d::Vec3d r(
 				std::sin(eccentricAnomaly) * d.SemiMinorAxis,
 				-std::cos(eccentricAnomaly) * d.SemiMajorAxis,
 				0.0
@@ -46,7 +46,7 @@ namespace Simulator::Kepler
 		}
 		else if (d.Eccentricity > 1.0)
 		{
-			Vec3d r(
+			dx3d::Vec3d r(
 				std::sinh(eccentricAnomaly) * d.SemiMinorAxis,
 				std::cosh(eccentricAnomaly) * d.SemiMajorAxis,
 				0.0
@@ -56,7 +56,7 @@ namespace Simulator::Kepler
 		else
 		{
 			double cosE = std::cos(eccentricAnomaly);
-			Vec3d r(
+			dx3d::Vec3d r(
 				d.PeriapsisDistance * std::sin(eccentricAnomaly) / (1.0 + cosE),
 				d.PeriapsisDistance * cosE / (1.0 + cosE),
 				0.0
@@ -65,14 +65,14 @@ namespace Simulator::Kepler
 		}
 	}
 
-	inline Vec3d GetFocalPositionAtEccentricAnomaly(const OrbitData& d, double eccentricAnomaly)
+	inline dx3d::Vec3d GetFocalPositionAtEccentricAnomaly(const OrbitData& d, double eccentricAnomaly)
 	{
 		return GetCentralPositionAtEccentricAnomaly(d, eccentricAnomaly) + d.CenterPoint;
 	}
 
-	inline Vec3d GetVelocityAtTrueAnomaly(const OrbitData& d, double trueAnomaly)
+	inline dx3d::Vec3d GetVelocityAtTrueAnomaly(const OrbitData& d, double trueAnomaly)
 	{
-		if (d.FocalParameter <= 0.0) return Vec3d();
+		if (d.FocalParameter <= 0.0) return dx3d::Vec3d();
 
 		double sqrtMGp = std::sqrt(d.AttractorMass * d.GravConst / d.FocalParameter);
 		double vX = sqrtMGp * (d.Eccentricity + std::cos(trueAnomaly));
@@ -126,11 +126,11 @@ namespace Simulator::Kepler
 	inline void CalculateOrbitStateFromElements(OrbitData& d)
 	{
 		d.MG = d.AttractorMass * d.GravConst;
-		d.OrbitNormal = -Vec3d::Cross(d.SemiMajorAxisBasis, d.SemiMinorAxisBasis).normalized();
+		d.OrbitNormal = -dx3d::Vec3d::Cross(d.SemiMajorAxisBasis, d.SemiMinorAxisBasis).normalized();
 
 		// Assuming Ecliptic Normal is standard Up (0, 1, 0)
-		Vec3d eclipticNormal(0.0, 1.0, 0.0);
-		d.OrbitNormalDotEclipticNormal = Vec3d::Dot(d.OrbitNormal, eclipticNormal);
+		dx3d::Vec3d eclipticNormal(0.0, 1.0, 0.0);
+		d.OrbitNormalDotEclipticNormal = dx3d::Vec3d::Dot(d.OrbitNormal, eclipticNormal);
 
 		if (d.Eccentricity < 1.0)
 		{
@@ -149,7 +149,7 @@ namespace Simulator::Kepler
 			d.CenterPoint = d.SemiMajorAxisBasis * d.SemiMajorAxis * d.Eccentricity;
 			d.Period = inf;
 			d.MeanMotion = std::sqrt(d.MG / std::pow(d.SemiMajorAxis, 3));
-			d.Apoapsis = Vec3d(inf, inf, inf);
+			d.Apoapsis = dx3d::Vec3d(inf, inf, inf);
 			d.Periapsis = d.CenterPoint - d.SemiMajorAxisBasis * d.SemiMajorAxis;
 			d.PeriapsisDistance = d.Periapsis.magnitude();
 			d.ApoapsisDistance = inf;
@@ -157,10 +157,10 @@ namespace Simulator::Kepler
 		else
 		{
 			double inf = std::numeric_limits<double>::infinity();
-			d.CenterPoint = Vec3d();
+			d.CenterPoint = dx3d::Vec3d();
 			d.Period = inf;
 			d.MeanMotion = std::sqrt(d.MG * 0.5 / std::pow(d.PeriapsisDistance, 3));
-			d.Apoapsis = Vec3d(inf, inf, inf);
+			d.Apoapsis = dx3d::Vec3d(inf, inf, inf);
 			d.PeriapsisDistance = d.SemiMajorAxis;
 			d.SemiMajorAxis = 0.0;
 			d.Periapsis = -d.SemiMajorAxisBasis * d.PeriapsisDistance;
@@ -182,9 +182,9 @@ namespace Simulator::Kepler
 	}
 
 	// Helper: Angle between two vectors in radians
-	inline double AngleRad(const Vec3d& from, const Vec3d& to)
+	inline double AngleRad(const dx3d::Vec3d& from, const dx3d::Vec3d& to)
 	{
-		double dot = Vec3d::Dot(from.normalized(), to.normalized());
+		double dot = dx3d::Vec3d::Dot(from.normalized(), to.normalized());
 		return std::acos(std::clamp(dot, -1.0, 1.0));
 	}
 
@@ -219,35 +219,35 @@ namespace Simulator::Kepler
 		d.MG = d.AttractorMass * d.GravConst;
 		d.AttractorDistance = d.positionRelativeToAttractor.magnitude();
 
-		Vec3d h = Vec3d::Cross(d.positionRelativeToAttractor, d.velocityRelativeToAttractor);
+		dx3d::Vec3d h = dx3d::Vec3d::Cross(d.positionRelativeToAttractor, d.velocityRelativeToAttractor);
 		d.OrbitNormal = h.normalized();
 
-		Vec3d ecc;
-		Vec3d eclipticUp(0.0, 1.0, 0.0); // Assuming EclipticConstants.EclipticUp is Y-up
+		dx3d::Vec3d ecc;
+		dx3d::Vec3d eclipticUp(0.0, 1.0, 0.0); // Assuming EclipticConstants.EclipticUp is Y-up
 
 		// If the object is falling straight down (or perfectly straight up), cross product is 0
 		if (d.OrbitNormal.sqrMagnitude() < 0.99)
 		{
-			d.OrbitNormal = Vec3d::Cross(d.positionRelativeToAttractor, eclipticUp).normalized();
-			ecc = Vec3d();
+			d.OrbitNormal = dx3d::Vec3d::Cross(d.positionRelativeToAttractor, eclipticUp).normalized();
+			ecc = dx3d::Vec3d();
 		}
 		else
 		{
-			ecc = Vec3d::Cross(d.velocityRelativeToAttractor, h) / d.MG -
+			ecc = dx3d::Vec3d::Cross(d.velocityRelativeToAttractor, h) / d.MG -
 				(d.positionRelativeToAttractor / d.AttractorDistance);
 		}
 
-		d.OrbitNormalDotEclipticNormal = Vec3d::Dot(d.OrbitNormal, eclipticUp);
+		d.OrbitNormalDotEclipticNormal = dx3d::Vec3d::Dot(d.OrbitNormal, eclipticUp);
 		d.FocalParameter = h.sqrMagnitude() / d.MG;
 		d.Eccentricity = ecc.magnitude();
 
-		d.SemiMinorAxisBasis = Vec3d::Cross(h, -ecc).normalized();
+		d.SemiMinorAxisBasis = dx3d::Vec3d::Cross(h, -ecc).normalized();
 		if (d.SemiMinorAxisBasis.sqrMagnitude() < 0.99)
 		{
-			d.SemiMinorAxisBasis = Vec3d::Cross(d.OrbitNormal, d.positionRelativeToAttractor).normalized();
+			d.SemiMinorAxisBasis = dx3d::Vec3d::Cross(d.OrbitNormal, d.positionRelativeToAttractor).normalized();
 		}
 
-		d.SemiMajorAxisBasis = Vec3d::Cross(d.OrbitNormal, d.SemiMinorAxisBasis).normalized();
+		d.SemiMajorAxisBasis = dx3d::Vec3d::Cross(d.OrbitNormal, d.SemiMinorAxisBasis).normalized();
 
 		double inf = std::numeric_limits<double>::infinity();
 
@@ -269,7 +269,7 @@ namespace Simulator::Kepler
 			d.ApoapsisDistance = d.Apoapsis.magnitude();
 
 			d.TrueAnomaly = AngleRad(d.positionRelativeToAttractor, d.SemiMajorAxisBasis);
-			if (Vec3d::Dot(Vec3d::Cross(d.positionRelativeToAttractor, -d.SemiMajorAxisBasis), d.OrbitNormal) < 0.0)
+			if (dx3d::Vec3d::Dot(dx3d::Vec3d::Cross(d.positionRelativeToAttractor, -d.SemiMajorAxisBasis), d.OrbitNormal) < 0.0)
 			{
 				d.TrueAnomaly = PI_2 - d.TrueAnomaly;
 			}
@@ -287,13 +287,13 @@ namespace Simulator::Kepler
 			d.Period = inf;
 			d.MeanMotion = std::sqrt(d.MG / std::pow(d.SemiMajorAxis, 3));
 
-			d.Apoapsis = Vec3d(inf, inf, inf);
+			d.Apoapsis = dx3d::Vec3d(inf, inf, inf);
 			d.Periapsis = d.CenterPoint - d.SemiMajorAxisBasis * d.SemiMajorAxis;
 			d.PeriapsisDistance = d.Periapsis.magnitude();
 			d.ApoapsisDistance = inf;
 
 			d.TrueAnomaly = AngleRad(d.positionRelativeToAttractor, ecc);
-			if (Vec3d::Dot(Vec3d::Cross(d.positionRelativeToAttractor, -d.SemiMajorAxisBasis), d.OrbitNormal) < 0.0)
+			if (dx3d::Vec3d::Dot(dx3d::Vec3d::Cross(d.positionRelativeToAttractor, -d.SemiMajorAxisBasis), d.OrbitNormal) < 0.0)
 			{
 				d.TrueAnomaly = -d.TrueAnomaly;
 			}
@@ -307,17 +307,17 @@ namespace Simulator::Kepler
 			d.SemiMajorAxis = 0.0;
 			d.SemiMinorAxis = 0.0;
 			d.PeriapsisDistance = h.sqrMagnitude() / d.MG;
-			d.CenterPoint = Vec3d();
+			d.CenterPoint = dx3d::Vec3d();
 			d.Periapsis = -d.SemiMinorAxisBasis * d.PeriapsisDistance;
 
 			d.Period = inf;
 			d.MeanMotion = std::sqrt(d.MG / std::pow(d.PeriapsisDistance, 3));
 
-			d.Apoapsis = Vec3d(inf, inf, inf);
+			d.Apoapsis = dx3d::Vec3d(inf, inf, inf);
 			d.ApoapsisDistance = inf;
 
 			d.TrueAnomaly = AngleRad(d.positionRelativeToAttractor, ecc);
-			if (Vec3d::Dot(Vec3d::Cross(d.positionRelativeToAttractor, -d.SemiMajorAxisBasis), d.OrbitNormal) < 0.0)
+			if (dx3d::Vec3d::Dot(dx3d::Vec3d::Cross(d.positionRelativeToAttractor, -d.SemiMajorAxisBasis), d.OrbitNormal) < 0.0)
 			{
 				d.TrueAnomaly = -d.TrueAnomaly;
 			}
@@ -331,13 +331,13 @@ namespace Simulator::Kepler
 		d.isPathDirty = true;
 	}
 
-	inline Vec3d GetCentralPositionAtTrueAnomaly(const OrbitData& d, double trueAnomaly)
+	inline dx3d::Vec3d GetCentralPositionAtTrueAnomaly(const OrbitData& d, double trueAnomaly)
     {
         double ecc = ConvertTrueToEccentricAnomaly(trueAnomaly, d.Eccentricity);
         return GetCentralPositionAtEccentricAnomaly(d, ecc);
     }
 
-    inline Vec3d GetFocalPositionAtTrueAnomaly(const OrbitData& d, double trueAnomaly)
+    inline dx3d::Vec3d GetFocalPositionAtTrueAnomaly(const OrbitData& d, double trueAnomaly)
     {
         return GetCentralPositionAtTrueAnomaly(d, trueAnomaly) + d.CenterPoint;
     }
@@ -351,7 +351,7 @@ namespace Simulator::Kepler
         return std::acos(std::clamp(cosNu, -1.0, 1.0));
     }
 
-    inline void GenerateEllipticOrbitPoints(const OrbitData& d, std::vector<Vec3d>& orbitPoints, int orbitPointsCount, const Vec3d& origin)
+    inline void GenerateEllipticOrbitPoints(const OrbitData& d, std::vector<dx3d::Vec3d>& orbitPoints, int orbitPointsCount, const dx3d::Vec3d& origin)
     {
         orbitPoints.resize(orbitPointsCount);
 
@@ -362,7 +362,7 @@ namespace Simulator::Kepler
         }
     }
 
-    inline void GenerateHyperbolicOrbitPoints(const OrbitData& d, std::vector<Vec3d>& orbitPoints, int orbitPointsCount, const Vec3d& origin, double maxDistance)
+    inline void GenerateHyperbolicOrbitPoints(const OrbitData& d, std::vector<dx3d::Vec3d>& orbitPoints, int orbitPointsCount, const dx3d::Vec3d& origin, double maxDistance)
     {
         if (maxDistance < d.PeriapsisDistance)
         {
@@ -380,7 +380,7 @@ namespace Simulator::Kepler
         }
     }
 
-    inline void GetOrbitPoints(const OrbitData& d, std::vector<Vec3d>& orbitPoints, int orbitPointsCount, const Vec3d& gravitySourceOrigin, double maxDistance = 500.0)
+    inline void GetOrbitPoints(const OrbitData& d, std::vector<dx3d::Vec3d>& orbitPoints, int orbitPointsCount, const dx3d::Vec3d& gravitySourceOrigin, double maxDistance = 500.0)
     {
         if (orbitPointsCount < 2)
         {

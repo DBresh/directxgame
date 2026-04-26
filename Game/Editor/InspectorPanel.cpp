@@ -32,8 +32,12 @@ namespace dx3d
 
             if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
             {
-                DirectX::XMFLOAT3 pos = m_selectedObject->transform.getPosition();
-                if (ImGui::DragFloat3("Position", &pos.x, 0.1f)) m_selectedObject->transform.setPosition(pos);
+                dx3d::Vec3d pos = m_selectedObject->transform.getPosition();
+                float dragSpeed = 0.1f;
+                if (ImGui::DragScalarN("Position", ImGuiDataType_Double, &pos.x, 3, dragSpeed))
+                {
+                    m_selectedObject->transform.setPosition(pos);
+                }
 
                 DirectX::XMFLOAT3 rot = m_selectedObject->transform.getEuler();
                 if (ImGui::DragFloat3("Rotation", &rot.x, 0.05f)) m_selectedObject->transform.setEuler(rot);

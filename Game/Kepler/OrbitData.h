@@ -1,5 +1,5 @@
 #pragma once
-#include <Game/Utility/Vec3d.h>
+#include <DX3D/Math/Vec3d.h>
 
 namespace Simulator
 {
@@ -25,19 +25,19 @@ namespace Simulator
         double EccentricAnomaly = 0.0;
 
         // Spatial Vectors and Bases
-        Vec3d CenterPoint;
-        Vec3d OrbitNormal;
-        Vec3d SemiMinorAxisBasis;
-        Vec3d SemiMajorAxisBasis;
+        dx3d::Vec3d CenterPoint;
+        dx3d::Vec3d OrbitNormal;
+        dx3d::Vec3d SemiMinorAxisBasis;
+        dx3d::Vec3d SemiMajorAxisBasis;
 
-        Vec3d Periapsis;
-        Vec3d Apoapsis;
+        dx3d::Vec3d Periapsis;
+        dx3d::Vec3d Apoapsis;
         double PeriapsisDistance = 0.0;
         double ApoapsisDistance = 0.0;
 
         // State Vectors
-        Vec3d positionRelativeToAttractor;
-        Vec3d velocityRelativeToAttractor;
+        dx3d::Vec3d positionRelativeToAttractor;
+        dx3d::Vec3d velocityRelativeToAttractor;
         double AttractorDistance = 0.0;
 
         // Additional Parameters

@@ -82,7 +82,7 @@ namespace dx3d
 
 		m_renderSystem->setCameraMatrices(view, proj);
 		m_renderSystem->buildBatches(scene, camera);
-		m_renderSystem->renderShadows(scene, *m_instanceBuffer);
+		m_renderSystem->renderShadows(scene, *m_instanceBuffer, camera);
 
 		m_renderSystem->beginFrame(swapChain, { 0.2f, 0.2f, 0.2f, 1.0f });
 
@@ -94,7 +94,7 @@ namespace dx3d
 
 		m_deviceContext->setGraphicsPipelineState(*m_pipeline);
 
-		executeSingleDraws(swapChain);
+		executeSingleDraws(swapChain, camera);
 		executeInstancedDraws(swapChain);
 
 		ImGui::Render();
@@ -103,7 +103,7 @@ namespace dx3d
 		m_renderSystem->endFrame(*m_graphicsDevice, swapChain, false);
 	}
 
-	void GraphicsEngine::executeSingleDraws(SwapChain& swapChain)
+	void GraphicsEngine::executeSingleDraws(SwapChain& swapChain, const Camera& camera)
 	{
 		const auto& singleDrawObjects = m_renderSystem->getSingleDrawObjects();
 		if (singleDrawObjects.empty()) return;
@@ -124,7 +124,7 @@ namespace dx3d
 						*m_deviceContext,
 						*obj->model,
 						*obj->constantBuffer,
-						obj->transform.getWorldMatrix()
+						obj->getWorldTransform().getWorldMatrixRelative(camera.getPosition())
 					);
 				}
 			}

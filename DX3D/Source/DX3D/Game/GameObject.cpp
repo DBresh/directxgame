@@ -49,16 +49,15 @@ namespace dx3d
 
         Transform parentWorld = parentPtr->getWorldTransform();
 
-        // Load components
-        XMFLOAT3 localPos = transform.getPosition();
+        dx3d::Vec3d localPos = transform.getPosition();
         XMFLOAT3 localScale = transform.getScale();
         XMFLOAT4 localQuat = transform.getQuaternion();
 
-        XMFLOAT3 parentPos = parentWorld.getPosition();
+        dx3d::Vec3d parentPos = parentWorld.getPosition();
         XMFLOAT3 parentScale = parentWorld.getScale();
         XMFLOAT4 parentQuat = parentWorld.getQuaternion();
 
-        // ---------------- SCALE ----------------
+        // scale
         XMFLOAT3 worldScale = localScale;
         if (inheritScale) {
             worldScale.x *= parentScale.x;
@@ -66,29 +65,29 @@ namespace dx3d
             worldScale.z *= parentScale.z;
         }
 
-        // ---------------- ROTATION ----------------
+        // rotation
         XMVECTOR qLocal = XMLoadFloat4(&localQuat);
         XMVECTOR qParent = XMLoadFloat4(&parentQuat);
-
         XMVECTOR qWorld = qLocal;
-        if (inheritRotation)
-            qWorld = XMQuaternionMultiply(qLocal, qParent);
+        if (inheritRotation) qWorld = XMQuaternionMultiply(qLocal, qParent);
+        XMFLOAT4 worldQuat; XMStoreFloat4(&worldQuat, qWorld);
 
-        XMFLOAT4 worldQuat;
-        XMStoreFloat4(&worldQuat, qWorld);
-
-        // ---------------- POSITION ----------------
-        XMFLOAT3 worldPos = localPos;
-
+        // position
+        dx3d::Vec3d worldPos = localPos;
         if (inheritPosition)
         {
-            XMMATRIX parentM = XMLoadFloat4x4(&parentWorld.getWorldMatrix());
-            XMVECTOR pos = XMVectorSet(localPos.x, localPos.y, localPos.z, 1.0f);
-            pos = XMVector3Transform(pos, parentM);
-            XMStoreFloat3(&worldPos, pos);
+            // Apply parent's rotation and scale to our local offset
+            XMMATRIX S = XMMatrixScaling(parentScale.x, parentScale.y, parentScale.z);
+            XMMATRIX R = XMMatrixRotationQuaternion(qParent);
+            XMVECTOR localV = XMVectorSet(static_cast<float>(localPos.x), static_cast<float>(localPos.y), static_cast<float>(localPos.z), 1.0f);
+
+            XMVECTOR rotatedScaled = XMVector3Transform(localV, S * R);
+            XMFLOAT3 rsFloat;
+            XMStoreFloat3(&rsFloat, rotatedScaled);
+
+            worldPos = parentPos + dx3d::Vec3d(rsFloat.x, rsFloat.y, rsFloat.z);
         }
 
-        // ---------------- WRITE TO RESULT ----------------
         result.setScale(worldScale);
         result.setPosition(worldPos);
         result.setQuaternion(worldQuat);

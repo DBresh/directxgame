@@ -38,7 +38,7 @@ namespace dx3d
             Simulator::OrbitVisualizer visualizer;
             int orbitIndex = -1;
             int parentIndex = -1;
-            Simulator::Vec3d worldPosition;
+            Vec3d worldPosition;
         };
 
         Simulator::OrbitSystem m_orbitSystem{};

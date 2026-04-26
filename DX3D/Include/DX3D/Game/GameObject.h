@@ -25,26 +25,6 @@ namespace dx3d {
         std::shared_ptr<ModelGPU> model;
         ConstantBufferPtr constantBuffer;
 
-        bool useFloatingOrigin = true;
-        double physicsPosition[3] = { 0.0, 0.0, 0.0 };
-
-        void setPhysicsPosition(double x, double y, double z) {
-            physicsPosition[0] = x;
-            physicsPosition[1] = y;
-            physicsPosition[2] = z;
-            useFloatingOrigin = true; // Automatically flag for shifting
-        }
-
-        void applyFloatingOriginOffset(double camX, double camY, double camZ) {
-            if (!useFloatingOrigin) return;
-
-            transform.setPosition(DirectX::XMFLOAT3(
-                static_cast<float>(physicsPosition[0] - camX),
-                static_cast<float>(physicsPosition[1] - camY),
-                static_cast<float>(physicsPosition[2] - camZ)
-            ));
-        }
-
         std::weak_ptr<GameObject> parent;
         std::vector<std::shared_ptr<GameObject>> children;
 
@@ -74,6 +54,13 @@ namespace dx3d {
         AABB getWorldAABB() const {
             if (model) {
                 return model->boundingBox.transform(getWorldTransform().getWorldMatrix());
+            }
+            return AABB{};
+        }
+
+        AABB getRelativeAABB(const dx3d::Vec3d& camPos) const {
+            if (model) {
+                return model->boundingBox.transform(getWorldTransform().getWorldMatrixRelative(camPos));
             }
             return AABB{};
         }
