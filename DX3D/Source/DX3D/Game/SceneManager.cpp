@@ -52,6 +52,14 @@ namespace dx3d {
         }
     }
 
+    void SceneManager::shiftUniverse(double cameraX, double cameraY, double cameraZ)
+    {
+        for (auto& obj : m_objects)
+        {
+            obj->applyFloatingOriginOffset(cameraX, cameraY, cameraZ);
+        }
+    }
+
     std::shared_ptr<GameObject> SceneManager::pickObject(const DirectX::XMVECTOR& rayOrigin, const DirectX::XMVECTOR& rayDir) const
     {
         std::shared_ptr<GameObject> pickedObj = nullptr;

@@ -1,9 +1,9 @@
 #pragma once
-
 #include <DirectXMath.h>
 #include <DX3D/Core/Time.h>
 #include <DX3D/InputSystem/InputListener.h>
 #include <DX3D/InputSystem/InputSystem.h>
+#include <Game/Utility/Vec3d.h>
 
 namespace dx3d
 {
@@ -20,8 +20,13 @@ namespace dx3d
 		const XMFLOAT4X4& getProjectionMatrix() const noexcept { return m_proj; }
 
 		void setPerspective(float fov, float aspect, float zNear, float zFar);
+		
 		void setPosition(float x, float y, float z);
 		XMFLOAT3 getPosition() const noexcept { return m_position; }
+
+		void setPhysicsPosition(Simulator::Vec3d pos) { m_physicsPosition = pos; updateViewMatrix(); }
+		Simulator::Vec3d getPhysicsPosition() const noexcept { return m_physicsPosition; }
+
 		void setScreenSize(float width, float height);
 
 		void onKeyDown(int key) override;
@@ -32,7 +37,7 @@ namespace dx3d
 		void onMouseUp(int button) override;
 		void onMouseWheel(int delta) override;
 
-		void setOrbitTarget(const DirectX::XMFLOAT3& target);
+		void setOrbitTarget(const Simulator::Vec3d& target);
 		void setOrbitMode(bool enabled);
 		bool isOrbiting() const noexcept { return m_isOrbiting; }
 
@@ -49,6 +54,7 @@ namespace dx3d
 	private:
 		XMFLOAT3 m_position{ 0, 0, 0 };
 		XMFLOAT3 m_forward{ 0, 0, 1 };
+		Simulator::Vec3d m_physicsPosition{ 0.0, 0.0, 0.0 };
 
 		XMFLOAT4X4 m_view;
 		XMFLOAT4X4 m_proj;
@@ -62,7 +68,7 @@ namespace dx3d
 		int m_moveUp{ 0 };
 
 		bool m_isOrbiting{ false };
-		DirectX::XMFLOAT3 m_orbitTarget{ 0.0f, 0.0f, 0.0f };
-		float m_orbitDistance{ 15.0f };
+		Simulator::Vec3d m_orbitTarget{ 0.0f, 0.0f, 0.0f };
+		double m_orbitDistance{ 15.0f };
 	};
 }

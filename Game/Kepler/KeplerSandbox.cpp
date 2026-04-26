@@ -71,27 +71,25 @@ namespace dx3d
 				}
 
 				orbit.isPathDirty = false;
-
-				if (body.renderObject) {
-					body.renderObject->transform.setPosition(DirectX::XMFLOAT3(
-						static_cast<float>(body.worldPosition.x),
-						static_cast<float>(body.worldPosition.y),
-						static_cast<float>(body.worldPosition.z)
-					));
-				}
 			}
-			else
+
+			if (body.renderObject)
 			{
-				if (body.renderObject) {
-					auto pos = body.renderObject->transform.getPosition();
-					body.worldPosition = Simulator::Vec3d(pos.x, pos.y, pos.z);
-				}
+				body.renderObject->setPhysicsPosition(body.worldPosition.x, body.worldPosition.y, body.worldPosition.z);
 			}
 		}
 
 		if (m_selectedObject && m_camera->isOrbiting()) {
-			m_camera->setOrbitTarget(m_selectedObject->getWorldTransform().getPosition());
+			for (const auto& body : m_celestialBodies) {
+				if (body.renderObject == m_selectedObject) {
+					m_camera->setOrbitTarget(body.worldPosition);
+					break;
+				}
+			}
 		}
+
+		auto camPos = m_camera->getPhysicsPosition();
+		m_scene.shiftUniverse(camPos.x, camPos.y, camPos.z);
 	}
 
 	void dx3d::KeplerSandbox::onGUI()
@@ -103,22 +101,13 @@ namespace dx3d
 			ImVec2 pos = io.MousePos;
 			bool wrapped = false;
 
-			if (pos.x <= 0.0f)
-			{
-				pos.x = io.DisplaySize.x - 2.0f;
-				wrapped = true;
-			}
-			else if (pos.x >= io.DisplaySize.x - 1.0f)
-			{
-				pos.x = 1.0f;
-				wrapped = true;
-			}
+			if (pos.x <= 0.0f) { pos.x = io.DisplaySize.x - 2.0f; wrapped = true; }
+			else if (pos.x >= io.DisplaySize.x - 1.0f) { pos.x = 1.0f; wrapped = true; }
 
 			if (wrapped)
 			{
 				io.WantSetMousePos = true;
 				io.MousePos = pos;
-
 				io.MouseDelta = ImVec2(0.0f, 0.0f);
 				io.MousePosPrev = pos;
 			}
@@ -128,7 +117,12 @@ namespace dx3d
 
 		if (m_selectedObject && m_camera->isOrbiting())
 		{
-			m_camera->setOrbitTarget(m_selectedObject->getWorldTransform().getPosition());
+			for (const auto& body : m_celestialBodies) {
+				if (body.renderObject == m_selectedObject) {
+					m_camera->setOrbitTarget(body.worldPosition);
+					break;
+				}
+			}
 		}
 	}
 
@@ -140,7 +134,8 @@ namespace dx3d
 				auto orbitComp = body.renderObject->getComponent<OrbitComponent>();
 				if (orbitComp && orbitComp->isVisible)
 				{
-					orbitComp->visualizer.draw(ctx, view, proj, m_celestialBodies[body.parentIndex].worldPosition);
+					Simulator::Vec3d relParentPos = m_celestialBodies[body.parentIndex].worldPosition - m_camera->getPhysicsPosition();
+					orbitComp->visualizer.draw(ctx, view, proj, relParentPos);
 				}
 			}
 		}
@@ -157,9 +152,9 @@ namespace dx3d
 
 			DirectX::XMVECTOR origin, dir;
 			m_camera->screenPointToRay(mouseState.coords.x, mouseState.coords.y, width, height, origin, dir);
+
 			std::shared_ptr<GameObject> pick = m_scene.pickObject(origin, dir);
-			if (pick)
-				m_selectedObject = pick;
+			if (pick) m_selectedObject = pick;
 		}
 	}
 
@@ -168,7 +163,7 @@ namespace dx3d
 		auto planeModel = m_assets->getModel("plane.obj");
 		auto plane = m_scene.createObject("plane");
 		plane->model = planeModel;
-		plane->transform.setPosition(DirectX::XMFLOAT3(0.0f, -70.0f, 0.0f));
+		plane->setPhysicsPosition(0.0, -70.0, 0.0);
 		plane->transform.setScale(DirectX::XMFLOAT3(50.0f, 10.0f, 50.0f));
 		plane->constantBuffer = m_graphicsEngine->getGraphicsDevice().createConstantBuffer({ nullptr, sizeof(DirectX::XMFLOAT4X4) * 3 });
 
@@ -238,6 +233,13 @@ namespace dx3d
 					body.worldPosition = Simulator::Vec3d(0.0, 0.0, 0.0);
 					body.renderObject->transform.setPosition(DirectX::XMFLOAT3(0, 0, 0));
 				}
+
+				Simulator::Vec3d relPos = body.worldPosition - m_camera->getPhysicsPosition();
+				body.renderObject->transform.setPosition(DirectX::XMFLOAT3(
+					static_cast<float>(relPos.x),
+					static_cast<float>(relPos.y),
+					static_cast<float>(relPos.z)
+				));
 			};
 
 		// 0: Sun
@@ -305,7 +307,12 @@ namespace dx3d
 			if (m_selectedObject)
 			{
 				bool currentState = m_camera->isOrbiting();
-				m_camera->setOrbitTarget(m_selectedObject->transform.getPosition());
+				for (const auto& body : m_celestialBodies) {
+					if (body.renderObject == m_selectedObject) {
+						m_camera->setOrbitTarget(body.worldPosition);
+						break;
+					}
+				}
 				m_camera->setOrbitMode(!currentState);
 			}
 			else

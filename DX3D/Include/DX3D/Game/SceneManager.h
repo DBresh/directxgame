@@ -17,6 +17,7 @@ namespace dx3d {
         std::shared_ptr<GameObject> findObject(const std::string& name) const;
         std::vector<std::shared_ptr<GameObject>> findObjectsByTag(const std::string& tag) const;
         const std::vector<std::shared_ptr<GameObject>>& getAllObjects() const { return m_objects; }
+        void shiftUniverse(double cameraX, double cameraY, double cameraZ);
 
         void clear();
         void update(float deltaTime);

@@ -1,5 +1,8 @@
 #include <DX3D/InputSystem/Camera.h>
+#include <Game/Utility/Vec3d.h>
 #include <Windows.h>
+
+#include <DX3D/Graphics/GraphicsLogUtils.h>
 
 using namespace DirectX;
 
@@ -50,9 +53,8 @@ namespace dx3d
 
 		if (m_isOrbiting)
 		{
-			XMVECTOR tar = XMLoadFloat3(&m_orbitTarget);
-			XMVECTOR pos = XMVectorSubtract(tar, XMVectorScale(forward, m_orbitDistance));
-			XMStoreFloat3(&m_position, pos);
+			Simulator::Vec3d fwdDouble(m_forward.x, m_forward.y, m_forward.z);
+			m_physicsPosition = m_orbitTarget - (fwdDouble * m_orbitDistance);
 		}
 
 		XMVECTOR eye = XMLoadFloat3(&m_position);
@@ -66,18 +68,18 @@ namespace dx3d
 	{
 		if (m_isOrbiting) return;
 
-		float dt = (float)Time::Instance()->deltaTime();
-		float move = m_speed * dt;
+		double dt = (float)Time::Instance()->deltaTime();
+		double move = m_speed * dt;
 
-		XMVECTOR forward = XMLoadFloat3(&m_forward);
-		XMVECTOR up = XMVectorSet(0, 1, 0, 0);
-		XMVECTOR right = XMVector3Normalize(XMVector3Cross(up, forward));
+		Simulator::Vec3d fwd(m_forward.x, m_forward.y, m_forward.z);
+		Simulator::Vec3d up(0.0, 1.0, 0.0);
+		Simulator::Vec3d right = Simulator::Vec3d::Cross(up, fwd).normalized();
 
 		XMVECTOR pos = XMLoadFloat3(&m_position);
 
-		pos += forward * (m_moveForward * move);
-		pos += right * (m_moveRight * move);
-		pos += up * (m_moveUp * move);
+		m_physicsPosition += fwd * (m_moveForward * move);
+		m_physicsPosition += right * (m_moveRight * move);
+		m_physicsPosition += up * (m_moveUp * move);
 
 		XMStoreFloat3(&m_position, pos);
 
@@ -174,8 +176,8 @@ namespace dx3d
 		}
 		if (m_isOrbiting)
 		{
-			m_orbitDistance -= delta * m_speed * 0.01f;
-			if (m_orbitDistance < 1.0f) m_orbitDistance = 1.0f;
+			m_orbitDistance -= static_cast<double>(delta * m_speed) * 0.01;
+			if (m_orbitDistance < 1.0) m_orbitDistance = 1.0;
 			updateViewMatrix();
 		}
 	}
@@ -185,16 +187,15 @@ namespace dx3d
 		m_isOrbiting = enabled;
 		if (enabled)
 		{
-			XMVECTOR pos = XMLoadFloat3(&m_position);
-			XMVECTOR tar = XMLoadFloat3(&m_orbitTarget);
-			m_orbitDistance = XMVectorGetX(XMVector3Length(XMVectorSubtract(pos, tar)));
+			Simulator::Vec3d diff = m_physicsPosition - m_orbitTarget;
+			m_orbitDistance = diff.magnitude();
 
-			if (m_orbitDistance < 2.0f) m_orbitDistance = 10.0f;
+			if (m_orbitDistance < 2.0) m_orbitDistance = 10.0;
 		}
 		updateViewMatrix();
 	}
 
-	void Camera::setOrbitTarget(const XMFLOAT3& target)
+	void Camera::setOrbitTarget(const Simulator::Vec3d& target)
 	{
 		m_orbitTarget = target;
 		if (m_isOrbiting) updateViewMatrix();
