@@ -37,7 +37,7 @@ namespace dx3d
 
 	void LightManager::createDirectionalShadow(Light& l)
 	{
-		float sceneDiameter = 300.0f;
+		float sceneDiameter = 200.0f;
 		XMVECTOR targetPos = XMVectorSet(0, 0, 0, 0);
 
 		XMVECTOR lightDir = XMLoadFloat3(&l.direction);

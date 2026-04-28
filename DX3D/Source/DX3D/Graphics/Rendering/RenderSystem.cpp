@@ -29,7 +29,7 @@ namespace dx3d
 		m_cameraBuffer = m_device->createConstantBuffer({ nullptr, sizeof(CameraData) });
 		m_instancedTransformCB = m_device->createConstantBuffer({ nullptr, sizeof(TransformData) });
 		m_lightManager = std::make_unique<LightManager>(m_device);
-		m_lightManager->initShadowArray(512, 4);
+		m_lightManager->initShadowArray(m_lightManager->getShadowMapSize(), 4);
 
 		m_materialBuffer = m_device->createConstantBuffer({ nullptr, sizeof(MaterialDataGPU) });
 

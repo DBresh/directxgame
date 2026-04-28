@@ -34,8 +34,8 @@ namespace dx3d
 
                 ImGui::TextDisabled("Relative State Vectors");
 
-                physicsChanged |= ImGui::DragScalarN("##Position", ImGuiDataType_Double, &orbit.positionRelativeToAttractor.x, 3, 0.5f);
-                physicsChanged |= ImGui::DragScalarN("##Velocity", ImGuiDataType_Double, &orbit.velocityRelativeToAttractor.x, 3, 0.05f);
+                physicsChanged |= ImGui::DragScalarN("Rel Position", ImGuiDataType_Double, &orbit.positionRelativeToAttractor.x, 3, 0.5f);
+                physicsChanged |= ImGui::DragScalarN("Rel Velocity", ImGuiDataType_Double, &orbit.velocityRelativeToAttractor.x, 3, 0.05f);
 
                 ImGui::Separator();
 
