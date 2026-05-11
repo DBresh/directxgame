@@ -29,7 +29,8 @@ namespace dx3d
         for (const auto& obj : objects)
         {
             if (obj->hasMesh()) {
-                AABB bounds = obj->getWorldAABB();
+                AABB bounds = obj->getRelativeAABB(m_camera.getPosition());
+
                 if (frustum.checkAABB(bounds)) {
                     visibleCount++;
                 }

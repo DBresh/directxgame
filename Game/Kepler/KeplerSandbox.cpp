@@ -398,6 +398,7 @@ namespace dx3d
 			nlohmann::json saveJson;
 			saveJson["version"] = 1;
 			saveJson["orbitSystem"] = m_orbitSystem.saveToJson();
+			saveJson["epoch"] = m_timeController.Epoch;
 			saveJson["gameObjects"] = m_scene.saveScene();
 
 			std::ofstream file("quicksave.json");
@@ -413,6 +414,7 @@ namespace dx3d
 				nlohmann::json loadJson;
 				file >> loadJson;
 
+				m_timeController.Epoch = loadJson.value("epoch", 0.0);
 				m_orbitSystem.loadFromJson(loadJson["orbitSystem"]);
 				m_scene.loadScene(loadJson["gameObjects"], *m_assets);
 				rebuildSandboxState();

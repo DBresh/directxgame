@@ -91,6 +91,7 @@ namespace Simulator
                     OrbitData data = j.get<OrbitData>();
                     Kepler::CalculateOrbitStateFromOrbitalVectors(data);
                     data.isPathDirty = true;
+                    data.freezeColor = true;
                     m_orbits.push_back(data);
                 }
                 catch (const nlohmann::json::exception& e)
