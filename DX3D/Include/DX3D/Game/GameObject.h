@@ -16,6 +16,7 @@ namespace dx3d {
     public:
         std::string name;
         std::string tag;
+        std::string modelName;
 
         bool inheritPosition = true;
         bool inheritRotation = true;

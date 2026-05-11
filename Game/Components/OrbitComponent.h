@@ -3,6 +3,7 @@
 #include <Game/Kepler/OrbitSystem.h>
 #include <Game/Kepler/OrbitData.h>
 #include <Game/Components/OrbitVisualizerComponent.h>
+#include <json.hpp>
 #include <imgui.h>
 
 namespace dx3d
@@ -72,6 +73,22 @@ namespace dx3d
                     orbit.isPathDirty = true;
                 }
             }
+        }
+
+        std::string getType() const override { return "OrbitComponent"; }
+
+        nlohmann::json serialize() const override
+        {
+            return nlohmann::json{
+                {"orbitIndex", m_orbitIndex},
+                {"isVisible", isVisible}
+            };
+        }
+
+        void deserialize(const nlohmann::json& j) override
+        {
+            if (j.contains("orbitIndex")) m_orbitIndex = j.at("orbitIndex").get<int>();
+            if (j.contains("isVisible")) isVisible = j.at("isVisible").get<bool>();
         }
 
     private:

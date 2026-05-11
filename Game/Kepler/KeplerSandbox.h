@@ -6,6 +6,7 @@
 #include <Game/Editor/UIManager.h>
 #include <Game/Kepler/TimeController.h>
 #include <Game/Kepler/OrbitSystem.h>
+#include <json.hpp>
 
 namespace dx3d
 {
@@ -17,7 +18,6 @@ namespace dx3d
 
         void onMouseDown(int button) override;
         void onKeyDown(int key) override;
-
     protected:
         void onUpdate(double dt, double fdt) override;
         void onGUI() override;
@@ -27,6 +27,7 @@ namespace dx3d
     private:
         void initUI();
         void initSandboxSimulation();
+        void rebuildSandboxState();
 
     private:
         UIManager m_uiManager;

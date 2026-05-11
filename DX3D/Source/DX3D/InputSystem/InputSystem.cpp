@@ -86,6 +86,13 @@ namespace dx3d
 		return isKeyDown(static_cast<int>(toupper(key)));
 	}
 
+	bool InputSystem::isMouseKeyDown(int button) const
+	{
+		if (m_currentMouse.leftButton && button == 0) return true;
+		if (m_currentMouse.rightButton && button == 1) return true;
+		return false;
+	}
+
 	const MouseState& InputSystem::getMouseState() const
 	{
 		return m_currentMouse;

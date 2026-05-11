@@ -15,6 +15,21 @@ namespace dx3d
 {
 	KeplerSandbox::KeplerSandbox(const GameDesc& desc) : Game(desc)
 	{
+		m_scene.onObjectCreated = [this](std::shared_ptr<GameObject> obj) {
+			obj->constantBuffer = m_graphicsEngine->getGraphicsDevice().createConstantBuffer({ nullptr, sizeof(DirectX::XMFLOAT4X4) * 3 });
+			};
+
+		m_scene.onComponentFactory = [this](GameObject* obj, const std::string& type, const nlohmann::json& j) {
+			if (type == "OrbitComponent") {
+				int orbitIndex = j.value("orbitIndex", -1);
+				if (orbitIndex != -1) {
+					auto comp = obj->addComponent<OrbitComponent>(&m_orbitSystem, orbitIndex);
+					comp->deserialize(j);
+					comp->visualizer.init(m_graphicsEngine->getGraphicsDevice());
+				}
+			}
+			};
+
 		initSandboxSimulation();
 		initUI();
 	}
@@ -164,6 +179,7 @@ namespace dx3d
 		plane->transform.setPosition(0.0, -70.0, 0.0);
 		plane->transform.setScale(DirectX::XMFLOAT3(50.0f, 10.0f, 50.0f));
 		plane->constantBuffer = m_graphicsEngine->getGraphicsDevice().createConstantBuffer({ nullptr, sizeof(DirectX::XMFLOAT4X4) * 3 });
+		plane->modelName = "plane.obj";
 
 		auto lights = m_graphicsEngine->getLightManager();
 		lights->clear();
@@ -183,6 +199,7 @@ namespace dx3d
 				body.renderObject = m_scene.createObject(name);
 				body.renderObject->model = bodyModel;
 				body.renderObject->transform.setScale(DirectX::XMFLOAT3(scale, scale, scale));
+				body.renderObject->modelName = "cube.obj";
 				GraphicsDevice& gd = m_graphicsEngine->getGraphicsDevice();
 				body.renderObject->constantBuffer = gd.createConstantBuffer({ nullptr, sizeof(DirectX::XMFLOAT4X4) * 3 });
 
@@ -218,7 +235,18 @@ namespace dx3d
 				{
 					Simulator::OrbitData sunOrbit;
 					sunOrbit.BodyMass = mass;
+					sunOrbit.AttractorMass = 0.0;
+					sunOrbit.GravConst = 1.0;
+					sunOrbit.positionRelativeToAttractor = Vec3d(0.0, 0.0, 0.0);
+					sunOrbit.velocityRelativeToAttractor = Vec3d(0.0, 0.0, 0.0);
+					sunOrbit.ParentOrbitIndex = -1;
+					sunOrbit.isFrozen = true;
+
 					body.orbitIndex = m_orbitSystem.AddOrbit(sunOrbit);
+
+					auto orbitComp = body.renderObject->addComponent<OrbitComponent>(&m_orbitSystem, body.orbitIndex);
+					orbitComp->visualizer.init(gd);
+					orbitComp->isVisible = false;
 
 					body.worldPosition = Vec3d(0.0, 0.0, 0.0);
 					body.renderObject->transform.setPosition(DirectX::XMFLOAT3(0, 0, 0));
@@ -287,6 +315,51 @@ namespace dx3d
 		}
 	}
 
+	void KeplerSandbox::rebuildSandboxState()
+	{
+		m_celestialBodies.clear();
+		m_selectedObject = nullptr;
+
+		const auto& objects = m_scene.getAllObjects();
+		m_celestialBodies.reserve(objects.size());
+
+		for (const auto& obj : objects)
+		{
+			CelestialBody body;
+			body.name = obj->name;
+			body.renderObject = obj;
+			body.worldPosition = obj->transform.getPosition();
+
+			auto orbitComp = obj->getComponent<OrbitComponent>();
+			if (orbitComp) {
+				body.orbitIndex = orbitComp->getOrbitIndex();
+			}
+			else {
+				body.orbitIndex = -1;
+			}
+			body.parentIndex = -1;
+
+			m_celestialBodies.push_back(body);
+		}
+
+		for (auto& body : m_celestialBodies)
+		{
+			if (body.orbitIndex != -1)
+			{
+				int physicsParentOrbitIdx = m_orbitSystem.GetOrbit(body.orbitIndex).ParentOrbitIndex;
+				if (physicsParentOrbitIdx != -1)
+				{
+					auto it = std::find_if(m_celestialBodies.begin(), m_celestialBodies.end(),
+						[physicsParentOrbitIdx](const CelestialBody& cb) { return cb.orbitIndex == physicsParentOrbitIdx; });
+
+					if (it != m_celestialBodies.end()) {
+						body.parentIndex = static_cast<int>(std::distance(m_celestialBodies.begin(), it));
+					}
+				}
+			}
+		}
+	}
+
 	void KeplerSandbox::onKeyDown(int key)
 	{
 		if (key == 'F')
@@ -318,6 +391,34 @@ namespace dx3d
 		if (key == 'P')
 		{
 			m_timeController.SetPaused(!m_timeController.IsPaused());
+		}
+
+		if (key == VK_F5)
+		{
+			nlohmann::json saveJson;
+			saveJson["version"] = 1;
+			saveJson["orbitSystem"] = m_orbitSystem.saveToJson();
+			saveJson["gameObjects"] = m_scene.saveScene();
+
+			std::ofstream file("quicksave.json");
+			file << saveJson.dump(4);
+			DX3D_LOG_INFO("Quick saved to quicksave.json");
+		}
+
+		if (key == VK_F6)
+		{
+			std::ifstream file("quicksave.json");
+			if (file.is_open())
+			{
+				nlohmann::json loadJson;
+				file >> loadJson;
+
+				m_orbitSystem.loadFromJson(loadJson["orbitSystem"]);
+				m_scene.loadScene(loadJson["gameObjects"], *m_assets);
+				rebuildSandboxState();
+
+				DX3D_LOG_INFO("Quick loaded from quicksave.json");
+			}
 		}
 	}
 }

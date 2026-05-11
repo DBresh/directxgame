@@ -159,7 +159,7 @@ namespace dx3d
 
 	void Camera::onMouseWheel(int delta)
 	{
-		if (InputSystem::get()->isKeyDown(VK_SHIFT))
+		if (InputSystem::get()->isMouseKeyDown(1))
 		{
 			m_speed += delta;
 			return;

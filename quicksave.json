@@ -1,0 +1,2208 @@
+{
+    "gameObjects": [
+        {
+            "components": [],
+            "id": 0,
+            "inheritFlags": {
+                "position": true,
+                "rotation": true,
+                "scale": true
+            },
+            "modelName": "plane.obj",
+            "name": "plane",
+            "parentId": -1,
+            "tag": "",
+            "transform": {
+                "position": [
+                    0.0,
+                    -70.0,
+                    0.0
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    50.0,
+                    10.0,
+                    50.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": false,
+                    "orbitIndex": 0,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 1,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Sun",
+            "parentId": -1,
+            "tag": "",
+            "transform": {
+                "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    100.0,
+                    100.0,
+                    100.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 1,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 2,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Planet Alpha",
+            "parentId": 1,
+            "tag": "",
+            "transform": {
+                "position": [
+                    -52.4443850826517,
+                    -55.9880635072387,
+                    -500.53328775471385
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    30.0,
+                    30.0,
+                    30.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 2,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 3,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Planet Beta",
+            "parentId": 1,
+            "tag": "",
+            "transform": {
+                "position": [
+                    -187.83711885818755,
+                    0.0,
+                    877.9565422525154
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    40.0,
+                    40.0,
+                    40.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 3,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 4,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Planet Gamma",
+            "parentId": 1,
+            "tag": "",
+            "transform": {
+                "position": [
+                    782.7518097668069,
+                    -351.7243692845427,
+                    1173.8800824871612
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    25.0,
+                    25.0,
+                    25.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 4,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 5,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Planet Delta",
+            "parentId": 1,
+            "tag": "",
+            "transform": {
+                "position": [
+                    -1684.2323610258743,
+                    0.0,
+                    3619.1084532411746
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    60.0,
+                    60.0,
+                    60.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 5,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 6,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Planet Epsilon",
+            "parentId": 1,
+            "tag": "",
+            "transform": {
+                "position": [
+                    1719.6068373703456,
+                    0.0,
+                    -5741.419172218956
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    45.0,
+                    45.0,
+                    45.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 6,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 7,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Alpha Moon",
+            "parentId": 2,
+            "tag": "",
+            "transform": {
+                "position": [
+                    27.487902318430095,
+                    -55.9880635072387,
+                    -503.8217265723867
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    8.0,
+                    8.0,
+                    8.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 7,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 8,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Beta Moon 1",
+            "parentId": 3,
+            "tag": "",
+            "transform": {
+                "position": [
+                    -123.04764861501026,
+                    -24.90409928934165,
+                    777.0949401306817
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    10.0,
+                    10.0,
+                    10.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 8,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 9,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Beta Moon 2",
+            "parentId": 3,
+            "tag": "",
+            "transform": {
+                "position": [
+                    -309.60429155471553,
+                    0.0,
+                    722.4525360796124
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    6.0,
+                    6.0,
+                    6.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 9,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 10,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Gamma Moon",
+            "parentId": 4,
+            "tag": "",
+            "transform": {
+                "position": [
+                    751.862436216099,
+                    -351.7243692845427,
+                    1124.130204782476
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    5.0,
+                    5.0,
+                    5.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 10,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 11,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Delta Moon 1",
+            "parentId": 5,
+            "tag": "",
+            "transform": {
+                "position": [
+                    -1534.6213338323714,
+                    0.0,
+                    3608.3130587553333
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    12.0,
+                    12.0,
+                    12.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 11,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 12,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Delta Moon 2",
+            "parentId": 5,
+            "tag": "",
+            "transform": {
+                "position": [
+                    -2251.178114616642,
+                    68.49095632785364,
+                    3724.5845259860694
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    10.0,
+                    10.0,
+                    10.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 12,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 13,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Delta Moon 3",
+            "parentId": 5,
+            "tag": "",
+            "transform": {
+                "position": [
+                    -1286.2765494476262,
+                    0.0,
+                    3578.877550086588
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    8.0,
+                    8.0,
+                    8.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 13,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 14,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Delta Moon 4",
+            "parentId": 5,
+            "tag": "",
+            "transform": {
+                "position": [
+                    -1647.9846224279472,
+                    -255.9802365509614,
+                    4259.059044618578
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    5.0,
+                    5.0,
+                    5.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 14,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 15,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Epsilon Moon 1",
+            "parentId": 6,
+            "tag": "",
+            "transform": {
+                "position": [
+                    1646.9019499963085,
+                    0.0,
+                    -5927.020354716942
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    9.0,
+                    9.0,
+                    9.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 15,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 16,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Epsilon Moon 2",
+            "parentId": 6,
+            "tag": "",
+            "transform": {
+                "position": [
+                    1422.923996676629,
+                    0.0,
+                    -5890.508365818694
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    7.0,
+                    7.0,
+                    7.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 16,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 17,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Alpha Station",
+            "parentId": 7,
+            "tag": "",
+            "transform": {
+                "position": [
+                    37.237109421854186,
+                    -55.9880635072387,
+                    -480.80101935356856
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    12.0,
+                    12.0,
+                    12.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 17,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 18,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Beta Relay",
+            "parentId": 8,
+            "tag": "",
+            "transform": {
+                "position": [
+                    -158.33982352009915,
+                    -38.591958745787565,
+                    749.7192212177899
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    12.0,
+                    12.0,
+                    12.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 18,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 19,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Asteroid 1",
+            "parentId": 1,
+            "tag": "",
+            "transform": {
+                "position": [
+                    -10416.199126637228,
+                    -1239.8743187862099,
+                    -2066.4571979770153
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    14.0,
+                    14.0,
+                    14.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 19,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 20,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Asteroid 2",
+            "parentId": 1,
+            "tag": "",
+            "transform": {
+                "position": [
+                    1418.5846940013357,
+                    525.3913328916352,
+                    -1891.4087984098871
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    15.0,
+                    15.0,
+                    15.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 20,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 21,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Asteroid 3",
+            "parentId": 1,
+            "tag": "",
+            "transform": {
+                "position": [
+                    -1111.649239051684,
+                    -2402.632124468136,
+                    -3203.5094992908485
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    14.5,
+                    14.5,
+                    14.5
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 21,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 22,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Asteroid 4",
+            "parentId": 1,
+            "tag": "",
+            "transform": {
+                "position": [
+                    435.4350058395111,
+                    0.0,
+                    1758.035985199408
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    16.0,
+                    16.0,
+                    16.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 22,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 23,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Asteroid 5",
+            "parentId": 1,
+            "tag": "",
+            "transform": {
+                "position": [
+                    1849.3228457795265,
+                    3944.89746472073,
+                    7100.8154364973125
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    13.0,
+                    13.0,
+                    13.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 23,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 24,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Comet Halley",
+            "parentId": 1,
+            "tag": "",
+            "transform": {
+                "position": [
+                    488.086869366221,
+                    24.375600333125547,
+                    143.81604196544052
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    13.0,
+                    13.0,
+                    13.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 24,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 25,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Outer Rim Debris",
+            "parentId": 1,
+            "tag": "",
+            "transform": {
+                "position": [
+                    4386.542815475342,
+                    0.0,
+                    6628.197668489661
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    15.0,
+                    15.0,
+                    15.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 25,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 26,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Polar Debris 25",
+            "parentId": 1,
+            "tag": "",
+            "transform": {
+                "position": [
+                    3286.8372565496143,
+                    4370.165949306582,
+                    4370.165949306582
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    15.0,
+                    15.0,
+                    15.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 26,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 27,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Polar Debris 26",
+            "parentId": 1,
+            "tag": "",
+            "transform": {
+                "position": [
+                    6851.059421305786,
+                    1317.7603738421485,
+                    1317.7603738421485
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    15.0,
+                    15.0,
+                    15.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 27,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 28,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Polar Debris 27",
+            "parentId": 1,
+            "tag": "",
+            "transform": {
+                "position": [
+                    6239.014446136846,
+                    -2541.1315138040145,
+                    -2541.1315138040145
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    15.0,
+                    15.0,
+                    15.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 28,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 29,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Polar Debris 28",
+            "parentId": 1,
+            "tag": "",
+            "transform": {
+                "position": [
+                    2065.9532621808034,
+                    -4950.850286490385,
+                    -4950.850286490385
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    15.0,
+                    15.0,
+                    15.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 29,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 30,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Polar Debris 29",
+            "parentId": 1,
+            "tag": "",
+            "transform": {
+                "position": [
+                    -3210.2086130964194,
+                    -4714.581670753044,
+                    -4714.581670753044
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    15.0,
+                    15.0,
+                    15.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 30,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 31,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Delta Sub-Moon 1",
+            "parentId": 5,
+            "tag": "",
+            "transform": {
+                "position": [
+                    -2398.708877803062,
+                    5.7817568215617365,
+                    3672.637120015164
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    6.0,
+                    6.0,
+                    6.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 31,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 32,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Delta Sub-Moon 2",
+            "parentId": 5,
+            "tag": "",
+            "transform": {
+                "position": [
+                    -2555.7763703807495,
+                    8.329102774548202,
+                    3689.0869136393085
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    6.0,
+                    6.0,
+                    6.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 32,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 33,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Delta Sub-Moon 3",
+            "parentId": 5,
+            "tag": "",
+            "transform": {
+                "position": [
+                    -2301.5828611717275,
+                    -105.07738449788907,
+                    2805.182532794459
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    6.0,
+                    6.0,
+                    6.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 33,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 34,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Delta Sub-Moon 4",
+            "parentId": 5,
+            "tag": "",
+            "transform": {
+                "position": [
+                    -552.4507469500604,
+                    28.229196052546875,
+                    3823.0122041638515
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    6.0,
+                    6.0,
+                    6.0
+                ]
+            }
+        },
+        {
+            "components": [
+                {
+                    "isVisible": true,
+                    "orbitIndex": 34,
+                    "type": "OrbitComponent"
+                }
+            ],
+            "id": 35,
+            "inheritFlags": {
+                "position": false,
+                "rotation": true,
+                "scale": false
+            },
+            "modelName": "cube.obj",
+            "name": "Delta Sub-Moon 5",
+            "parentId": 5,
+            "tag": "",
+            "transform": {
+                "position": [
+                    -883.793279126487,
+                    151.16854631183415,
+                    4646.096492884656
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    6.0,
+                    6.0,
+                    6.0
+                ]
+            }
+        }
+    ],
+    "orbitSystem": [
+        {
+            "AttractorMass": 0.0,
+            "BodyMass": 1000000.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": -1,
+            "freezeColor": false,
+            "index": 0,
+            "isFrozen": true,
+            "orbitColor": [
+                null,
+                null,
+                null,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "velocityRelativeToAttractor": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        },
+        {
+            "AttractorMass": 1000000.0,
+            "BodyMass": 5000.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 0,
+            "freezeColor": false,
+            "index": 1,
+            "isFrozen": false,
+            "orbitColor": [
+                0.5088428258895874,
+                0.9911571741104126,
+                0.4911571741104126,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                -52.4443850826517,
+                -55.9880635072387,
+                -500.53328775471385
+            ],
+            "velocityRelativeToAttractor": [
+                44.22630270441038,
+                -0.45486195438299265,
+                -4.066465872183954
+            ]
+        },
+        {
+            "AttractorMass": 1000000.0,
+            "BodyMass": 8000.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 0,
+            "freezeColor": false,
+            "index": 2,
+            "isFrozen": false,
+            "orbitColor": [
+                0.49808835983276367,
+                0.9980883598327637,
+                0.5019116401672363,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                -187.83711885818755,
+                0.0,
+                877.9565422525154
+            ],
+            "velocityRelativeToAttractor": [
+                -32.62829514953153,
+                -0.0,
+                -7.047461220495964
+            ]
+        },
+        {
+            "AttractorMass": 1000000.0,
+            "BodyMass": 4000.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 0,
+            "freezeColor": false,
+            "index": 3,
+            "isFrozen": false,
+            "orbitColor": [
+                0.5908453464508057,
+                0.9091546535491943,
+                0.40915465354919434,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                782.7518097668069,
+                -351.7243692845427,
+                1173.8800824871612
+            ],
+            "velocityRelativeToAttractor": [
+                -21.59684747110411,
+                -4.6040934044791015,
+                15.366161737449003
+            ]
+        },
+        {
+            "AttractorMass": 1000000.0,
+            "BodyMass": 15000.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 0,
+            "freezeColor": false,
+            "index": 4,
+            "isFrozen": false,
+            "orbitColor": [
+                0.4985617399215698,
+                0.9985617399215698,
+                0.5014382600784302,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                -1684.2323610258743,
+                0.0,
+                3619.1084532411746
+            ],
+            "velocityRelativeToAttractor": [
+                -14.345448996587585,
+                0.0,
+                -6.698757565753965
+            ]
+        },
+        {
+            "AttractorMass": 1000000.0,
+            "BodyMass": 9000.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 0,
+            "freezeColor": false,
+            "index": 5,
+            "isFrozen": false,
+            "orbitColor": [
+                0.49846142530441284,
+                0.9984614253044128,
+                0.5015385746955872,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                1719.6068373703456,
+                -0.0,
+                -5741.419172218956
+            ],
+            "velocityRelativeToAttractor": [
+                12.376687832548456,
+                0.0,
+                3.687033019322508
+            ]
+        },
+        {
+            "AttractorMass": 5000.0,
+            "BodyMass": 100.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 1,
+            "freezeColor": false,
+            "index": 6,
+            "isFrozen": false,
+            "orbitColor": [
+                0.4989801049232483,
+                0.9989801049232483,
+                0.5010198950767517,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                79.9322874010818,
+                0.0,
+                -3.288438817672825
+            ],
+            "velocityRelativeToAttractor": [
+                0.32520201994806963,
+                0.0,
+                7.893313372706988
+            ]
+        },
+        {
+            "AttractorMass": 8000.0,
+            "BodyMass": 150.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 2,
+            "freezeColor": false,
+            "index": 7,
+            "isFrozen": false,
+            "orbitColor": [
+                0.5389467477798462,
+                0.9610532522201538,
+                0.4610532522201538,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                64.78947024317729,
+                -24.90409928934165,
+                -100.86160212183366
+            ],
+            "velocityRelativeToAttractor": [
+                6.780082398191228,
+                1.098143795565613,
+                4.447482372040732
+            ]
+        },
+        {
+            "AttractorMass": 8000.0,
+            "BodyMass": 80.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 2,
+            "freezeColor": false,
+            "index": 8,
+            "isFrozen": false,
+            "orbitColor": [
+                0.49252158403396606,
+                0.9925215840339661,
+                0.5074784159660339,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                -121.76717269652798,
+                0.0,
+                -155.50400617290308
+            ],
+            "velocityRelativeToAttractor": [
+                4.99896459640314,
+                -0.0,
+                -3.963637882482952
+            ]
+        },
+        {
+            "AttractorMass": 4000.0,
+            "BodyMass": 50.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 3,
+            "freezeColor": false,
+            "index": 9,
+            "isFrozen": false,
+            "orbitColor": [
+                0.4926866888999939,
+                0.9926866888999939,
+                0.5073133111000061,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                -30.88937355070791,
+                -0.0,
+                -49.74987770468503
+            ],
+            "velocityRelativeToAttractor": [
+                6.99228458714124,
+                0.0,
+                -4.471916424158216
+            ]
+        },
+        {
+            "AttractorMass": 15000.0,
+            "BodyMass": 200.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 4,
+            "freezeColor": false,
+            "index": 10,
+            "isFrozen": false,
+            "orbitColor": [
+                0.5,
+                1.0,
+                0.5,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                149.61102719350288,
+                0.0,
+                -10.79539448584143
+            ],
+            "velocityRelativeToAttractor": [
+                0.7196929657227651,
+                0.0,
+                9.974068479566863
+            ]
+        },
+        {
+            "AttractorMass": 15000.0,
+            "BodyMass": 180.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 4,
+            "freezeColor": false,
+            "index": 11,
+            "isFrozen": false,
+            "orbitColor": [
+                1.0232806205749512,
+                0.47671937942504883,
+                -0.023280620574951172,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                -566.9457535907674,
+                68.49095632785364,
+                105.47607274489468
+            ],
+            "velocityRelativeToAttractor": [
+                -1.415280598751555,
+                -2.0338208215094142,
+                -3.1320840651244986
+            ]
+        },
+        {
+            "AttractorMass": 15000.0,
+            "BodyMass": 100.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 4,
+            "freezeColor": false,
+            "index": 12,
+            "isFrozen": false,
+            "orbitColor": [
+                0.49235308170318604,
+                0.992353081703186,
+                0.507646918296814,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                397.95581157824824,
+                0.0,
+                -40.23090315458656
+            ],
+            "velocityRelativeToAttractor": [
+                0.6183272517723968,
+                0.0,
+                6.068824894497685
+            ]
+        },
+        {
+            "AttractorMass": 15000.0,
+            "BodyMass": 50.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 4,
+            "freezeColor": false,
+            "index": 13,
+            "isFrozen": false,
+            "orbitColor": [
+                0.6747865676879883,
+                0.8252134323120117,
+                0.3252134323120117,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                36.24773859792717,
+                -255.9802365509614,
+                639.9505913774035
+            ],
+            "velocityRelativeToAttractor": [
+                -4.635976933465318,
+                -0.3664098352195357,
+                0.9160245880488392
+            ]
+        },
+        {
+            "AttractorMass": 9000.0,
+            "BodyMass": 100.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 5,
+            "freezeColor": false,
+            "index": 14,
+            "isFrozen": false,
+            "orbitColor": [
+                0.49764424562454224,
+                0.9976442456245422,
+                0.5023557543754578,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                -72.70488737403699,
+                -0.0,
+                -185.60118249798583
+            ],
+            "velocityRelativeToAttractor": [
+                6.253719552480453,
+                0.0,
+                -2.466165102855002
+            ]
+        },
+        {
+            "AttractorMass": 9000.0,
+            "BodyMass": 80.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 5,
+            "freezeColor": false,
+            "index": 15,
+            "isFrozen": false,
+            "orbitColor": [
+                0.4727802276611328,
+                0.9727802276611328,
+                0.5272197723388672,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                -296.6828406937165,
+                -0.0,
+                -149.0891935997377
+            ],
+            "velocityRelativeToAttractor": [
+                2.3092166721845775,
+                0.0,
+                -4.738126226680367
+            ]
+        },
+        {
+            "AttractorMass": 100.0,
+            "BodyMass": 1.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 6,
+            "freezeColor": false,
+            "index": 16,
+            "isFrozen": false,
+            "orbitColor": [
+                0.5,
+                1.0,
+                0.5,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                9.749207103424089,
+                0.0,
+                23.02070721881814
+            ],
+            "velocityRelativeToAttractor": [
+                -1.84165657750545,
+                -0.0,
+                0.7799365682739271
+            ]
+        },
+        {
+            "AttractorMass": 150.0,
+            "BodyMass": 1.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 7,
+            "freezeColor": false,
+            "index": 17,
+            "isFrozen": false,
+            "orbitColor": [
+                0.6653479337692261,
+                0.8346520662307739,
+                0.3346520662307739,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                -35.29217490508889,
+                -13.687859456445912,
+                -27.375718912891823
+            ],
+            "velocityRelativeToAttractor": [
+                1.2557379776985274,
+                -0.5046907733808328,
+                -1.0093815467616656
+            ]
+        },
+        {
+            "AttractorMass": 1000000.0,
+            "BodyMass": 10.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 0,
+            "freezeColor": false,
+            "index": 18,
+            "isFrozen": false,
+            "orbitColor": [
+                1.8766496181488037,
+                -0.3766496181488037,
+                -0.8766496181488037,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                -10416.199126637228,
+                -1239.8743187862099,
+                -2066.4571979770153
+            ],
+            "velocityRelativeToAttractor": [
+                3.865665699793518,
+                -2.4199864141759324,
+                -4.033310690293219
+            ]
+        },
+        {
+            "AttractorMass": 1000000.0,
+            "BodyMass": 15.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 0,
+            "freezeColor": false,
+            "index": 19,
+            "isFrozen": false,
+            "orbitColor": [
+                0.3551488518714905,
+                0.8551488518714905,
+                0.6448511481285095,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                1418.5846940013357,
+                525.3913328916352,
+                -1891.4087984098871
+            ],
+            "velocityRelativeToAttractor": [
+                14.72081671791928,
+                -2.302161088533386,
+                8.287779918720194
+            ]
+        },
+        {
+            "AttractorMass": 1000000.0,
+            "BodyMass": 12.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 0,
+            "freezeColor": false,
+            "index": 20,
+            "isFrozen": false,
+            "orbitColor": [
+                1.2307435274124146,
+                0.26925647258758545,
+                -0.23074352741241455,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                -1111.649239051684,
+                -2402.632124468136,
+                -3203.5094992908485
+            ],
+            "velocityRelativeToAttractor": [
+                16.059335353482854,
+                2.325081443936107,
+                3.1001085919148097
+            ]
+        },
+        {
+            "AttractorMass": 1000000.0,
+            "BodyMass": 20.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 0,
+            "freezeColor": false,
+            "index": 21,
+            "isFrozen": false,
+            "orbitColor": [
+                0.16118407249450684,
+                0.6611840724945068,
+                0.8388159275054932,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                435.4350058395111,
+                0.0,
+                1758.035985199408
+            ],
+            "velocityRelativeToAttractor": [
+                -23.967147086957034,
+                -0.0,
+                -3.755111599916453
+            ]
+        },
+        {
+            "AttractorMass": 1000000.0,
+            "BodyMass": 5.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 0,
+            "freezeColor": false,
+            "index": 22,
+            "isFrozen": false,
+            "orbitColor": [
+                1.3845158815383911,
+                0.11548411846160889,
+                -0.3845158815383911,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                1849.3228457795265,
+                3944.89746472073,
+                7100.8154364973125
+            ],
+            "velocityRelativeToAttractor": [
+                -5.784210665582337,
+                3.883519865838425,
+                6.990335758509162
+            ]
+        },
+        {
+            "AttractorMass": 1000000.0,
+            "BodyMass": 2.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 0,
+            "freezeColor": false,
+            "index": 23,
+            "isFrozen": false,
+            "orbitColor": [
+                2.1685233116149902,
+                -0.6685233116149902,
+                -1.1685233116149902,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                488.086869366221,
+                24.375600333125547,
+                143.81604196544052
+            ],
+            "velocityRelativeToAttractor": [
+                -9.569992581258424,
+                9.7661420227056,
+                57.620237933963026
+            ]
+        },
+        {
+            "AttractorMass": 1000000.0,
+            "BodyMass": 1.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 0,
+            "freezeColor": false,
+            "index": 24,
+            "isFrozen": false,
+            "orbitColor": [
+                0.4857819676399231,
+                0.9857819676399231,
+                0.5142180323600769,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                4386.542815475342,
+                0.0,
+                6628.197668489661
+            ],
+            "velocityRelativeToAttractor": [
+                -9.390974859700341,
+                0.0,
+                6.053688165633825
+            ]
+        },
+        {
+            "AttractorMass": 1000000.0,
+            "BodyMass": 5.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 0,
+            "freezeColor": false,
+            "index": 25,
+            "isFrozen": false,
+            "orbitColor": [
+                0.5,
+                1.0,
+                0.5,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                3286.8372565496143,
+                4370.165949306582,
+                4370.165949306582
+            ],
+            "velocityRelativeToAttractor": [
+                -10.552755274074707,
+                3.9684064171044486,
+                3.9684064171044486
+            ]
+        },
+        {
+            "AttractorMass": 1000000.0,
+            "BodyMass": 5.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 0,
+            "freezeColor": false,
+            "index": 26,
+            "isFrozen": false,
+            "orbitColor": [
+                0.5,
+                1.0,
+                0.5,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                6851.059421305786,
+                1317.7603738421485,
+                1317.7603738421485
+            ],
+            "velocityRelativeToAttractor": [
+                -3.1150420857194705,
+                8.097579367524956,
+                8.097579367524956
+            ]
+        },
+        {
+            "AttractorMass": 1000000.0,
+            "BodyMass": 5.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 0,
+            "freezeColor": false,
+            "index": 27,
+            "isFrozen": false,
+            "orbitColor": [
+                0.5,
+                1.0,
+                0.5,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                6239.014446136846,
+                -2541.1315138040145,
+                -2541.1315138040145
+            ],
+            "velocityRelativeToAttractor": [
+                5.882248874546313,
+                7.221081534880609,
+                7.221081534880609
+            ]
+        },
+        {
+            "AttractorMass": 1000000.0,
+            "BodyMass": 5.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 0,
+            "freezeColor": false,
+            "index": 28,
+            "isFrozen": false,
+            "orbitColor": [
+                0.5,
+                1.0,
+                0.5,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                2065.9532621808034,
+                -4950.850286490385,
+                -4950.850286490385
+            ],
+            "velocityRelativeToAttractor": [
+                11.225624248460862,
+                2.3421850484357716,
+                2.3421850484357716
+            ]
+        },
+        {
+            "AttractorMass": 1000000.0,
+            "BodyMass": 5.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 0,
+            "freezeColor": false,
+            "index": 29,
+            "isFrozen": false,
+            "orbitColor": [
+                0.5,
+                1.0,
+                0.5,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                -3210.2086130964194,
+                -4714.581670753044,
+                -4714.581670753044
+            ],
+            "velocityRelativeToAttractor": [
+                10.473952057300089,
+                -3.5659124664323616,
+                -3.5659124664323616
+            ]
+        },
+        {
+            "AttractorMass": 15000.0,
+            "BodyMass": 20.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 4,
+            "freezeColor": false,
+            "index": 30,
+            "isFrozen": false,
+            "orbitColor": [
+                0.5117195844650269,
+                0.9882804155349731,
+                0.48828041553497314,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                -714.4765167771877,
+                5.7817568215617365,
+                53.528666773989166
+            ],
+            "velocityRelativeToAttractor": [
+                -0.34583225154820824,
+                -0.48707056683994615,
+                -4.509397207880321
+            ]
+        },
+        {
+            "AttractorMass": 15000.0,
+            "BodyMass": 20.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 4,
+            "freezeColor": false,
+            "index": 31,
+            "isFrozen": false,
+            "orbitColor": [
+                0.514257550239563,
+                0.985742449760437,
+                0.485742449760437,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                -871.5440093548751,
+                8.329102774548202,
+                69.97846039813375
+            ],
+            "velocityRelativeToAttractor": [
+                -0.3361987488705989,
+                -0.484427362859735,
+                -4.070003930224181
+            ]
+        },
+        {
+            "AttractorMass": 15000.0,
+            "BodyMass": 20.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 4,
+            "freezeColor": false,
+            "index": 32,
+            "isFrozen": false,
+            "orbitColor": [
+                0.516800045967102,
+                0.983199954032898,
+                0.48319995403289795,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                -617.3505001458531,
+                -105.07738449788907,
+                -813.9259204467156
+            ],
+            "velocityRelativeToAttractor": [
+                3.06957846387362,
+                -0.28744890214422203,
+                -2.226569621780355
+            ]
+        },
+        {
+            "AttractorMass": 15000.0,
+            "BodyMass": 20.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 4,
+            "freezeColor": false,
+            "index": 33,
+            "isFrozen": false,
+            "orbitColor": [
+                0.5193480253219604,
+                0.9806519746780396,
+                0.48065197467803955,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                1131.7816140758139,
+                28.229196052546875,
+                203.9037509226771
+            ],
+            "velocityRelativeToAttractor": [
+                -0.6401654551517617,
+                0.4920813670535085,
+                3.5543781096208895
+            ]
+        },
+        {
+            "AttractorMass": 15000.0,
+            "BodyMass": 20.0,
+            "GravConst": 1.0,
+            "ParentOrbitIndex": 4,
+            "freezeColor": false,
+            "index": 34,
+            "isFrozen": false,
+            "orbitColor": [
+                0.5219019651412964,
+                0.9780980348587036,
+                0.4780980348587036,
+                1.0
+            ],
+            "positionRelativeToAttractor": [
+                800.4390818993872,
+                151.16854631183415,
+                1026.9880396434817
+            ],
+            "velocityRelativeToAttractor": [
+                -2.661307234388996,
+                0.30944772649092395,
+                2.102283323843589
+            ]
+        }
+    ],
+    "version": 1
+}

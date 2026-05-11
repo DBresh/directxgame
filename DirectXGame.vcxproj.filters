@@ -377,5 +377,11 @@
     <ClInclude Include="Game\Kepler\OrbitSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DX3D\Source\ThirdParty\json\json.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DX3D\Include\DX3D\Core\Serialization.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

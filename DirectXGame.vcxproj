@@ -73,11 +73,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>Bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>Intermediate\$(Platform)\$(Configuration)\</IntDir>
-    <IncludePath>DX3D/Source/ThirdParty/ImGui/backends;DX3D/Source/ThirdParty/ImGui;DX3D/Include;DX3D/Source;$(IncludePath)</IncludePath>
+    <IncludePath>DX3D/Source/ThirdParty/json;DX3D/Source/ThirdParty/ImGui/backends;DX3D/Source/ThirdParty/ImGui;DX3D/Include;DX3D/Source;$(IncludePath)</IncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>DX3D/Source/ThirdParty/ImGui/backends;DX3D/Source/ThirdParty/ImGui;DX3D/Source;DX3D/Include;$(IncludePath)</IncludePath>
+    <IncludePath>DX3D/Source/ThirdParty/json;DX3D/Source/ThirdParty/ImGui/backends;DX3D/Source/ThirdParty/ImGui;DX3D/Source;DX3D/Include;$(IncludePath)</IncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -190,6 +190,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DX3D\Include\DX3D\Core\JobSystem.h" />
+    <ClInclude Include="DX3D\Include\DX3D\Core\Serialization.h" />
+    <ClInclude Include="DX3D\Source\ThirdParty\json\json.hpp" />
     <ClInclude Include="Game\Editor\HierarchyPanel.h" />
     <ClInclude Include="Game\Editor\InspectorPanel.h" />
     <ClInclude Include="Game\Editor\TimelinePanel.h" />

@@ -2,6 +2,8 @@
 #include <vector>
 #include <Game/Kepler/OrbitData.h>
 #include <Game/Kepler/KeplerPhysics.h>
+#include <DX3D/Core/Serialization.h>
+#include <json.hpp>
 
 namespace Simulator
 {
@@ -59,6 +61,42 @@ namespace Simulator
                         orbit.isFrozen = true;
                         orbit.positionRelativeToAttractor = dx3d::Vec3d(0.0, 0.0, 0.0);
                     }
+                }
+            }
+        }
+
+        nlohmann::json saveToJson() const
+        {
+            nlohmann::json j = nlohmann::json::array();
+            for (size_t i = 0; i < m_orbits.size(); ++i)
+            {
+                nlohmann::json orbitJson = m_orbits[i];
+                orbitJson["index"] = i;
+                j.push_back(orbitJson);
+            }
+            return j;
+        }
+
+        void loadFromJson(const nlohmann::json& jArray)
+        {
+            m_orbits.clear();
+            if (!jArray.is_array()) return;
+
+            m_orbits.reserve(jArray.size());
+
+            for (const auto& j : jArray)
+            {
+                try
+                {
+                    OrbitData data = j.get<OrbitData>();
+                    Kepler::CalculateOrbitStateFromOrbitalVectors(data);
+                    data.isPathDirty = true;
+                    m_orbits.push_back(data);
+                }
+                catch (const nlohmann::json::exception& e)
+                {
+                    int errorIndex = j.value("index", -1);
+                    DX3D_LOG_INFO("JSON Parse Crash Prevented on Orbit Index {}. Error: {}", errorIndex, e.what());
                 }
             }
         }

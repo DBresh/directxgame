@@ -1,5 +1,7 @@
 #pragma once
 #include <DX3D/Math/Vec3d.h>
+#include <DX3D/Core/Serialization.h>
+#include <json.hpp>
 
 namespace Simulator
 {
@@ -52,4 +54,36 @@ namespace Simulator
         int ParentOrbitIndex = -1;
         bool isFrozen = false;
     };
+
+    inline void to_json(nlohmann::json& j, const OrbitData& o) {
+            j = nlohmann::json{
+                {"BodyMass", o.BodyMass},
+                {"AttractorMass", o.AttractorMass},
+                {"GravConst", o.GravConst},
+                {"positionRelativeToAttractor", o.positionRelativeToAttractor},
+                {"velocityRelativeToAttractor", o.velocityRelativeToAttractor},
+                {"isFrozen", o.isFrozen},
+                {"ParentOrbitIndex", o.ParentOrbitIndex},
+                {"freezeColor", o.freezeColor},
+                {"orbitColor", nlohmann::json::array({o.orbitColor.x, o.orbitColor.y, o.orbitColor.z, o.orbitColor.w})}
+            };
+        }
+
+        inline void from_json(const nlohmann::json& j, OrbitData& o) {
+            if (j.contains("BodyMass")) o.BodyMass = j.at("BodyMass").get<double>();
+            if (j.contains("AttractorMass")) o.AttractorMass = j.at("AttractorMass").get<double>();
+            if (j.contains("GravConst")) o.GravConst = j.at("GravConst").get<double>();
+            if (j.contains("positionRelativeToAttractor")) o.positionRelativeToAttractor = j.at("positionRelativeToAttractor").get<dx3d::Vec3d>();
+            if (j.contains("velocityRelativeToAttractor")) o.velocityRelativeToAttractor = j.at("velocityRelativeToAttractor").get<dx3d::Vec3d>();
+            if (j.contains("isFrozen")) o.isFrozen = j.at("isFrozen").get<bool>();
+            if (j.contains("ParentOrbitIndex")) o.ParentOrbitIndex = j.at("ParentOrbitIndex").get<int>();
+            if (j.contains("freezeColor")) o.freezeColor = j.at("freezeColor").get<bool>();
+            if (j.contains("orbitColor") && j.at("orbitColor").is_array()) {
+                auto colorArr = j.at("orbitColor");
+                o.orbitColor.x = colorArr[0].is_number() ? colorArr[0].get<float>() : 1.0f;
+                o.orbitColor.y = colorArr[1].is_number() ? colorArr[1].get<float>() : 1.0f;
+                o.orbitColor.z = colorArr[2].is_number() ? colorArr[2].get<float>() : 1.0f;
+                o.orbitColor.w = colorArr[3].is_number() ? colorArr[3].get<float>() : 1.0f;
+            }
+        }
 }

@@ -32,6 +32,7 @@ namespace dx3d
 
         bool isKeyDown(int key) const;
         bool isKeyDown(char key) const;
+        bool isMouseKeyDown(int button) const;
 
         const MouseState& getMouseState() const;
 

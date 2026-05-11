@@ -1,5 +1,7 @@
 #pragma once
 #include <DX3D/Game/GameObject.h>
+#include <DX3D/Graphics/Importers/AssetManager.h>
+#include <json.hpp>
 #include <memory>
 #include <vector>
 #include <string>
@@ -10,6 +12,15 @@ namespace dx3d {
     class SceneManager {
     public:
         SceneManager() = default;
+
+        nlohmann::json saveScene() const;
+        void loadScene(const nlohmann::json& j, AssetManager& assetManager);
+
+        // Fired when a new object is loaded so the Sandbox can allocate GPU buffers
+        std::function<void(std::shared_ptr<GameObject>)> onObjectCreated;
+
+        // Fired when a component is read from JSON so the Sandbox can attach the correct derived class
+        std::function<void(GameObject*, const std::string&, const nlohmann::json&)> onComponentFactory;
 
         std::shared_ptr<GameObject> createObject(const std::string& name = "");
         void destroyObject(const std::shared_ptr<GameObject>& object);
@@ -22,6 +33,8 @@ namespace dx3d {
         void update(float deltaTime);
 
         std::shared_ptr<GameObject> pickObject(const DirectX::XMVECTOR& rayOrigin, const DirectX::XMVECTOR& rayDir, const dx3d::Vec3d& cameraPos) const;
+
+
 
     private:
         std::vector<std::shared_ptr<GameObject>> m_objects;
