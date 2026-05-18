@@ -14,6 +14,8 @@ namespace dx3d
         this->width = 250.0f;
     }
 
+    void HierarchyPanel::init() {}
+
     void HierarchyPanel::updateContent()
     {
         ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "FPS: %.1f", ImGui::GetIO().Framerate);

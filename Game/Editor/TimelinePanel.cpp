@@ -14,6 +14,8 @@ namespace dx3d
         this->marginRight = 300.0f;
     }
 
+    void TimelinePanel::init() {}
+
     void TimelinePanel::updateContent()
     {
         ImGui::TextDisabled("Simulation Epoch:");

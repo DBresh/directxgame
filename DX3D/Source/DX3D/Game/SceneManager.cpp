@@ -55,7 +55,7 @@ namespace dx3d {
         }
     }
 
-    std::shared_ptr<GameObject> SceneManager::pickObject(const DirectX::XMVECTOR& rayOrigin, const DirectX::XMVECTOR& rayDir, const dx3d::Vec3d& cameraPos) const
+    std::shared_ptr<GameObject> SceneManager::pickObject(const DirectX::XMVECTOR& rayOrigin, const DirectX::XMVECTOR& rayDir, const dx3d::Vec3d& cameraPos, float* outDistance) const
     {
         std::shared_ptr<GameObject> pickedObj = nullptr;
         float minDistance = FLT_MAX;
@@ -69,12 +69,16 @@ namespace dx3d {
 
             if (bounds.intersectRay(rayOrigin, rayDir, tMin))
             {
-                if (tMin < minDistance)
+                if (tMin < minDistance && tMin >= 0.0f)
                 {
                     minDistance = tMin;
                     pickedObj = obj;
                 }
             }
+        }
+
+        if (pickedObj && outDistance) {
+            *outDistance = minDistance;
         }
 
         return pickedObj;

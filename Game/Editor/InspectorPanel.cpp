@@ -10,6 +10,8 @@ namespace dx3d
         this->width = 300.0f;
     }
 
+    void InspectorPanel::init() {}
+
     void InspectorPanel::updateContent()
     {
         if (m_selectedObject)

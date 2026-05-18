@@ -12,6 +12,8 @@ namespace dx3d
         explicit UIPanel(const std::string& name) : m_name(name) {}
         virtual ~UIPanel() = default;
 
+        virtual void init() {}
+
         void render(float scale = 1.0f)
         {
             if (!enabled) return;

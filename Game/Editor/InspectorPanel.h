@@ -9,6 +9,7 @@ namespace dx3d
     {
     public:
         InspectorPanel(std::shared_ptr<GameObject>& selectedObject);
+        void init() override;
     protected:
         void updateContent() override;
     private:

@@ -145,6 +145,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DX3D\Source\DX3D\Core\JobSystem.cpp" />
+    <ClCompile Include="Game\Editor\AssetBrowserPanel.cpp" />
     <ClCompile Include="Game\Editor\HierarchyPanel.cpp" />
     <ClCompile Include="Game\Editor\InspectorPanel.cpp" />
     <ClCompile Include="Game\Editor\TimelinePanel.cpp" />
@@ -192,6 +193,7 @@
     <ClInclude Include="DX3D\Include\DX3D\Core\JobSystem.h" />
     <ClInclude Include="DX3D\Include\DX3D\Core\Serialization.h" />
     <ClInclude Include="DX3D\Source\ThirdParty\json\json.hpp" />
+    <ClInclude Include="Game\Editor\AssetBrowserPanel.h" />
     <ClInclude Include="Game\Editor\HierarchyPanel.h" />
     <ClInclude Include="Game\Editor\InspectorPanel.h" />
     <ClInclude Include="Game\Editor\TimelinePanel.h" />

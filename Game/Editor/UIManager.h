@@ -10,6 +10,7 @@ namespace dx3d
     public:
         void addPanel(std::shared_ptr<UIPanel> panel)
         {
+            panel->init();
             m_panels.push_back(panel);
         }
 

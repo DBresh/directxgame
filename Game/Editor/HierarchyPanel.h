@@ -11,6 +11,7 @@ namespace dx3d
     {
     public:
         HierarchyPanel(SceneManager& scene, std::shared_ptr<GameObject>& selectedObject, Camera& camera);
+        void init() override;
     protected:
         void updateContent() override;
     private:

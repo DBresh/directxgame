@@ -10,7 +10,7 @@ namespace dx3d
     {
     public:
         TimelinePanel(Simulator::TimeController& timeController, Camera& camera);
-
+        void init() override;
     protected:
         void updateContent() override;
 

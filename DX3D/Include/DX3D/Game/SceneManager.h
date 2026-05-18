@@ -16,10 +16,7 @@ namespace dx3d {
         nlohmann::json saveScene() const;
         void loadScene(const nlohmann::json& j, AssetManager& assetManager);
 
-        // Fired when a new object is loaded so the Sandbox can allocate GPU buffers
         std::function<void(std::shared_ptr<GameObject>)> onObjectCreated;
-
-        // Fired when a component is read from JSON so the Sandbox can attach the correct derived class
         std::function<void(GameObject*, const std::string&, const nlohmann::json&)> onComponentFactory;
 
         std::shared_ptr<GameObject> createObject(const std::string& name = "");
@@ -32,7 +29,7 @@ namespace dx3d {
         void clear();
         void update(float deltaTime);
 
-        std::shared_ptr<GameObject> pickObject(const DirectX::XMVECTOR& rayOrigin, const DirectX::XMVECTOR& rayDir, const dx3d::Vec3d& cameraPos) const;
+        std::shared_ptr<GameObject> pickObject(const DirectX::XMVECTOR& rayOrigin, const DirectX::XMVECTOR& rayDir, const dx3d::Vec3d& cameraPos, float* outDistance = nullptr) const;
 
 
 

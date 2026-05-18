@@ -28,7 +28,9 @@ namespace dx3d
         void initUI();
         void initSandboxSimulation();
         void rebuildSandboxState();
-
+        void handleMouseWrapping();
+        void handleViewportDragAndDrop();
+        void syncCameraOrbitTarget();
     private:
         UIManager m_uiManager;
 

@@ -7,6 +7,7 @@
 #include <Game/Editor/HierarchyPanel.h>
 #include <Game/Editor/InspectorPanel.h>
 #include <Game/Editor/TimelinePanel.h>
+#include <Game/Editor/AssetBrowserPanel.h>
 #include <Game/Components/OrbitComponent.h>
 #include <Game/Components/OrbitVisualizerComponent.h>
 #include <imgui.h>
@@ -41,6 +42,7 @@ namespace dx3d
 		m_uiManager.addPanel(std::make_shared<HierarchyPanel>(m_scene, m_selectedObject, *m_camera));
 		m_uiManager.addPanel(std::make_shared<InspectorPanel>(m_selectedObject));
 		m_uiManager.addPanel(std::make_shared<TimelinePanel>(m_timeController, *m_camera));
+		m_uiManager.addPanel(std::make_shared<AssetBrowserPanel>());
 	}
 
 	void KeplerSandbox::onWindowResized(int width, int height)
@@ -106,8 +108,15 @@ namespace dx3d
 
 	void dx3d::KeplerSandbox::onGUI()
 	{
-		ImGuiIO& io = ImGui::GetIO();
+		handleMouseWrapping();
+		m_uiManager.update();
+		handleViewportDragAndDrop();
+		syncCameraOrbitTarget();
+	}
 
+	void KeplerSandbox::handleMouseWrapping()
+	{
+		ImGuiIO& io = ImGui::GetIO();
 		if (ImGui::IsAnyItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
 		{
 			ImVec2 pos = io.MousePos;
@@ -124,9 +133,90 @@ namespace dx3d
 				io.MousePosPrev = pos;
 			}
 		}
+	}
 
-		m_uiManager.update();
+	void KeplerSandbox::handleViewportDragAndDrop()
+	{
+		if (const ImGuiPayload* activePayload = ImGui::GetDragDropPayload())
+		{
+			if (activePayload->IsDataType("DND_ASSET_MODEL"))
+			{
+				ImGuiViewport* viewport = ImGui::GetMainViewport();
+				ImGui::SetNextWindowPos(viewport->WorkPos);
+				ImGui::SetNextWindowSize(viewport->WorkSize);
+				ImGui::SetNextWindowBgAlpha(0.0f);
 
+				ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
+					ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+					ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
+					ImGuiWindowFlags_NoBackground;
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+				ImGui::Begin("ViewportDropTarget", nullptr, window_flags);
+				ImGui::PopStyleVar();
+
+				ImGui::Dummy(ImGui::GetContentRegionAvail());
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DND_ASSET_MODEL"))
+					{
+						const char* modelName = (const char*)payload->Data;
+
+						ImVec2 mousePos = ImGui::GetMousePos();
+						int width = m_display->getClientWidth();
+						int height = m_display->getClientHeight();
+
+						DirectX::XMVECTOR rayOrigin, rayDir;
+						m_camera->screenPointToRay(mousePos.x, mousePos.y, width, height, rayOrigin, rayDir);
+
+						float hitDistance = -1.0f;
+						auto hitObj = m_scene.pickObject(rayOrigin, rayDir, m_camera->getPosition(), &hitDistance);
+
+						float scaleSize = 30.0f;
+
+						DirectX::XMVECTOR relativeOffset;
+
+						if (hitObj && hitDistance > 0.0f) {
+							float backStepOffset = scaleSize * 0.5f;
+							relativeOffset = DirectX::XMVectorScale(rayDir, hitDistance - backStepOffset);
+						}
+						else {
+							relativeOffset = DirectX::XMVectorScale(rayDir, 400.0f);
+						}
+
+						dx3d::Vec3d camPos = m_camera->getPosition();
+						dx3d::Vec3d finalAbsolutePos(
+							camPos.x + DirectX::XMVectorGetX(relativeOffset),
+							camPos.y + DirectX::XMVectorGetY(relativeOffset),
+							camPos.z + DirectX::XMVectorGetZ(relativeOffset)
+						);
+
+						std::string assetStr(modelName);
+						std::string entityName = assetStr.substr(0, assetStr.find_last_of('.'));
+
+						auto newObj = m_scene.createObject(entityName);
+						newObj->modelName = assetStr;
+						newObj->model = m_assets->getModel(assetStr);
+						newObj->transform.setScale(DirectX::XMFLOAT3(scaleSize, scaleSize, scaleSize));
+						newObj->transform.setPosition(finalAbsolutePos);
+
+						if (m_scene.onObjectCreated) {
+							m_scene.onObjectCreated(newObj);
+						}
+
+						DX3D_LOG_INFO("Spawned {} at world position ({:.2f}, {:.2f}, {:.2f})",
+							entityName, finalAbsolutePos.x, finalAbsolutePos.y, finalAbsolutePos.z);
+					}
+					ImGui::EndDragDropTarget();
+				}
+				ImGui::End();
+			}
+		}
+	}
+
+	void KeplerSandbox::syncCameraOrbitTarget()
+	{
 		if (m_selectedObject && m_camera->isOrbiting())
 		{
 			for (const auto& body : m_celestialBodies) {
@@ -150,24 +240,6 @@ namespace dx3d
 					orbitComp->visualizer.draw(ctx, view, proj, relParentPos);
 				}
 			}
-		}
-	}
-
-	void KeplerSandbox::onMouseDown(int button)
-	{
-		if (button == 0)
-		{
-			auto mouseState = InputSystem::get()->getMouseState();
-
-			int width = m_display->getClientWidth();
-			int height = m_display->getClientHeight();
-
-			DirectX::XMVECTOR origin, dir;
-			m_camera->screenPointToRay(mouseState.coords.x, mouseState.coords.y, width, height, origin, dir);
-
-			std::shared_ptr<GameObject> pick = m_scene.pickObject(origin, dir, m_camera->getPosition());
-
-			if (pick) m_selectedObject = pick;
 		}
 	}
 
@@ -357,6 +429,24 @@ namespace dx3d
 					}
 				}
 			}
+		}
+	}
+
+	void KeplerSandbox::onMouseDown(int button)
+	{
+		if (button == 0)
+		{
+			auto mouseState = InputSystem::get()->getMouseState();
+
+			int width = m_display->getClientWidth();
+			int height = m_display->getClientHeight();
+
+			DirectX::XMVECTOR origin, dir;
+			m_camera->screenPointToRay(mouseState.coords.x, mouseState.coords.y, width, height, origin, dir);
+
+			std::shared_ptr<GameObject> pick = m_scene.pickObject(origin, dir, m_camera->getPosition());
+
+			if (pick) m_selectedObject = pick;
 		}
 	}
 
