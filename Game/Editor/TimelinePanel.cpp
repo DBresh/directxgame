@@ -56,7 +56,7 @@ namespace dx3d
         ImGui::SameLine();
 
         for (size_t i = 0; i < m_timeController.WarpLevels.size(); ++i) {
-            std::string btnText = std::to_string(static_cast<int>(m_timeController.WarpLevels[i])) + "x";
+            std::string btnText = std::format("{:.2f}x", (m_timeController.WarpLevels[i]));
 
             bool isActive = (static_cast<int>(i) == m_timeController.GetTimeWarpIndex() && !isPaused);
 

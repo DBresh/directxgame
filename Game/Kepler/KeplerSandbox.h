@@ -26,26 +26,12 @@ namespace dx3d
 
     private:
         void initUI();
-        void initSandboxSimulation();
-        void rebuildSandboxState();
         void handleMouseWrapping();
         void handleViewportDragAndDrop();
         void syncCameraOrbitTarget();
     private:
         UIManager m_uiManager;
-
-        struct CelestialBody
-        {
-            std::string name;
-            std::shared_ptr<dx3d::GameObject> renderObject = nullptr;
-            Simulator::OrbitVisualizer visualizer;
-            int orbitIndex = -1;
-            int parentIndex = -1;
-            Vec3d worldPosition;
-        };
-
         Simulator::OrbitSystem m_orbitSystem{};
-        std::vector<CelestialBody> m_celestialBodies;
         Simulator::TimeController m_timeController;
         
         std::shared_ptr<GameObject> m_selectedObject{ nullptr };

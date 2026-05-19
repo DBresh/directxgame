@@ -63,6 +63,17 @@ namespace Simulator
                     }
                 }
             }
+
+            for (auto& orbit : m_orbits)
+            {
+                orbit.absoluteWorldPosition = orbit.positionRelativeToAttractor;
+                int currentParentIdx = orbit.ParentOrbitIndex;
+
+                while (currentParentIdx != -1) {
+                    orbit.absoluteWorldPosition += m_orbits[currentParentIdx].positionRelativeToAttractor;
+                    currentParentIdx = m_orbits[currentParentIdx].ParentOrbitIndex;
+                }
+            }
         }
 
         nlohmann::json saveToJson() const

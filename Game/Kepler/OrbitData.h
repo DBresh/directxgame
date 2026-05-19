@@ -39,6 +39,7 @@ namespace Simulator
 
         // State Vectors
         dx3d::Vec3d positionRelativeToAttractor;
+        dx3d::Vec3d absoluteWorldPosition;
         dx3d::Vec3d velocityRelativeToAttractor;
         double AttractorDistance = 0.0;
 
