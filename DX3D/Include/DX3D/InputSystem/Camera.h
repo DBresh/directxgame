@@ -39,7 +39,7 @@ namespace dx3d
 		void setOrbitMode(bool enabled);
 		bool isOrbiting() const noexcept { return m_isOrbiting; }
 
-		void screenPointToRay(int mouseX, int mouseY, int screenW, int screenH, DirectX::XMVECTOR& outOrigin, DirectX::XMVECTOR& outDir) const;
+		void screenPointToRay(int mouseX, int mouseY, int screenW, int screenH, Vec3d& outOrigin, DirectX::XMVECTOR& outDir) const;
 
 		static constexpr float degToRad(float deg) { return deg * 3.1415926535f / 180.0f; }
 
@@ -51,7 +51,7 @@ namespace dx3d
 
 	private:
 		Vec3d m_position{ 0, 0, 0 };
-		XMFLOAT3 m_forward{ 0, 0, 1 };
+		Vec3d m_forward{ 0, 0, 1 };
 
 		XMFLOAT4X4 m_view;
 		XMFLOAT4X4 m_proj;

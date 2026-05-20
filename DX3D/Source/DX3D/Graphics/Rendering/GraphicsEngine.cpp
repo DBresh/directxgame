@@ -84,7 +84,7 @@ namespace dx3d
 		m_renderSystem->buildBatches(scene, camera);
 		m_renderSystem->renderShadows(scene, *m_instanceBuffer, camera);
 
-		m_renderSystem->beginFrame(swapChain, { 0.2f, 0.2f, 0.2f, 1.0f });
+		m_renderSystem->beginFrame(swapChain, { 0.2f, 0.2f, 0.2f, 1.0f }, camera);
 
 		// Debug Lines Callback (Renderer sets the pipeline, Game draws the lines)
 		if (onDrawDebug) {
@@ -153,7 +153,7 @@ namespace dx3d
 							ctx,
 							*obj->model,
 							*obj->constantBuffer,
-							obj->transform.getWorldMatrix()
+							obj->getWorldTransform().getWorldMatrixRelative(camera.getPosition())
 						);
 					}
 				}

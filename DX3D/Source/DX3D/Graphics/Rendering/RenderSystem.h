@@ -38,7 +38,7 @@ namespace dx3d
 
 		void setPipeline(GraphicsPipelineStatePtr pipeline) noexcept;
 		void setPSSampler(ID3D11SamplerState* sampler) noexcept;
-		void beginFrame(SwapChain& swapChain, const XMFLOAT4& clearColor);
+		void beginFrame(SwapChain& swapChain, const XMFLOAT4& clearColor, const Camera& camera);
 		void endFrame(GraphicsDevice& device, SwapChain& swapChain, bool vsync);
 		void setCameraMatrices(const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj);
 		void setFrameResources(DeviceContext& context);

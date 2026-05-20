@@ -49,7 +49,7 @@ namespace dx3d
             return result;
         }
 
-        bool intersectRay(const DirectX::XMVECTOR& rayOrigin, const DirectX::XMVECTOR& rayDir, float& tMinOut) const
+        bool intersectRay(DirectX::XMVECTOR localRayOrigin, DirectX::XMVECTOR rayDir, float& tMinOut) const
         {
             using namespace DirectX;
             XMVECTOR boxMin = XMLoadFloat3(&min);
@@ -57,8 +57,8 @@ namespace dx3d
 
             XMVECTOR invDir = XMVectorReciprocal(rayDir);
 
-            XMVECTOR t1 = XMVectorMultiply(XMVectorSubtract(boxMin, rayOrigin), invDir);
-            XMVECTOR t2 = XMVectorMultiply(XMVectorSubtract(boxMax, rayOrigin), invDir);
+            XMVECTOR t1 = XMVectorMultiply(XMVectorSubtract(boxMin, localRayOrigin), invDir);
+            XMVECTOR t2 = XMVectorMultiply(XMVectorSubtract(boxMax, localRayOrigin), invDir);
 
             XMVECTOR vMin = XMVectorMin(t1, t2);
             XMVECTOR vMax = XMVectorMax(t1, t2);

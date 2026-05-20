@@ -55,10 +55,14 @@ namespace dx3d {
         }
     }
 
-    std::shared_ptr<GameObject> SceneManager::pickObject(const DirectX::XMVECTOR& rayOrigin, const DirectX::XMVECTOR& rayDir, const dx3d::Vec3d& cameraPos, float* outDistance) const
+    std::shared_ptr<GameObject> SceneManager::pickObject(const Vec3d& rayOrigin, const DirectX::XMVECTOR& rayDir, const dx3d::Vec3d& cameraPos, float* outDistance) const
     {
         std::shared_ptr<GameObject> pickedObj = nullptr;
         float minDistance = FLT_MAX;
+
+        // Shift absolute ray origin into the camera-relative space using double precision
+        dx3d::Vec3d relRayOriginDouble = rayOrigin - cameraPos;
+        DirectX::XMVECTOR relRayOriginFloat = relRayOriginDouble.toVector();
 
         for (const auto& obj : m_objects)
         {
@@ -67,7 +71,7 @@ namespace dx3d {
             AABB bounds = obj->getRelativeAABB(cameraPos);
             float tMin = 0.0f;
 
-            if (bounds.intersectRay(rayOrigin, rayDir, tMin))
+            if (bounds.intersectRay(relRayOriginFloat, rayDir, tMin))
             {
                 if (tMin < minDistance && tMin >= 0.0f)
                 {

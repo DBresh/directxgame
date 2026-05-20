@@ -52,16 +52,10 @@ namespace dx3d {
             return parent.lock();
         }
 
-        AABB getWorldAABB() const {
+        AABB getRelativeAABB(const dx3d::Vec3d& cameraPos) const
+        {
             if (model) {
-                return model->boundingBox.transform(getWorldTransform().getWorldMatrix());
-            }
-            return AABB{};
-        }
-
-        AABB getRelativeAABB(const dx3d::Vec3d& camPos) const {
-            if (model) {
-                return model->boundingBox.transform(getWorldTransform().getWorldMatrixRelative(camPos));
+                return model->boundingBox.transform(getWorldTransform().getWorldMatrixRelative(cameraPos));
             }
             return AABB{};
         }

@@ -29,7 +29,7 @@ namespace dx3d {
         void clear();
         void update(float deltaTime);
 
-        std::shared_ptr<GameObject> pickObject(const DirectX::XMVECTOR& rayOrigin, const DirectX::XMVECTOR& rayDir, const dx3d::Vec3d& cameraPos, float* outDistance = nullptr) const;
+        std::shared_ptr<GameObject> pickObject(const Vec3d& rayOrigin, const DirectX::XMVECTOR& rayDir, const dx3d::Vec3d& cameraPos, float* outDistance = nullptr) const;
 
 
 

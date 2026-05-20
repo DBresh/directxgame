@@ -27,9 +27,18 @@ namespace Simulator
         {
             if (!orbitData.isPathDirty) return;
 
+            // Safeguard: The central star/root object doesn't have an orbit path
+            if (orbitData.ParentOrbitIndex == -1 || orbitData.AttractorMass <= 0.0)
+            {
+                m_vertexCount = 0;
+                orbitData.isPathDirty = false;
+                return;
+            }
+
             const int numPoints = 150;
             std::vector<dx3d::Vec3d> rawPoints;
 
+            // These points are generated in Physics-Relative Space (Offsets from the Attractor)
             Kepler::GetOrbitPoints(orbitData, rawPoints, numPoints, dx3d::Vec3d(0.0, 0.0, 0.0), 1500.0);
 
             m_vertexCount = static_cast<uint32_t>(rawPoints.size());
@@ -43,7 +52,6 @@ namespace Simulator
                     static_cast<float>(rawPoints[i].y),
                     static_cast<float>(rawPoints[i].z)
                 );
-                // Cyan color for orbits
                 vertices[i].color = orbitData.orbitColor;
             }
 
@@ -52,15 +60,21 @@ namespace Simulator
             orbitData.isPathDirty = false;
         }
 
-        void draw(dx3d::DeviceContext& context, const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj, const dx3d::Vec3d& parentWorldPos)
+        void draw(dx3d::DeviceContext& context, const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj, const OrbitData& orbitData, const dx3d::Vec3d& cameraAbsolutePos)
         {
             if (!m_vertexBuffer || m_vertexCount == 0 || !m_constantBuffer) return;
+            dx3d::Vec3d parentWorldPos = orbitData.absoluteWorldPosition - orbitData.positionRelativeToAttractor;
 
+            // Shift into the floating origin camera space using double precision
+            dx3d::Vec3d relPos = parentWorldPos - cameraAbsolutePos;
+
+            // todo: If orbit radius exceeds 32-bit float limits, vertices inside the buffer 
             DirectX::XMMATRIX w = DirectX::XMMatrixTranslation(
-                static_cast<float>(parentWorldPos.x),
-                static_cast<float>(parentWorldPos.y),
-                static_cast<float>(parentWorldPos.z)
+                static_cast<float>(relPos.x),
+                static_cast<float>(relPos.y),
+                static_cast<float>(relPos.z)
             );
+
             DirectX::XMMATRIX v = DirectX::XMLoadFloat4x4(&view);
             DirectX::XMMATRIX p = DirectX::XMLoadFloat4x4(&proj);
 

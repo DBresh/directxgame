@@ -7,6 +7,7 @@
 #include <DX3D/InputSystem/InputSystem.h>
 #include <DX3D/Graphics/Resources/Light.h>
 #include <DX3D/Graphics/Buffers/StructuredBuffer.h>
+#include <DX3D/Math/Vec3d.h>
 
 namespace dx3d
 {
@@ -40,20 +41,12 @@ namespace dx3d
             float intensity,
             bool shadows);
 
-        void addPoint(const DirectX::XMFLOAT3& pos,
-            const DirectX::XMFLOAT3& color,
-            float range,
-            float intensity);
+        void addPoint(const Vec3d& pos, const DirectX::XMFLOAT3& color, float range, float intensity);
 
-        void addSpot(const DirectX::XMFLOAT3& pos,
-            const DirectX::XMFLOAT3& dir,
-            float angleDegrees,
-            const DirectX::XMFLOAT3& color,
-            float range,
-            float intensity,
-            bool shadows);
+        void addSpot(const dx3d::Vec3d& pos, const DirectX::XMFLOAT3& dir, float angleDegrees,
+            const DirectX::XMFLOAT3& color, float range, float intensity, bool shadows);
 
-        void uploadToGPU();
+        void uploadToGPU(const dx3d::Vec3d& cameraAbsolutePos);
         void bind(DeviceContext& context, unsigned slot);
 
         const std::vector<Light>& getLights() const { return m_lights; }

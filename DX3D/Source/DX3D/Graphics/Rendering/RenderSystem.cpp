@@ -95,7 +95,7 @@ namespace dx3d
 		}
 	}
 
-	void RenderSystem::beginFrame(SwapChain& swapChain, const XMFLOAT4& clearColor)
+	void RenderSystem::beginFrame(SwapChain& swapChain, const XMFLOAT4& clearColor, const Camera& camera)
 	{
 		m_context->clearAndSetBackBuffer(swapChain, clearColor);
 
@@ -148,7 +148,7 @@ namespace dx3d
 			m_context->setPSConstantBuffer(*m_lightMatrixBuffer, 2);
 			m_context->setVSConstantBuffer(*m_lightMatrixBuffer, 2);
 
-			m_lightManager->uploadToGPU();
+			m_lightManager->uploadToGPU(camera.getPosition());
 			m_lightManager->bind(*m_context, 1);
 		}
 
@@ -225,17 +225,9 @@ namespace dx3d
 			const auto& model = objPtr->model;
 			if (!model || !model->mesh) continue;
 
-			AABB worldBounds = objPtr->getWorldAABB();
+			AABB localBounds = objPtr->getRelativeAABB(camPos);
 
-			worldBounds.min.x -= static_cast<float>(camPos.x);
-			worldBounds.min.y -= static_cast<float>(camPos.y);
-			worldBounds.min.z -= static_cast<float>(camPos.z);
-
-			worldBounds.max.x -= static_cast<float>(camPos.x);
-			worldBounds.max.y -= static_cast<float>(camPos.y);
-			worldBounds.max.z -= static_cast<float>(camPos.z);
-
-			if (lightFrustum.checkAABB(worldBounds))
+			if (lightFrustum.checkAABB(localBounds))
 			{
 				lightBatchesMap[model.get()].push_back(objPtr->getWorldTransform().getWorldMatrixRelative(camPos));
 			}
@@ -433,19 +425,10 @@ namespace dx3d
 		std::unordered_map<ModelGPU*, std::vector<GameObject*>> modelGroups;
 		
 		dx3d::Vec3d camPos = camera.getPosition();
-
 		for (auto& objPtr : allObjects)
 		{
 			if (objPtr->model) {
-				AABB worldBounds = objPtr->getWorldAABB();
-
-				worldBounds.min.x -= static_cast<float>(camPos.x);
-				worldBounds.min.y -= static_cast<float>(camPos.y);
-				worldBounds.min.z -= static_cast<float>(camPos.z);
-
-				worldBounds.max.x -= static_cast<float>(camPos.x);
-				worldBounds.max.y -= static_cast<float>(camPos.y);
-				worldBounds.max.z -= static_cast<float>(camPos.z);
+				AABB worldBounds = objPtr->getRelativeAABB(camPos);
 
 				if (frustum.checkAABB(worldBounds)) {
 					modelGroups[objPtr->model.get()].push_back(objPtr.get());

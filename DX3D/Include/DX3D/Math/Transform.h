@@ -87,13 +87,6 @@ namespace dx3d
             m_dirty = true;
         }
 
-        const XMFLOAT4X4& getWorldMatrix() const
-        {
-            if (m_dirty)
-                recalcMatrix();
-            return m_world;
-        }
-
         XMFLOAT4X4 getWorldMatrixRelative(const dx3d::Vec3d& cameraOrigin) const
         {
             dx3d::Vec3d relPos = m_position - cameraOrigin;

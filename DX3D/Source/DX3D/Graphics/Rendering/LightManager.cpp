@@ -65,7 +65,7 @@ namespace dx3d
 		l.shadow->bias = 0.f;
 	}
 
-	void LightManager::addPoint(const XMFLOAT3& pos,
+	void LightManager::addPoint(const Vec3d& pos,
 		const XMFLOAT3& color,
 		float range,
 		float intensity)
@@ -99,7 +99,7 @@ namespace dx3d
 		);
 	}
 
-	void LightManager::addSpot(const XMFLOAT3& pos,
+	void LightManager::addSpot(const Vec3d& pos,
 		const XMFLOAT3& dir,
 		float angleDegrees,
 		const XMFLOAT3& color,
@@ -132,52 +132,9 @@ namespace dx3d
 
 	void LightManager::createSpotShadow(Light& l)
 	{
-		if (!l.shadow)
-			l.shadow = std::make_shared<LightShadowData>();
-
+		if (!l.shadow) l.shadow = std::make_shared<LightShadowData>();
 		l.shadow->shadowMap = m_device->createDepthTexture2D(m_shadowMapSize, m_shadowMapSize);
-		XMVECTOR pos = XMLoadFloat3(&l.position);
-		XMVECTOR forward = XMLoadFloat3(&l.direction);
-		XMVECTOR up = XMVectorSet(0, 1, 0, 0);
-
-		{
-			XMFLOAT3 d3;
-			XMStoreFloat3(&d3, forward);
-			if (fabsf(d3.y) > 0.99f)
-				up = XMVectorSet(0, 0, 1, 0);
-		}
-
-		XMMATRIX V = XMMatrixLookAtLH(pos, pos + forward, up);
-
-		// --- FOV: у l.spotAngle зберігаємо half-angle в радіанах ---
-		float halfAngle = l.spotAngle;        // half-angle (rad)
-		float fov = halfAngle * 2.0f;   // full vertical FOV
-
-		float aspect = 1.0f;
-		float znear = 0.1f;
-		float zfar = l.range;
-
-		XMMATRIX P = XMMatrixPerspectiveFovLH(fov, aspect, znear, zfar);
-		XMMATRIX VP = V * P; // row-major матриця V*P
-
-		XMStoreFloat4x4(&l.shadow->view, V);
-		XMStoreFloat4x4(&l.shadow->proj, P);
-
-		XMMATRIX VP_t = XMMatrixTranspose(VP);
-		XMStoreFloat4x4(&l.shadow->viewProj, VP_t);
-
 		l.shadow->bias = 0.f;
-
-		XMFLOAT3 d3;
-		XMStoreFloat3(&d3, forward);
-
-		DX3D_LOG_INFO(
-			"Created spot shadow: pos({:.2f},{:.2f},{:.2f}) dir({:.2f},{:.2f},{:.2f}) halfAngleDeg={:.2f} fullFovDeg={:.2f}",
-			l.position.x, l.position.y, l.position.z,
-			d3.x, d3.y, d3.z,
-			XMConvertToDegrees(halfAngle),
-			XMConvertToDegrees(fov)
-		);
 	}
 
 	void LightManager::initShadowArray(UINT size, UINT numSlices)
@@ -228,10 +185,9 @@ namespace dx3d
 		}
 	}
 
-	void LightManager::uploadToGPU()
+	void LightManager::uploadToGPU(const dx3d::Vec3d& cameraAbsolutePos)
 	{
-		if (m_lights.empty())
-			return;
+		if (m_lights.empty()) return;
 
 		std::vector<LightGPU> gpuLights;
 		int currentShadowIndex = 0;
@@ -239,10 +195,44 @@ namespace dx3d
 
 		for (auto& l : m_lights)
 		{
+			if (l.castShadows && l.shadow)
+			{
+				if (l.type == LightType::Spot)
+				{
+					dx3d::Vec3d relPosDouble = l.position - cameraAbsolutePos;
+					XMVECTOR relPos = XMVectorSet((float)relPosDouble.x, (float)relPosDouble.y, (float)relPosDouble.z, 1.0f);
+					XMVECTOR forward = XMLoadFloat3(&l.direction);
+					XMVECTOR up = XMVectorSet(0, 1, 0, 0);
+
+					XMFLOAT3 d3; XMStoreFloat3(&d3, forward);
+					if (fabsf(d3.y) > 0.99f) up = XMVectorSet(0, 0, 1, 0);
+
+					XMMATRIX V = XMMatrixLookAtLH(relPos, relPos + forward, up);
+					XMMATRIX P = XMMatrixPerspectiveFovLH(l.spotAngle * 2.0f, 1.0f, 0.1f, l.range);
+
+					XMStoreFloat4x4(&l.shadow->viewProj, XMMatrixTranspose(V * P));
+				}
+				else if (l.type == LightType::Directional)
+				{
+					float sceneDiameter = 200.0f;
+					XMVECTOR targetPos = XMVectorSet(0, 0, 0, 0);
+					XMVECTOR lightDir = XMLoadFloat3(&l.direction);
+					XMVECTOR lightPos = XMVectorSubtract(targetPos, XMVectorScale(lightDir, sceneDiameter));
+					XMVECTOR up = XMVectorSet(0, 1, 0, 0);
+
+					if (XMVector3NearEqual(XMVectorAbs(lightDir), XMVectorSet(0, 1, 0, 0), XMVectorReplicate(0.1f))) up = XMVectorSet(0, 0, 1, 0);
+
+					XMMATRIX V = XMMatrixLookAtLH(lightPos, targetPos, up);
+					XMMATRIX P = XMMatrixOrthographicLH(sceneDiameter, sceneDiameter, 1.0f, sceneDiameter * 4.0f);
+					XMStoreFloat4x4(&l.shadow->viewProj, XMMatrixTranspose(V * P));
+				}
+			}
+
 			LightGPU g{};
 			g.type = static_cast<int>(l.type);
 
-			g.posRange = XMFLOAT4(l.position.x, l.position.y, l.position.z, l.range);
+			dx3d::Vec3d relPos = l.position - cameraAbsolutePos;
+			g.posRange = XMFLOAT4((float)relPos.x, (float)relPos.y, (float)relPos.z, l.range);
 			g.dirSpot = XMFLOAT4(l.direction.x, l.direction.y, l.direction.z, l.spotAngle);
 			g.colInt = XMFLOAT4(l.color.x, l.color.y, l.color.z, l.intensity);
 			g.shadowMapIndex = (l.castShadows) ? currentShadowIndex++ : -1;

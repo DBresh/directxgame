@@ -118,7 +118,8 @@ namespace dx3d
 			int width = m_display->getClientWidth();
 			int height = m_display->getClientHeight();
 
-			DirectX::XMVECTOR origin, dir;
+			DirectX::XMVECTOR dir;
+			dx3d::Vec3d origin;
 			m_camera->screenPointToRay(mouseState.coords.x, mouseState.coords.y, width, height, origin, dir);
 
 			std::shared_ptr<GameObject> pick = m_scene.pickObject(origin, dir, m_camera->getPosition());

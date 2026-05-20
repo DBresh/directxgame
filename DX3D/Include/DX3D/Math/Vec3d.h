@@ -12,6 +12,7 @@ namespace dx3d
 
         constexpr Vec3d() : x(0.0), y(0.0), z(0.0) {}
         constexpr Vec3d(double x, double y, double z) : x(x), y(y), z(z) {}
+        constexpr Vec3d(DirectX::XMFLOAT3 vec) : x(static_cast<double>(vec.x)), y(static_cast<double>(vec.y)), z(static_cast<double>(vec.z)) {}
 
         Vec3d operator+(const Vec3d& rhs) const { return Vec3d(x + rhs.x, y + rhs.y, z + rhs.z); }
         Vec3d operator-(const Vec3d& rhs) const { return Vec3d(x - rhs.x, y - rhs.y, z - rhs.z); }
@@ -68,6 +69,16 @@ namespace dx3d
         [[nodiscard]] DirectX::XMFLOAT3 toFloat3() const
         {
             return DirectX::XMFLOAT3(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
+        }
+
+        [[nodiscard]] DirectX::XMVECTOR toVector() const
+        {
+            return DirectX::XMVectorSet(
+                static_cast<float>(x),
+                static_cast<float>(y),
+                static_cast<float>(z),
+                0.0f
+            );
         }
     };
 

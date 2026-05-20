@@ -116,7 +116,8 @@ namespace dx3d
                         int width = m_display->getClientWidth();
                         int height = m_display->getClientHeight();
 
-                        DirectX::XMVECTOR rayOrigin, rayDir;
+                        DirectX::XMVECTOR rayDir;
+                        Vec3d rayOrigin;
                         m_camera.screenPointToRay(mousePos.x, mousePos.y, width, height, rayOrigin, rayDir);
 
                         float hitDistance = -1.0f;
@@ -191,9 +192,7 @@ namespace dx3d
                 Simulator::OrbitData& orbit = orbitComp->getOrbit();
                 if (orbit.ParentOrbitIndex != -1)
                 {
-                    const Simulator::OrbitData& parentOrbit = m_orbitSystem.GetOrbit(orbit.ParentOrbitIndex);
-                    dx3d::Vec3d relParentPos = parentOrbit.absoluteWorldPosition - m_camera.getPosition();
-                    orbitComp->visualizer.draw(ctx, view, proj, relParentPos);
+                    orbitComp->visualizer.draw(ctx, view, proj, orbit, m_camera.getPosition());
                 }
             }
         }

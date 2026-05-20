@@ -2,6 +2,7 @@
 #include <DirectXMath.h>
 #include <DX3D/Graphics/Resources/DepthTexture2D.h>
 #include <memory>
+#include <DX3D/Math/Vec3d.h>
 
 namespace dx3d
 {
@@ -30,14 +31,14 @@ namespace dx3d
     {
         LightType type = LightType::Directional;
 
-        XMFLOAT3 position = XMFLOAT3(0, 0, 0); // Point / Spot
-        float    range = 1000.0f;
+        Vec3d position = Vec3d(0.0, 0.0, 0.0);               // Point / Spot
+        float range = 1000.0f;
 
-        XMFLOAT3 direction = XMFLOAT3(0, -1, 0); // Directional / Spot
-        float    spotAngle = XMConvertToRadians(45.0f); // store radians
+        XMFLOAT3 direction = XMFLOAT3(0, -1, 0);             // Directional / Spot
+        float spotAngle = XMConvertToRadians(45.0f);         // store radians
 
         XMFLOAT3 color = XMFLOAT3(1.0f, 1.0f, 1.0f);
-        float    intensity = 1.0f;
+        float intensity = 1.0f;
 
         bool castShadows = false;
         std::shared_ptr<LightShadowData> shadow;

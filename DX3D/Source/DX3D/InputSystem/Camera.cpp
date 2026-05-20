@@ -31,30 +31,27 @@ namespace dx3d
 
 	void Camera::updateViewMatrix()
 	{
-		float cosPitch = cosf(m_pitch);
-		float sinPitch = sinf(m_pitch);
-		float cosYaw = cosf(m_yaw);
-		float sinYaw = sinf(m_yaw);
+		double cosPitch = cos((double)m_pitch);
+		double sinPitch = sin((double)m_pitch);
+		double cosYaw = cos((double)m_yaw);
+		double sinYaw = sin((double)m_yaw);
 
-		XMVECTOR forward = XMVectorSet(
+		m_forward = Vec3d(
 			cosPitch * sinYaw,
 			sinPitch,
-			-cosPitch * cosYaw,
-			0.0f
-		);
-		forward = XMVector3Normalize(forward);
-		XMStoreFloat3(&m_forward, forward);
+			-cosPitch * cosYaw
+		).normalized();
 
 		if (m_isOrbiting)
 		{
-			Vec3d fwdDouble(m_forward.x, m_forward.y, m_forward.z);
-			m_position = m_orbitTarget - (fwdDouble * m_orbitDistance);
+			m_position = m_orbitTarget - (m_forward * m_orbitDistance);
 		}
 
 		XMVECTOR eye = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
-		XMVECTOR up = XMVectorSet(0, 1, 0, 0);
+		XMVECTOR at = XMVectorSet((float)m_forward.x, (float)m_forward.y, (float)m_forward.z, 0.0f);
+		XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
-		XMMATRIX V = XMMatrixLookAtLH(eye, eye + forward, up);
+		XMMATRIX V = XMMatrixLookAtLH(eye, eye + at, up);
 		XMStoreFloat4x4(&m_view, V);
 	}
 
@@ -76,7 +73,7 @@ namespace dx3d
 		updateViewMatrix();
 	}
 
-	void Camera::screenPointToRay(int mouseX, int mouseY, int screenW, int screenH, XMVECTOR& outOrigin, XMVECTOR& outDir) const
+	void Camera::screenPointToRay(int mouseX, int mouseY, int screenW, int screenH, Vec3d& outOrigin, XMVECTOR& outDir) const
 	{
 		if (screenW == 0 || screenH == 0) return;
 
@@ -90,7 +87,11 @@ namespace dx3d
 		XMMATRIX V = XMLoadFloat4x4(&m_view);
 		XMMATRIX invV = XMMatrixInverse(nullptr, V);
 
-		outOrigin = invV.r[3];
+		outOrigin = m_position + dx3d::Vec3d(
+			XMVectorGetX(invV.r[3]),
+			XMVectorGetY(invV.r[3]),
+			XMVectorGetZ(invV.r[3])
+		);
 
 		XMVECTOR dir = XMVectorSet(
 			vx * XMVectorGetX(invV.r[0]) + vy * XMVectorGetX(invV.r[1]) + XMVectorGetX(invV.r[2]),
