@@ -6,6 +6,7 @@
 #include <Game/Editor/UIManager.h>
 #include <Game/Kepler/TimeController.h>
 #include <Game/Kepler/OrbitSystem.h>
+#include <Game/Editor/KeplerEditor.h>
 #include <json.hpp>
 
 namespace dx3d
@@ -21,19 +22,15 @@ namespace dx3d
     protected:
         void onUpdate(double dt, double fdt) override;
         void onGUI() override;
-        void onDrawDebug(DeviceContext& ctx, const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj) override;
         void onWindowResized(int width, int height) override;
+        void onDrawDebug(DeviceContext& ctx, const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj) override;
 
     private:
-        void initUI();
-        void handleMouseWrapping();
-        void handleViewportDragAndDrop();
         void syncCameraOrbitTarget();
+
     private:
-        UIManager m_uiManager;
         Simulator::OrbitSystem m_orbitSystem{};
         Simulator::TimeController m_timeController;
-        
-        std::shared_ptr<GameObject> m_selectedObject{ nullptr };
+        std::unique_ptr<KeplerEditor> m_editor;
     };
 }

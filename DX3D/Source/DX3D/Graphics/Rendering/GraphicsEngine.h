@@ -27,6 +27,7 @@ namespace dx3d
         GraphicsDevice& getGraphicsDevice() noexcept { return *m_graphicsDevice; };
         std::shared_ptr<GraphicsDevice> getGraphicsDevicePtr() const noexcept { return m_graphicsDevice; }
         LightManager* getLightManager() const noexcept { return m_renderSystem->getLightManager(); }
+        RenderSystem& getRenderSystem() const noexcept { return *m_renderSystem; }
 
         void render(SceneManager& scene, Camera& camera, SwapChain& swapChain,
             const std::function<void()>& onGUI,
