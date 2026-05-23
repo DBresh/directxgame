@@ -1,116 +1,113 @@
 #pragma once
-#include <vector>
+#include <DX3D/Game/Entity.h>
 #include <Game/Kepler/OrbitData.h>
-#include <Game/Kepler/KeplerPhysics.h>
-#include <DX3D/Core/Serialization.h>
-#include <json.hpp>
+#include <vector>
+#include <cassert>
 
-namespace Simulator
-{
-    class OrbitSystem
-    {
-    private:
-        std::vector<OrbitData> m_orbits;
+namespace dx3d {
 
+    class OrbitSystem {
     public:
-        int AddOrbit(const OrbitData& data)
-        {
-            m_orbits.push_back(data);
-            return static_cast<int>(m_orbits.size() - 1);
+        OrbitSystem() = default;
+        ~OrbitSystem() = default;
+
+        void assignOrbitToEntity(Entity e, const Simulator::OrbitData& data) {
+            uint32_t entityIndex = e.getIndex();
+
+            if (entityIndex >= m_sparse.size()) {
+                m_sparse.resize(entityIndex + 1, INVALID_INDEX);
+            }
+
+            assert(m_sparse[entityIndex] == INVALID_INDEX && "Entity already has an Orbit assigned!");
+
+            size_t denseIndex = m_denseData.size();
+            m_sparse[entityIndex] = denseIndex;
+
+            m_denseData.push_back(data);
+            m_denseEntities.push_back(e);
         }
 
-        OrbitData& GetOrbit(int index)
-        {
-            return m_orbits[index];
-        }
+        void removeOrbit(Entity e) {
+            assert(hasOrbit(e) && "Entity does not have an Orbit!");
 
-        void UpdateAll(double dt)
-        {
-            for (auto& orbit : m_orbits)
-            {
-                if (orbit.ParentOrbitIndex != -1) {
-                    double currentAttractorMass = m_orbits[orbit.ParentOrbitIndex].BodyMass;
-                    if (orbit.AttractorMass != currentAttractorMass) {
-                        orbit.AttractorMass = currentAttractorMass;
-                        orbit.isPathDirty = true;
-                    }
-                }
+            uint32_t entityIndex = e.getIndex();
+            size_t deletedDenseIndex = m_sparse[entityIndex];
+            size_t lastDenseIndex = m_denseData.size() - 1;
 
-                if (orbit.isPathDirty)
-                {
-                    Simulator::Kepler::CalculateOrbitStateFromOrbitalVectors(orbit);
-                    if (!orbit.freezeColor)
-                    {
-                        double currentSpeed = orbit.velocityRelativeToAttractor.magnitude();
-                        double referenceSpeed = sqrt(orbit.GravConst * orbit.AttractorMass / orbit.SemiMajorAxis);
-                        float speedRatio = static_cast<float>(currentSpeed / referenceSpeed);
+            if (deletedDenseIndex != lastDenseIndex) {
+                // Swap the trailing memory to the deleted hole
+                m_denseData[deletedDenseIndex] = std::move(m_denseData[lastDenseIndex]);
 
-                        orbit.orbitColor.x = speedRatio - 0.5f;
-                        orbit.orbitColor.y = 1.0f - abs(speedRatio - 1.0f);
-                        orbit.orbitColor.z = 1.5f - speedRatio;
-                        orbit.orbitColor.w = 1.0f;
-                    }
-                }
+                Entity lastEntity = m_denseEntities[lastDenseIndex];
+                m_denseEntities[deletedDenseIndex] = lastEntity;
 
-                if (!orbit.isFrozen)
-                {
-                    Simulator::Kepler::UpdateOrbitAnomaliesByTime(orbit, dt);
+                m_sparse[lastEntity.getIndex()] = deletedDenseIndex;
 
-                    // temp fallback
-                    if (std::isnan(orbit.positionRelativeToAttractor.x)) {
-                        orbit.isFrozen = true;
-                        orbit.positionRelativeToAttractor = dx3d::Vec3d(0.0, 0.0, 0.0);
+                // --- ARCHITECTURE FIX: The Index Patch ---
+                // Because we moved an element from 'lastDenseIndex' to 'deletedDenseIndex',
+                // any active orbit that relied on 'lastDenseIndex' as its parent must be patched.
+                for (auto& orbit : m_denseData) {
+                    if (orbit.ParentOrbitIndex == lastDenseIndex) {
+                        orbit.ParentOrbitIndex = deletedDenseIndex;
                     }
                 }
             }
 
-            for (auto& orbit : m_orbits)
-            {
-                orbit.absoluteWorldPosition = orbit.positionRelativeToAttractor;
-                int currentParentIdx = orbit.ParentOrbitIndex;
-
-                while (currentParentIdx != -1) {
-                    orbit.absoluteWorldPosition += m_orbits[currentParentIdx].positionRelativeToAttractor;
-                    currentParentIdx = m_orbits[currentParentIdx].ParentOrbitIndex;
-                }
-            }
+            m_sparse[entityIndex] = INVALID_INDEX;
+            m_denseData.pop_back();
+            m_denseEntities.pop_back();
         }
 
-        nlohmann::json saveToJson() const
+        Simulator::OrbitData& getOrbit(Entity e) {
+            assert(hasOrbit(e) && "Entity does not have an Orbit!");
+            return m_denseData[m_sparse[e.getIndex()]];
+        }
+
+        bool hasOrbit(Entity e) const {
+            uint32_t entityIndex = e.getIndex();
+            return entityIndex < m_sparse.size() && m_sparse[entityIndex] != INVALID_INDEX;
+        }
+
+        // The physics execution pipeline sweeps contiguous arrays natively
+        void UpdateAll(double scaledDt) {
+            // Because m_denseData is perfectly contiguous and contains strictly POD,
+            // we can safely slice this vector and feed it directly into your JobSystem.
+
+            /* Job System Integration Target:
+            JobSystem::Dispatch(m_denseData.size(), chunkSize, [&](size_t start, size_t end) {
+                for (size_t i = start; i < end; ++i) {
+                    // Update anomalies and calculate instantaneous absoluteWorldPosition
+                    CalculateOrbitStateFromElements(m_denseData[i], scaledDt);
+                }
+            });
+            */
+        }
+
+        size_t getSparseIndex(Entity e) const {
+            assert(hasOrbit(e) && "CRITICAL: Requested Sparse Index of Entity without an Orbit component!");
+            return m_sparse[e.getIndex()];
+        }
+
+        // Used by Phase 3 (Visual Transform Alignment) to sync rendering data
+        std::vector<Simulator::OrbitData>& getRawData() { return m_denseData; }
+        const std::vector<Entity>& getRawEntities() const { return m_denseEntities; }
+
+        void clear()
         {
-            nlohmann::json j = nlohmann::json::array();
-            for (size_t i = 0; i < m_orbits.size(); ++i)
-            {
-                nlohmann::json orbitJson = m_orbits[i];
-                orbitJson["index"] = i;
-                j.push_back(orbitJson);
-            }
-            return j;
+            m_sparse.clear();
+            m_denseData.clear();
+            m_denseEntities.clear();
         }
 
-        void loadFromJson(const nlohmann::json& jArray)
-        {
-            m_orbits.clear();
-            if (!jArray.is_array()) return;
+    private:
+        static constexpr size_t INVALID_INDEX = static_cast<size_t>(-1);
 
-            m_orbits.reserve(jArray.size());
+        // Sparse-Set map: Entity::getIndex() -> Dense Array Index
+        std::vector<size_t> m_sparse;
 
-            for (const auto& j : jArray)
-            {
-                try
-                {
-                    OrbitData data = j.get<OrbitData>();
-                    Kepler::CalculateOrbitStateFromOrbitalVectors(data);
-                    data.isPathDirty = true;
-                    data.freezeColor = true;
-                    m_orbits.push_back(data);
-                }
-                catch (const nlohmann::json::exception& e)
-                {
-                    int errorIndex = j.value("index", -1);
-                    DX3D_LOG_INFO("JSON Parse Crash Prevented on Orbit Index {}. Error: {}", errorIndex, e.what());
-                }
-            }
-        }
+        // Cache-dense memory layout
+        std::vector<Simulator::OrbitData> m_denseData;
+        std::vector<Entity> m_denseEntities;
     };
-}
+
+} // namespace dx3d

@@ -145,6 +145,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DX3D\Source\DX3D\Core\JobSystem.cpp" />
+    <ClCompile Include="DX3D\Source\DX3D\Game\SceneSerializer.cpp" />
     <ClCompile Include="Game\Editor\KeplerEditor.cpp" />
     <ClCompile Include="Game\Editor\AssetBrowserPanel.cpp" />
     <ClCompile Include="Game\Editor\HierarchyPanel.cpp" />
@@ -193,6 +194,10 @@
   <ItemGroup>
     <ClInclude Include="DX3D\Include\DX3D\Core\JobSystem.h" />
     <ClInclude Include="DX3D\Include\DX3D\Core\Serialization.h" />
+    <ClInclude Include="DX3D\Include\DX3D\Game\Entity.h" />
+    <ClInclude Include="DX3D\Include\DX3D\Game\Registry.h" />
+    <ClInclude Include="DX3D\Include\DX3D\Game\SceneSerializer.h" />
+    <ClInclude Include="DX3D\Include\DX3D\Game\TransformSystem.h" />
     <ClInclude Include="DX3D\Source\ThirdParty\json\json.hpp" />
     <ClInclude Include="Game\Editor\KeplerEditor.h" />
     <ClInclude Include="Game\Editor\AssetBrowserPanel.h" />
