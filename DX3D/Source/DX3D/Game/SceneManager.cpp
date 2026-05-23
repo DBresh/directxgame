@@ -9,6 +9,7 @@ namespace dx3d {
     std::shared_ptr<GameObject> SceneManager::createObject(const std::string& name) {
         auto object = std::make_shared<GameObject>();
         object->name = name;
+        object->entity = Entity(m_nextEntityIndex++, 0);
 
         m_objects.push_back(object);
         if (!name.empty()) {
@@ -46,6 +47,7 @@ namespace dx3d {
     void SceneManager::clear() {
         m_objects.clear();
         m_objectMap.clear();
+        m_nextEntityIndex = 0;
     }
 
     void SceneManager::update(float deltaTime) {

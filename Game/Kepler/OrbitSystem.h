@@ -5,6 +5,8 @@
 #include <vector>
 #include <cassert>
 #include <cmath>
+#include <unordered_map>
+#include <json.hpp>
 
 namespace dx3d {
 
@@ -85,6 +87,69 @@ namespace dx3d {
         std::vector<Simulator::OrbitData>& getRawData() { return m_denseData; }
         const std::vector<Simulator::OrbitData>& getRawData() const { return m_denseData; }
         const std::vector<Entity>& getRawEntities() const { return m_denseEntities; }
+
+        nlohmann::json saveToJson() const
+        {
+            nlohmann::json out = nlohmann::json::array();
+            for (size_t i = 0; i < m_denseData.size(); ++i)
+            {
+                nlohmann::json entry;
+                entry["entityId"] = m_denseEntities[i].id;
+                entry["orbit"] = m_denseData[i];
+                out.push_back(entry);
+            }
+            return out;
+        }
+
+        void loadFromJson(const nlohmann::json& j)
+        {
+            clear();
+            if (!j.is_array())
+            {
+                return;
+            }
+
+            std::unordered_map<uint32_t, Entity> remap;
+            for (const auto& entry : j)
+            {
+                if (!entry.contains("entityId") || !entry.contains("orbit"))
+                {
+                    continue;
+                }
+
+                Entity e(entry.at("entityId").get<uint32_t>());
+                Simulator::OrbitData data = entry.at("orbit").get<Simulator::OrbitData>();
+                data.ParentEntity = Entity::Null;
+                assignOrbitToEntity(e, data);
+                remap[e.id] = e;
+            }
+
+            for (const auto& entry : j)
+            {
+                if (!entry.contains("entityId") || !entry.contains("orbit"))
+                {
+                    continue;
+                }
+
+                Entity child(entry.at("entityId").get<uint32_t>());
+                if (!hasOrbit(child))
+                {
+                    continue;
+                }
+
+                const auto& orbitJson = entry.at("orbit");
+                if (!orbitJson.contains("ParentEntityId"))
+                {
+                    continue;
+                }
+
+                uint32_t parentId = orbitJson.at("ParentEntityId").get<uint32_t>();
+                auto it = remap.find(parentId);
+                getOrbit(child).ParentEntity = (it != remap.end()) ? it->second : Entity::Null;
+            }
+
+            m_hierarchyDirty = true;
+        }
 
         void clear()
         {

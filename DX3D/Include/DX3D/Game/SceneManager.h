@@ -36,6 +36,7 @@ namespace dx3d {
     private:
         std::vector<std::shared_ptr<GameObject>> m_objects;
         std::unordered_map<std::string, std::shared_ptr<GameObject>> m_objectMap;
+        uint32_t m_nextEntityIndex = 0;
     };
 
 }
