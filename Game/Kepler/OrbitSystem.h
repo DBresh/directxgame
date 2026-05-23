@@ -1,8 +1,10 @@
 #pragma once
 #include <DX3D/Game/Entity.h>
 #include <Game/Kepler/OrbitData.h>
+#include <Game/Kepler/KeplerPhysics.h>
 #include <vector>
 #include <cassert>
+#include <cmath>
 
 namespace dx3d {
 
@@ -25,6 +27,7 @@ namespace dx3d {
 
             m_denseData.push_back(data);
             m_denseEntities.push_back(e);
+            m_hierarchyDirty = true;
         }
 
         void removeOrbit(Entity e) {
@@ -35,30 +38,26 @@ namespace dx3d {
             size_t lastDenseIndex = m_denseData.size() - 1;
 
             if (deletedDenseIndex != lastDenseIndex) {
-                // Swap the trailing memory to the deleted hole
                 m_denseData[deletedDenseIndex] = std::move(m_denseData[lastDenseIndex]);
 
                 Entity lastEntity = m_denseEntities[lastDenseIndex];
                 m_denseEntities[deletedDenseIndex] = lastEntity;
 
                 m_sparse[lastEntity.getIndex()] = deletedDenseIndex;
-
-                // --- ARCHITECTURE FIX: The Index Patch ---
-                // Because we moved an element from 'lastDenseIndex' to 'deletedDenseIndex',
-                // any active orbit that relied on 'lastDenseIndex' as its parent must be patched.
-                for (auto& orbit : m_denseData) {
-                    if (orbit.ParentOrbitIndex == lastDenseIndex) {
-                        orbit.ParentOrbitIndex = deletedDenseIndex;
-                    }
-                }
             }
 
             m_sparse[entityIndex] = INVALID_INDEX;
             m_denseData.pop_back();
             m_denseEntities.pop_back();
+            m_hierarchyDirty = true;
         }
 
         Simulator::OrbitData& getOrbit(Entity e) {
+            assert(hasOrbit(e) && "Entity does not have an Orbit!");
+            return m_denseData[m_sparse[e.getIndex()]];
+        }
+
+        const Simulator::OrbitData& getOrbit(Entity e) const {
             assert(hasOrbit(e) && "Entity does not have an Orbit!");
             return m_denseData[m_sparse[e.getIndex()]];
         }
@@ -68,19 +67,14 @@ namespace dx3d {
             return entityIndex < m_sparse.size() && m_sparse[entityIndex] != INVALID_INDEX;
         }
 
-        // The physics execution pipeline sweeps contiguous arrays natively
-        void UpdateAll(double scaledDt) {
-            // Because m_denseData is perfectly contiguous and contains strictly POD,
-            // we can safely slice this vector and feed it directly into your JobSystem.
+        void markHierarchyDirty() { m_hierarchyDirty = true; }
 
-            /* Job System Integration Target:
-            JobSystem::Dispatch(m_denseData.size(), chunkSize, [&](size_t start, size_t end) {
-                for (size_t i = start; i < end; ++i) {
-                    // Update anomalies and calculate instantaneous absoluteWorldPosition
-                    CalculateOrbitStateFromElements(m_denseData[i], scaledDt);
-                }
-            });
-            */
+        void UpdateAll(double scaledDt) {
+            ResolveHierarchyIfNeeded();
+            RebuildDirtyOrbits();
+            AdvanceSimulation(scaledDt);
+            ResolveAbsolutePositions();
+            UpdateVisualState();
         }
 
         size_t getSparseIndex(Entity e) const {
@@ -88,8 +82,8 @@ namespace dx3d {
             return m_sparse[e.getIndex()];
         }
 
-        // Used by Phase 3 (Visual Transform Alignment) to sync rendering data
         std::vector<Simulator::OrbitData>& getRawData() { return m_denseData; }
+        const std::vector<Simulator::OrbitData>& getRawData() const { return m_denseData; }
         const std::vector<Entity>& getRawEntities() const { return m_denseEntities; }
 
         void clear()
@@ -97,17 +91,173 @@ namespace dx3d {
             m_sparse.clear();
             m_denseData.clear();
             m_denseEntities.clear();
+            m_parentDense.clear();
+            m_updateOrder.clear();
+            m_hierarchyDirty = true;
         }
 
     private:
         static constexpr size_t INVALID_INDEX = static_cast<size_t>(-1);
 
-        // Sparse-Set map: Entity::getIndex() -> Dense Array Index
-        std::vector<size_t> m_sparse;
+        void ResolveHierarchyIfNeeded()
+        {
+            if (!m_hierarchyDirty) {
+                return;
+            }
 
-        // Cache-dense memory layout
+            m_parentDense.resize(m_denseData.size(), INVALID_INDEX);
+
+            for (size_t i = 0; i < m_denseData.size(); ++i)
+            {
+                Entity parent = m_denseData[i].ParentEntity;
+                if (parent != Entity::Null && hasOrbit(parent))
+                {
+                    m_parentDense[i] = getSparseIndex(parent);
+                }
+            }
+
+            BuildTopologicalOrder();
+            m_hierarchyDirty = false;
+        }
+
+        void BuildTopologicalOrder()
+        {
+            const size_t count = m_denseData.size();
+            m_updateOrder.clear();
+            m_updateOrder.reserve(count);
+
+            std::vector<std::vector<size_t>> children(count);
+            std::vector<size_t> indegree(count, 0);
+
+            for (size_t i = 0; i < count; ++i)
+            {
+                size_t parent = m_parentDense[i];
+                if (parent != INVALID_INDEX && parent < count)
+                {
+                    children[parent].push_back(i);
+                    ++indegree[i];
+                }
+            }
+
+            std::vector<size_t> frontier;
+            frontier.reserve(count);
+            for (size_t i = 0; i < count; ++i)
+            {
+                if (indegree[i] == 0)
+                {
+                    frontier.push_back(i);
+                }
+            }
+
+            for (size_t idx = 0; idx < frontier.size(); ++idx)
+            {
+                size_t node = frontier[idx];
+                m_updateOrder.push_back(node);
+                for (size_t child : children[node])
+                {
+                    if (--indegree[child] == 0)
+                    {
+                        frontier.push_back(child);
+                    }
+                }
+            }
+
+            if (m_updateOrder.size() != count)
+            {
+                m_updateOrder.clear();
+                for (size_t i = 0; i < count; ++i)
+                {
+                    m_updateOrder.push_back(i);
+                }
+            }
+        }
+
+        void RebuildDirtyOrbits()
+        {
+            for (size_t denseIndex : m_updateOrder)
+            {
+                auto& orbit = m_denseData[denseIndex];
+                if (!orbit.elementsDirty)
+                {
+                    continue;
+                }
+
+                Simulator::Kepler::CalculateOrbitStateFromOrbitalVectors(orbit);
+                orbit.elementsDirty = false;
+                orbit.visualDirty = true;
+            }
+        }
+
+        void AdvanceSimulation(double dt)
+        {
+            for (size_t denseIndex : m_updateOrder)
+            {
+                auto& orbit = m_denseData[denseIndex];
+                if (orbit.isFrozen)
+                {
+                    continue;
+                }
+
+                Simulator::Kepler::UpdateOrbitAnomaliesByTime(orbit, dt);
+
+                if (std::isnan(orbit.positionRelativeToAttractor.x))
+                {
+                    orbit.isFrozen = true;
+                    orbit.positionRelativeToAttractor = Vec3d(0.0, 0.0, 0.0);
+                }
+            }
+        }
+
+        void ResolveAbsolutePositions()
+        {
+            for (size_t denseIndex : m_updateOrder)
+            {
+                auto& orbit = m_denseData[denseIndex];
+                size_t parentDense = m_parentDense[denseIndex];
+
+                if (parentDense == INVALID_INDEX)
+                {
+                    orbit.absoluteWorldPosition = orbit.positionRelativeToAttractor;
+                }
+                else
+                {
+                    orbit.absoluteWorldPosition = m_denseData[parentDense].absoluteWorldPosition + orbit.positionRelativeToAttractor;
+                }
+            }
+        }
+
+        void UpdateVisualState()
+        {
+            for (auto& orbit : m_denseData)
+            {
+                if (!orbit.visualDirty)
+                {
+                    continue;
+                }
+
+                if (!orbit.freezeColor)
+                {
+                    double currentSpeed = orbit.velocityRelativeToAttractor.magnitude();
+                    double referenceSpeed = std::sqrt(orbit.GravConst * orbit.AttractorMass / orbit.SemiMajorAxis);
+                    float speedRatio = static_cast<float>(currentSpeed / referenceSpeed);
+
+                    orbit.orbitColor.x = speedRatio - 0.5f;
+                    orbit.orbitColor.y = 1.0f - std::abs(speedRatio - 1.0f);
+                    orbit.orbitColor.z = 1.5f - speedRatio;
+                    orbit.orbitColor.w = 1.0f;
+                }
+
+                orbit.visualDirty = false;
+            }
+        }
+
+        std::vector<size_t> m_sparse;
         std::vector<Simulator::OrbitData> m_denseData;
         std::vector<Entity> m_denseEntities;
+
+        std::vector<size_t> m_parentDense;
+        std::vector<size_t> m_updateOrder;
+        bool m_hierarchyDirty = true;
     };
 
 } // namespace dx3d

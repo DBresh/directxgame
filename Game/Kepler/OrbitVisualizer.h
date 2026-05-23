@@ -25,13 +25,13 @@ namespace Simulator
 
         void update(dx3d::GraphicsDevice& device, OrbitData& orbitData)
         {
-            if (!orbitData.isPathDirty) return;
+            if (!orbitData.visualDirty) return;
 
             // Safeguard: The central star/root object doesn't have an orbit path
-            if (orbitData.ParentOrbitIndex == -1 || orbitData.AttractorMass <= 0.0)
+            if (orbitData.ParentEntity == dx3d::Entity::Null || orbitData.AttractorMass <= 0.0)
             {
                 m_vertexCount = 0;
-                orbitData.isPathDirty = false;
+                orbitData.visualDirty = false;
                 return;
             }
 
@@ -57,7 +57,7 @@ namespace Simulator
 
             m_vertexBuffer = device.createVertexBuffer({ vertices.data(), sizeof(dx3d::Vertex), m_vertexCount });
 
-            orbitData.isPathDirty = false;
+            orbitData.visualDirty = false;
         }
 
         void draw(dx3d::DeviceContext& context, const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj, const OrbitData& orbitData, const dx3d::Vec3d& cameraAbsolutePos)

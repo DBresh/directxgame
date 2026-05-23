@@ -22,12 +22,9 @@ namespace dx3d
 
 		m_scene.onComponentFactory = [this](GameObject* obj, const std::string& type, const nlohmann::json& j) {
 			if (type == "OrbitComponent") {
-				int orbitIndex = j.value("orbitIndex", -1);
-				if (orbitIndex != -1) {
-					auto comp = obj->addComponent<OrbitComponent>(&m_orbitSystem, orbitIndex);
-					comp->deserialize(j);
-					comp->visualizer.init(m_graphicsEngine->getGraphicsDevice());
-				}
+				auto comp = obj->addComponent<OrbitComponent>(&m_orbitSystem, obj->entity);
+				comp->deserialize(j);
+				comp->visualizer.init(m_graphicsEngine->getGraphicsDevice());
 			}
 			};
 
@@ -78,7 +75,7 @@ namespace dx3d
 					orbitComp->visualizer.update(m_graphicsEngine->getGraphicsDevice(), orbit);
 				}
 
-				orbit.isPathDirty = false;
+				
 			}
 		}
 

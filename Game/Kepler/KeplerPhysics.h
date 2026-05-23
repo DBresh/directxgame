@@ -178,7 +178,7 @@ namespace Simulator::Kepler
 		d.AttractorDistance = d.positionRelativeToAttractor.magnitude();
 		ComputeSphereOfInfluence(d);
 
-		d.isPathDirty = true;
+		d.visualDirty = true;
 	}
 
 	// Helper: Angle between two vectors in radians
@@ -328,7 +328,7 @@ namespace Simulator::Kepler
 
 		ComputeSphereOfInfluence(d);
 		
-		d.isPathDirty = true;
+		d.visualDirty = true;
 	}
 
 	inline dx3d::Vec3d GetCentralPositionAtTrueAnomaly(const OrbitData& d, double trueAnomaly)

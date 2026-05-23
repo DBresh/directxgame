@@ -1,5 +1,6 @@
 #pragma once
 #include <DX3D/Math/Vec3d.h>
+#include <DX3D/Game/Entity.h>
 #include <DX3D/Core/Serialization.h>
 #include <json.hpp>
 
@@ -49,10 +50,12 @@ namespace Simulator
         double SphereOfInfluenceRadius = 0.0;
 
         // Rendering state
-        bool isPathDirty = true; // if path dirty, then visualisator will update orbit points once
+        bool elementsDirty = true;
+        bool visualDirty = true;
+        bool hierarchyDirty = true;
         bool freezeColor = false;
         DirectX::XMFLOAT4 orbitColor = { 1.f,1.f,1.f,1.f };
-        int ParentOrbitIndex = -1;
+        dx3d::Entity ParentEntity = dx3d::Entity::Null;
         bool isFrozen = false;
     };
 
@@ -64,7 +67,7 @@ namespace Simulator
                 {"positionRelativeToAttractor", o.positionRelativeToAttractor},
                 {"velocityRelativeToAttractor", o.velocityRelativeToAttractor},
                 {"isFrozen", o.isFrozen},
-                {"ParentOrbitIndex", o.ParentOrbitIndex},
+                {"ParentEntityId", o.ParentEntity.id},
                 {"freezeColor", o.freezeColor},
                 {"orbitColor", nlohmann::json::array({o.orbitColor.x, o.orbitColor.y, o.orbitColor.z, o.orbitColor.w})}
             };
@@ -77,7 +80,7 @@ namespace Simulator
             if (j.contains("positionRelativeToAttractor")) o.positionRelativeToAttractor = j.at("positionRelativeToAttractor").get<dx3d::Vec3d>();
             if (j.contains("velocityRelativeToAttractor")) o.velocityRelativeToAttractor = j.at("velocityRelativeToAttractor").get<dx3d::Vec3d>();
             if (j.contains("isFrozen")) o.isFrozen = j.at("isFrozen").get<bool>();
-            if (j.contains("ParentOrbitIndex")) o.ParentOrbitIndex = j.at("ParentOrbitIndex").get<int>();
+            if (j.contains("ParentEntityId")) o.ParentEntity = dx3d::Entity(j.at("ParentEntityId").get<uint32_t>());
             if (j.contains("freezeColor")) o.freezeColor = j.at("freezeColor").get<bool>();
             if (j.contains("orbitColor") && j.at("orbitColor").is_array()) {
                 auto colorArr = j.at("orbitColor");

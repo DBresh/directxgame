@@ -29,7 +29,7 @@ namespace dx3d
         void syncCameraOrbitTarget();
 
     private:
-        Simulator::OrbitSystem m_orbitSystem{};
+        OrbitSystem m_orbitSystem{};
         Simulator::TimeController m_timeController;
         std::unique_ptr<KeplerEditor> m_editor;
     };

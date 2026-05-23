@@ -18,8 +18,8 @@ namespace dx3d {
         bool Deserialize(const std::string& filepath);
 
     private:
-        int CalculateSimDepth(size_t orbitIndex) const;
-        uint32_t GetEntityIdFromOrbitIndex(size_t orbitIndex) const;
+        int CalculateSimDepth(Entity entity) const;
+        uint32_t GetEntityIdFromOrbitEntity(Entity entity) const;
 
         Registry& m_registry;
         OrbitSystem& m_orbitSystem;

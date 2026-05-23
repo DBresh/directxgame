@@ -10,21 +10,24 @@ namespace dx3d {
 		: m_registry(registry), m_transformSystem(tSys), m_orbitSystem(oSys) {
 	}
 
-	int SceneSerializer::CalculateSimDepth(size_t orbitIndex) const {
+	int SceneSerializer::CalculateSimDepth(Entity entity) const {
 		int depth = 0;
-		size_t current = orbitIndex;
-		const auto& orbits = m_orbitSystem.getRawData();
+		Entity current = entity;
 
-		while (current < orbits.size() && orbits[current].ParentOrbitIndex != static_cast<size_t>(-1)) {
-			depth++;
-			current = orbits[current].ParentOrbitIndex;
+
+		while (m_orbitSystem.hasOrbit(current)) {
+			const auto& orbit = m_orbitSystem.getOrbit(current);
+			if (orbit.ParentEntity == Entity::Null) {
+				break;
+			}
+			++depth;
+			current = orbit.ParentEntity;
 		}
 		return depth;
 	}
 
-	uint32_t SceneSerializer::GetEntityIdFromOrbitIndex(size_t orbitIndex) const {
-		if (orbitIndex >= m_orbitSystem.getRawEntities().size()) return static_cast<uint32_t>(-1);
-		return m_orbitSystem.getRawEntities()[orbitIndex].id;
+	uint32_t SceneSerializer::GetEntityIdFromOrbitEntity(Entity entity) const {
+		return entity == Entity::Null ? static_cast<uint32_t>(-1) : entity.id;
 	}
 
 	bool SceneSerializer::Serialize(const std::string& filepath) {
@@ -53,7 +56,7 @@ namespace dx3d {
 
 			if (hasOrbit) {
 				size_t orbitIndex = m_orbitSystem.getSparseIndex(e);
-				node.simDepth = CalculateSimDepth(orbitIndex);
+				node.simDepth = CalculateSimDepth(e);
 				const Simulator::OrbitData& orbit = m_orbitSystem.getOrbit(e);
 
 				// Populate 100% of spatial variables, bases, masses, and state arrays
@@ -89,7 +92,7 @@ namespace dx3d {
 					{"apoapsisDistance", orbit.ApoapsisDistance},
 
 					// State Vectors & Hierarchies
-					{"parentFileId", GetEntityIdFromOrbitIndex(orbit.ParentOrbitIndex)},
+					{"parentFileId", GetEntityIdFromOrbitEntity(orbit.ParentEntity)},
 					{"positionRelativeToAttractor", {orbit.positionRelativeToAttractor.x, orbit.positionRelativeToAttractor.y, orbit.positionRelativeToAttractor.z}},
 					{"absoluteWorldPosition", {orbit.absoluteWorldPosition.x, orbit.absoluteWorldPosition.y, orbit.absoluteWorldPosition.z}},
 					{"orbitalVelocity", {orbit.velocityRelativeToAttractor.x, orbit.velocityRelativeToAttractor.y, orbit.velocityRelativeToAttractor.z}},
@@ -187,7 +190,7 @@ namespace dx3d {
 
 				// Masses and Constants
 				loadedOrbit.AttractorMass = jEnt["orbit"]["attractorMass"];
-				loadedOrbit.BodyMass = jEnt["orbit"]["mass"]; // Maps from "mass"
+				loadedOrbit.BodyMass = jEnt["orbit"]["bodyMass"];
 				loadedOrbit.GravConst = jEnt["orbit"]["gravConst"];
 				loadedOrbit.MG = jEnt["orbit"]["mg"];
 
@@ -260,16 +263,16 @@ namespace dx3d {
 				loadedOrbit.orbitColor.w = jEnt["orbit"]["orbitColor"][3];
 
 				// Force a line rendering path update on layout recovery
-				loadedOrbit.isPathDirty = true;
+				loadedOrbit.visualDirty = true;
 
 				// Parent relational allocation (ParentOrbitIndex will be patched afterwards via tracking maps)
 				uint32_t parentFileId = jEnt["orbit"]["parentFileId"];
 				if (parentFileId != static_cast<uint32_t>(-1) && fileToRuntimeMap.count(parentFileId)) {
 					Entity liveParentEntity = fileToRuntimeMap[parentFileId];
-					loadedOrbit.ParentOrbitIndex = m_orbitSystem.getSparseIndex(liveParentEntity);
+					loadedOrbit.ParentEntity = liveParentEntity;
 				}
 				else {
-					loadedOrbit.ParentOrbitIndex = -1; // Fallback back to local master frame root
+					loadedOrbit.ParentEntity = Entity::Null; // Fallback back to local master frame root
 				}
 
 				m_orbitSystem.assignOrbitToEntity(liveEntity, loadedOrbit);
