@@ -5,6 +5,7 @@
 #include <DX3D/Graphics/Resources/Material.h>
 #include <DX3D/Graphics/Resources/ModelData.h>
 #include <DX3D/Graphics/Resources/ModelGPU.h>
+#include <DX3D/Game/Entity.h>
 #include <DX3D/Game/Component.h>
 #include <memory>
 #include <string>
@@ -17,6 +18,8 @@ namespace dx3d {
         std::string name;
         std::string tag;
         std::string modelName;
+
+        Entity entity = Entity::Null;
 
         bool inheritPosition = true;
         bool inheritRotation = true;

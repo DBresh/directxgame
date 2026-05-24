@@ -1,5 +1,5 @@
 {
-    "epoch": 0.0470195999999977,
+    "epoch": -0.00370071844962157,
     "gameObjects": [
         {
             "components": [],
@@ -36,7 +36,6 @@
             "components": [
                 {
                     "isVisible": false,
-                    "orbitIndex": 0,
                     "type": "OrbitComponent"
                 }
             ],
@@ -73,7 +72,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 1,
                     "type": "OrbitComponent"
                 }
             ],
@@ -89,9 +87,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    499.9955783211737,
-                    0.23509730699141448,
-                    2.101769924503245
+                    499.9999726093662,
+                    -0.01850359190029197,
+                    -0.16542211158861023
                 ],
                 "rotation": [
                     0.0,
@@ -110,7 +108,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 2,
                     "type": "OrbitComponent"
                 }
             ],
@@ -126,9 +123,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    899.9986352825761,
+                    899.9999915461002,
                     0.0,
-                    1.5657518883277626
+                    -0.12323392424287333
                 ],
                 "rotation": [
                     0.0,
@@ -147,7 +144,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 3,
                     "type": "OrbitComponent"
                 }
             ],
@@ -163,9 +159,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    1399.9994360095418,
-                    -0.3761567495005829,
-                    1.2554231514581953
+                    1399.999996506297,
+                    0.029605747562095927,
+                    -0.09880918248849511
                 ],
                 "rotation": [
                     0.0,
@@ -184,7 +180,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 4,
                     "type": "OrbitComponent"
                 }
             ],
@@ -200,9 +195,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    3999.999930911154,
+                    3999.9999995720204,
                     0.0,
-                    0.7429096815062192
+                    -0.058471345797232455
                 ],
                 "rotation": [
                     0.0,
@@ -221,7 +216,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 5,
                     "type": "OrbitComponent"
                 }
             ],
@@ -237,9 +231,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    5999.999969293853,
+                    5999.999999809788,
                     0.0,
-                    0.6065527899313133
+                    -0.047739317223238154
                 ],
                 "rotation": [
                     0.0,
@@ -258,7 +252,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 6,
                     "type": "OrbitComponent"
                 }
             ],
@@ -274,9 +267,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    579.9947147122582,
-                    0.23509730699141448,
-                    2.473223427869098
+                    579.999967259633,
+                    -0.01850359190029197,
+                    -0.1946577866913796
                 ],
                 "rotation": [
                     0.0,
@@ -295,7 +288,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 7,
                     "type": "OrbitComponent"
                 }
             ],
@@ -311,9 +303,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    1019.9980211601737,
-                    0.09403903957728808,
-                    1.9466099986157794
+                    1019.9999877418455,
+                    -0.007401436822700771,
+                    -0.15320974337481144
                 ],
                 "rotation": [
                     0.0,
@@ -332,7 +324,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 8,
                     "type": "OrbitComponent"
                 }
             ],
@@ -348,9 +339,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    1099.9984141983373,
+                    1099.9999901765686,
                     0.0,
-                    1.8619752593294854
+                    -0.1465484502726639
                 ],
                 "rotation": [
                     0.0,
@@ -369,7 +360,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 9,
                     "type": "OrbitComponent"
                 }
             ],
@@ -385,9 +375,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    1459.9982077675418,
-                    -0.3761567495005829,
-                    1.636279312637405
+                    1459.9999888977877,
+                    0.029605747562095927,
+                    -0.12878500066533505
                 ],
                 "rotation": [
                     0.0,
@@ -406,7 +396,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 10,
                     "type": "OrbitComponent"
                 }
             ],
@@ -422,9 +411,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    4149.999193964163,
+                    4149.999995006915,
                     0.0,
-                    1.213104911481881
+                    -0.09547852993272946
                 ],
                 "rotation": [
                     0.0,
@@ -443,7 +432,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 11,
                     "type": "OrbitComponent"
                 }
             ],
@@ -459,9 +447,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    4249.999665610124,
-                    0.2350979168319345,
-                    1.1049604734273983
+                    4249.999997928582,
+                    -0.01850359221448794,
+                    -0.08696687780754389
                 ],
                 "rotation": [
                     0.0,
@@ -480,7 +468,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 12,
                     "type": "OrbitComponent"
                 }
             ],
@@ -496,9 +483,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    4399.999827277903,
+                    4399.999998930052,
                     0.0,
-                    1.0297292170827068
+                    -0.08104572798939523
                 ],
                 "rotation": [
                     0.0,
@@ -517,7 +504,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 13,
                     "type": "OrbitComponent"
                 }
             ],
@@ -533,9 +519,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    4599.99988485193,
-                    -0.0940391981683982,
-                    0.9780076769272147
+                    4599.9999992867015,
+                    0.007401436322483418,
+                    -0.076974936603441
                 ],
                 "rotation": [
                     0.0,
@@ -554,7 +540,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 14,
                     "type": "OrbitComponent"
                 }
             ],
@@ -570,9 +555,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    6199.999720574091,
+                    6199.999998269065,
                     0.0,
-                    0.9215839793236869
+                    -0.07253413079142627
                 ],
                 "rotation": [
                     0.0,
@@ -591,7 +576,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 15,
                     "type": "OrbitComponent"
                 }
             ],
@@ -607,9 +591,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    6349.999888079222,
+                    6349.999999306695,
                     0.0,
-                    0.8416507721709819
+                    -0.06624290903153046
                 ],
                 "rotation": [
                     0.0,
@@ -628,7 +612,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 16,
                     "type": "OrbitComponent"
                 }
             ],
@@ -644,9 +627,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    604.9945378450441,
-                    0.23509730699141448,
-                    2.5672624061033256
+                    604.9999661640077,
+                    -0.01850359190029197,
+                    -0.20205922348190442
                 ],
                 "rotation": [
                     0.0,
@@ -665,7 +648,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 17,
                     "type": "OrbitComponent"
                 }
             ],
@@ -681,9 +663,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    1054.9978858025831,
-                    0.14105857895757956,
-                    2.0406490773763624
+                    1054.9999869033568,
+                    -0.011102155248729461,
+                    -0.16061118022686882
                 ],
                 "rotation": [
                     0.0,
@@ -702,7 +684,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 18,
                     "type": "OrbitComponent"
                 }
             ],
@@ -718,9 +699,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    1999.9997236446725,
-                    0.7052939682355808,
-                    1.1754899470593014
+                    1999.9999982880854,
+                    -0.05551077606252977,
+                    -0.0925179601042162
                 ],
                 "rotation": [
                     0.0,
@@ -739,7 +720,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 19,
                     "type": "OrbitComponent"
                 }
             ],
@@ -755,9 +735,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    2199.76467359086,
-                    -0.23509799188232705,
-                    0.8463527707767753
+                    2200.018502177424,
+                    0.018503592217825826,
+                    -0.06661293198362728
                 ],
                 "rotation": [
                     0.0,
@@ -776,7 +756,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 20,
                     "type": "OrbitComponent"
                 }
             ],
@@ -792,9 +771,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    2399.9998080865676,
-                    0.7052939827299304,
-                    0.9403919769732404
+                    2399.9999988111717,
+                    -0.055510775209383426,
+                    -0.07401436694584462
                 ],
                 "rotation": [
                     0.0,
@@ -813,7 +792,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 21,
                     "type": "OrbitComponent"
                 }
             ],
@@ -829,9 +807,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    2699.9998483646873,
+                    2699.9999990606784,
                     0.0,
-                    0.7052940013036839
+                    -0.055510762172714334
                 ],
                 "rotation": [
                     0.0,
@@ -850,7 +828,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 22,
                     "type": "OrbitComponent"
                 }
             ],
@@ -866,9 +843,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    3000.470073188235,
-                    0.4701959935855484,
-                    0.8463527884532596
+                    2999.962992054643,
+                    -0.03700718449681517,
+                    -0.066612932094813
                 ],
                 "rotation": [
                     0.0,
@@ -887,7 +864,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 23,
                     "type": "OrbitComponent"
                 }
             ],
@@ -903,9 +879,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    499.9955783364028,
-                    0.47019461398306794,
-                    2.774148222500101
+                    499.9999726093663,
+                    -0.03700718381457598,
+                    -0.21834238450599833
                 ],
                 "rotation": [
                     0.0,
@@ -924,7 +900,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 24,
                     "type": "OrbitComponent"
                 }
             ],
@@ -940,9 +915,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    7999.999982727776,
+                    7999.999999893004,
                     0.0,
-                    0.5219176841796033
+                    -0.04107785063545036
                 ],
                 "rotation": [
                     0.0,
@@ -961,7 +936,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 25,
                     "type": "OrbitComponent"
                 }
             ],
@@ -977,9 +951,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    6999.999977440384,
-                    0.3973881494464941,
-                    0.3973881494464941
+                    6999.999999860253,
+                    -0.031276779537197034,
+                    -0.031276779537197034
                 ],
                 "rotation": [
                     0.0,
@@ -998,7 +972,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 26,
                     "type": "OrbitComponent"
                 }
             ],
@@ -1014,9 +987,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    7099.999978071388,
-                    0.394579717586976,
-                    0.394579717586976
+                    7099.999999864161,
+                    -0.031055739331842584,
+                    -0.031055739331842584
                 ],
                 "rotation": [
                     0.0,
@@ -1035,7 +1008,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 27,
                     "type": "OrbitComponent"
                 }
             ],
@@ -1051,9 +1023,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    7199.999978676284,
-                    0.39182999966535337,
-                    0.39182999966535337
+                    7199.999999867909,
+                    -0.030839320667726006,
+                    -0.030839320667726006
                 ],
                 "rotation": [
                     0.0,
@@ -1072,7 +1044,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 28,
                     "type": "OrbitComponent"
                 }
             ],
@@ -1088,9 +1059,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    7299.9999792564895,
-                    0.38913697817387277,
-                    0.38913697817387277
+                    7299.999999871502,
+                    -0.03062736408593362,
+                    -0.03062736408593362
                 ],
                 "rotation": [
                     0.0,
@@ -1109,7 +1080,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 29,
                     "type": "OrbitComponent"
                 }
             ],
@@ -1125,9 +1095,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    7399.999979813341,
-                    0.3864987307453763,
-                    0.3864987307453763
+                    7399.999999874952,
+                    -0.030419718356213304,
+                    -0.030419718356213304
                 ],
                 "rotation": [
                     0.0,
@@ -1146,7 +1116,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 30,
                     "type": "OrbitComponent"
                 }
             ],
@@ -1162,9 +1131,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    4699.999897071723,
-                    0.023509799641378656,
-                    0.9605681320023579
+                    4699.999999362398,
+                    -0.0018503592047182736,
+                    -0.07560234323250577
                 ],
                 "rotation": [
                     0.0,
@@ -1183,7 +1152,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 31,
                     "type": "OrbitComponent"
                 }
             ],
@@ -1199,9 +1167,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    4849.99990796123,
-                    0.023509799567549172,
-                    0.9404315061897957
+                    4849.999999429854,
+                    -0.001850359445121258,
+                    -0.07401747467301095
                 ],
                 "rotation": [
                     0.0,
@@ -1220,7 +1188,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 32,
                     "type": "OrbitComponent"
                 }
             ],
@@ -1236,9 +1203,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    4999.999914329834,
-                    0.023509799567385085,
-                    0.9250158059005327
+                    4999.999999469305,
+                    -0.0018503595274853054,
+                    -0.07280416906612608
                 ],
                 "rotation": [
                     0.0,
@@ -1257,7 +1224,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 33,
                     "type": "OrbitComponent"
                 }
             ],
@@ -1273,9 +1239,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    5149.999918373293,
-                    0.02350979942948471,
-                    0.91272451711785
+                    5149.999999494354,
+                    -0.0018503597094628194,
+                    -0.07183677372558551
                 ],
                 "rotation": [
                     0.0,
@@ -1294,7 +1260,6 @@
             "components": [
                 {
                     "isVisible": true,
-                    "orbitIndex": 34,
                     "type": "OrbitComponent"
                 }
             ],
@@ -1310,9 +1275,9 @@
             "tag": "",
             "transform": {
                 "position": [
-                    5299.999921099723,
-                    0.023509798188945236,
-                    0.9026273089065207
+                    5299.999999511243,
+                    -0.0018503609756672999,
+                    -0.07104207322298528
                 ],
                 "rotation": [
                     0.0,
@@ -1330,879 +1295,949 @@
     ],
     "orbitSystem": [
         {
-            "AttractorMass": 0.0,
-            "BodyMass": 1000000.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": -1,
-            "freezeColor": true,
-            "index": 0,
-            "isFrozen": true,
-            "orbitColor": [
-                1.0,
-                1.0,
-                1.0,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "velocityRelativeToAttractor": [
-                0.0,
-                0.0,
-                0.0
-            ]
+            "entityId": 1,
+            "orbit": {
+                "AttractorMass": 0.0,
+                "BodyMass": 1000000.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 1048575,
+                "freezeColor": false,
+                "isFrozen": true,
+                "orbitColor": [
+                    null,
+                    null,
+                    null,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "velocityRelativeToAttractor": [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            }
         },
         {
-            "AttractorMass": 1000000.0,
-            "BodyMass": 5000.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 0,
-            "freezeColor": true,
-            "index": 1,
-            "isFrozen": false,
-            "orbitColor": [
-                0.5116124153137207,
-                0.9883875846862793,
-                0.4883875846862793,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                499.9955783211737,
-                0.23509730699141448,
-                2.101769924503245
-            ],
-            "velocityRelativeToAttractor": [
-                -0.18807782639941348,
-                4.9999557832162544,
-                44.699604701953305
-            ]
+            "entityId": 2,
+            "orbit": {
+                "AttractorMass": 1000000.0,
+                "BodyMass": 5000.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 1,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.5116124153137207,
+                    0.9883875846862793,
+                    0.4883875846862793,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    499.9999726093662,
+                    -0.01850359190029197,
+                    -0.16542211158861023
+                ],
+                "velocityRelativeToAttractor": [
+                    0.014802873497384685,
+                    4.999999726093662,
+                    44.699997551277335
+                ]
+            }
         },
         {
-            "AttractorMass": 1000000.0,
-            "BodyMass": 8000.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 0,
-            "freezeColor": true,
-            "index": 2,
-            "isFrozen": false,
-            "orbitColor": [
-                0.4980030059814453,
-                0.9980030059814453,
-                0.5019969940185547,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                899.9986352825761,
-                0.0,
-                1.5657518883277626
-            ],
-            "velocityRelativeToAttractor": [
-                -0.05804885969281791,
-                0.0,
-                33.29994950545513
-            ]
+            "entityId": 3,
+            "orbit": {
+                "AttractorMass": 1000000.0,
+                "BodyMass": 8000.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 1,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.4980030059814453,
+                    0.9980030059814453,
+                    0.5019969940185547,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    899.9999915461002,
+                    0.0,
+                    -0.12323392424287333
+                ],
+                "velocityRelativeToAttractor": [
+                    0.004568788245494014,
+                    0.0,
+                    33.29999968720572
+                ]
+            }
         },
         {
-            "AttractorMass": 1000000.0,
-            "BodyMass": 4000.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 0,
-            "freezeColor": true,
-            "index": 3,
-            "isFrozen": false,
-            "orbitColor": [
-                0.5918477773666382,
-                0.9081522226333618,
-                0.4081522226333618,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                1399.9994360095418,
-                -0.3761567495005829,
-                1.2554231514581953
-            ],
-            "velocityRelativeToAttractor": [
-                -0.023989587771183058,
-                -7.9999967771974925,
-                26.69998924389663
-            ]
+            "entityId": 4,
+            "orbit": {
+                "AttractorMass": 1000000.0,
+                "BodyMass": 4000.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 1,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.5918477773666382,
+                    0.9081522226333618,
+                    0.4081522226333618,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    1399.999996506297,
+                    0.029605747562095927,
+                    -0.09880918248849511
+                ],
+                "velocityRelativeToAttractor": [
+                    0.0018881216647938265,
+                    -7.99999998003598,
+                    26.699999933370083
+                ]
+            }
         },
         {
-            "AttractorMass": 1000000.0,
-            "BodyMass": 15000.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 0,
-            "freezeColor": true,
-            "index": 4,
-            "isFrozen": false,
-            "orbitColor": [
-                0.4985610246658325,
-                0.9985610246658325,
-                0.5014389753341675,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                3999.999930911154,
-                0.0,
-                0.7429096815062192
-            ],
-            "velocityRelativeToAttractor": [
-                -0.0029387251482892686,
-                0.0,
-                15.799999727099094
-            ]
+            "entityId": 5,
+            "orbit": {
+                "AttractorMass": 1000000.0,
+                "BodyMass": 15000.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 1,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.4985610246658325,
+                    0.9985610246658325,
+                    0.5014389753341675,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    3999.9999995720204,
+                    -0.0,
+                    -0.058471345797232455
+                ],
+                "velocityRelativeToAttractor": [
+                    0.00023129473015189625,
+                    0.0,
+                    15.799999998309488
+                ]
+            }
         },
         {
-            "AttractorMass": 1000000.0,
-            "BodyMass": 9000.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 0,
-            "freezeColor": true,
-            "index": 5,
-            "isFrozen": false,
-            "orbitColor": [
-                0.49846118688583374,
-                0.9984611868858337,
-                0.5015388131141663,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                5999.999969293853,
-                0.0,
-                0.6065527899313133
-            ],
-            "velocityRelativeToAttractor": [
-                -0.0013060999466688872,
-                0.0,
-                12.899999933981793
-            ]
+            "entityId": 6,
+            "orbit": {
+                "AttractorMass": 1000000.0,
+                "BodyMass": 9000.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 1,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.49846118688583374,
+                    0.9984611868858337,
+                    0.5015388131141663,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    5999.999999809788,
+                    -0.0,
+                    -0.047739317223238154
+                ],
+                "velocityRelativeToAttractor": [
+                    0.00010279730700363628,
+                    0.0,
+                    12.899999999591047
+                ]
+            }
         },
         {
-            "AttractorMass": 5000.0,
-            "BodyMass": 100.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 1,
-            "freezeColor": true,
-            "index": 6,
-            "isFrozen": false,
-            "orbitColor": [
-                0.4985610246658325,
-                0.9985610246658325,
-                0.5014389753341675,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                79.99913639108448,
-                0.0,
-                0.3714535033658527
-            ],
-            "velocityRelativeToAttractor": [
-                -0.036733930889250144,
-                0.0,
-                7.899914718618272
-            ]
+            "entityId": 7,
+            "orbit": {
+                "AttractorMass": 5000.0,
+                "BodyMass": 100.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 2,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.4985610246658325,
+                    0.9985610246658325,
+                    0.5014389753341675,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    79.99999465026684,
+                    -0.0,
+                    -0.029235675102769372
+                ],
+                "velocityRelativeToAttractor": [
+                    0.002891186221127022,
+                    0.0,
+                    7.899999471713854
+                ]
+            }
         },
         {
-            "AttractorMass": 8000.0,
-            "BodyMass": 150.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 2,
-            "freezeColor": true,
-            "index": 7,
-            "isFrozen": false,
-            "orbitColor": [
-                0.5451691150665283,
-                0.9548308849334717,
-                0.4548308849334717,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                119.99938587759763,
-                0.09403903957728808,
-                0.38085811028801675
-            ],
-            "velocityRelativeToAttractor": [
-                -0.026121949535619964,
-                1.99998976462894,
-                8.099958546747208
-            ]
+            "entityId": 8,
+            "orbit": {
+                "AttractorMass": 8000.0,
+                "BodyMass": 150.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 3,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.5451691150665283,
+                    0.9548308849334717,
+                    0.4548308849334717,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    119.9999961957453,
+                    -0.007401436822700771,
+                    -0.02997581913193812
+                ],
+                "velocityRelativeToAttractor": [
+                    0.002055954673981667,
+                    1.9999999365957548,
+                    8.099999743212807
+                ]
+            }
         },
         {
-            "AttractorMass": 8000.0,
-            "BodyMass": 80.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 2,
-            "freezeColor": true,
-            "index": 8,
-            "isFrozen": false,
-            "orbitColor": [
-                0.4922798275947571,
-                0.9922798275947571,
-                0.5077201724052429,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                199.99977891576123,
-                0.0,
-                0.29622337100172275
-            ],
-            "velocityRelativeToAttractor": [
-                -0.00940391661983706,
-                0.0,
-                6.299993035846414
-            ]
+            "entityId": 9,
+            "orbit": {
+                "AttractorMass": 8000.0,
+                "BodyMass": 80.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 3,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.4922798275947571,
+                    0.9922798275947571,
+                    0.5077201724052429,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    199.99999863046835,
+                    0.0,
+                    -0.023314526029790558
+                ],
+                "velocityRelativeToAttractor": [
+                    0.000740143674940855,
+                    0.0,
+                    6.29999995685975
+                ]
+            }
         },
         {
-            "AttractorMass": 4000.0,
-            "BodyMass": 50.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 3,
-            "freezeColor": true,
-            "index": 9,
-            "isFrozen": false,
-            "orbitColor": [
-                0.48427367210388184,
-                0.9842736721038818,
-                0.5157263278961182,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                59.99877175800007,
-                0.0,
-                0.38085616117920973
-            ],
-            "velocityRelativeToAttractor": [
-                -0.05224366045991787,
-                0.0,
-                8.09983418727621
-            ]
+            "entityId": 10,
+            "orbit": {
+                "AttractorMass": 4000.0,
+                "BodyMass": 50.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 4,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.48427367210388184,
+                    0.9842736721038818,
+                    0.5157263278961182,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    59.99999239149067,
+                    -0.0,
+                    -0.029975818176839926
+                ],
+                "velocityRelativeToAttractor": [
+                    0.004111909223821047,
+                    0.0,
+                    8.09999897285124
+                ]
+            }
         },
         {
-            "AttractorMass": 15000.0,
-            "BodyMass": 200.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 4,
-            "freezeColor": true,
-            "index": 10,
-            "isFrozen": false,
-            "orbitColor": [
-                0.5,
-                1.0,
-                0.5,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                149.99926305300872,
-                0.0,
-                0.47019522997566193
-            ],
-            "velocityRelativeToAttractor": [
-                -0.03134634866526617,
-                0.0,
-                9.999950870200582
-            ]
+            "entityId": 11,
+            "orbit": {
+                "AttractorMass": 15000.0,
+                "BodyMass": 200.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 5,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.5,
+                    1.0,
+                    0.5,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    149.99999543489434,
+                    0.0,
+                    -0.037007184135497
+                ],
+                "velocityRelativeToAttractor": [
+                    0.002467145608811089,
+                    0.0,
+                    9.999999695659623
+                ]
+            }
         },
         {
-            "AttractorMass": 15000.0,
-            "BodyMass": 180.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 4,
-            "freezeColor": true,
-            "index": 11,
-            "isFrozen": false,
-            "orbitColor": [
-                1.0363603830337524,
-                0.46363961696624756,
-                -0.03636038303375244,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                249.99973469896972,
-                0.2350979168319345,
-                0.3620507919211792
-            ],
-            "velocityRelativeToAttractor": [
-                -0.011284695160910487,
-                4.9999946939816775,
-                7.699991828731785
-            ]
+            "entityId": 12,
+            "orbit": {
+                "AttractorMass": 15000.0,
+                "BodyMass": 180.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 5,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    1.0363603830337524,
+                    0.46363961696624756,
+                    -0.03636038303375244,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    249.99999835656186,
+                    -0.01850359221448794,
+                    -0.028495532010311443
+                ],
+                "velocityRelativeToAttractor": [
+                    0.0008881724220477031,
+                    4.99999996713124,
+                    7.699999949382112
+                ]
+            }
         },
         {
-            "AttractorMass": 15000.0,
-            "BodyMass": 100.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 4,
-            "freezeColor": true,
-            "index": 12,
-            "isFrozen": false,
-            "orbitColor": [
-                0.49229633808135986,
-                0.9922963380813599,
-                0.5077036619186401,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                399.9998963667486,
-                0.0,
-                0.2868195355764877
-            ],
-            "velocityRelativeToAttractor": [
-                -0.004408087134181529,
-                0.0,
-                6.099998419592914
-            ]
+            "entityId": 13,
+            "orbit": {
+                "AttractorMass": 15000.0,
+                "BodyMass": 100.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 5,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.49229633808135986,
+                    0.9922963380813599,
+                    0.5077036619186401,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    399.9999993580321,
+                    -0.0,
+                    -0.022574382192162772
+                ],
+                "velocityRelativeToAttractor": [
+                    0.00034694236024373934,
+                    0.0,
+                    6.099999990209987
+                ]
+            }
         },
         {
-            "AttractorMass": 15000.0,
-            "BodyMass": 50.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 4,
-            "freezeColor": true,
-            "index": 13,
-            "isFrozen": false,
-            "orbitColor": [
-                0.675139307975769,
-                0.824860692024231,
-                0.32486069202423096,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                599.9999539407759,
-                -0.0940391981683982,
-                0.23509799542099555
-            ],
-            "velocityRelativeToAttractor": [
-                -0.0019591499375216427,
-                -1.9999998464692534,
-                4.999999616173134
-            ]
+            "entityId": 14,
+            "orbit": {
+                "AttractorMass": 15000.0,
+                "BodyMass": 50.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 5,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.675139307975769,
+                    0.824860692024231,
+                    0.32486069202423096,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    599.9999997146812,
+                    0.007401436322483418,
+                    -0.018503590806208548
+                ],
+                "velocityRelativeToAttractor": [
+                    0.00015419659199684298,
+                    -1.9999999990489359,
+                    4.999999997622339
+                ]
+            }
         },
         {
-            "AttractorMass": 9000.0,
-            "BodyMass": 100.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 5,
-            "freezeColor": true,
-            "index": 14,
-            "isFrozen": false,
-            "orbitColor": [
-                0.4975585341453552,
-                0.9975585341453552,
-                0.5024414658546448,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                199.99975128023806,
-                0.0,
-                0.3150311893923735
-            ],
-            "velocityRelativeToAttractor": [
-                -0.010579405645679265,
-                0.0,
-                6.699991667887946
-            ]
+            "entityId": 15,
+            "orbit": {
+                "AttractorMass": 9000.0,
+                "BodyMass": 100.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 6,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.4975585341453552,
+                    0.9975585341453552,
+                    0.5024414658546448,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    199.9999984592769,
+                    0.0,
+                    -0.024794813568188124
+                ],
+                "velocityRelativeToAttractor": [
+                    0.0008326616517858128,
+                    0.0,
+                    6.699999948385773
+                ]
+            }
         },
         {
-            "AttractorMass": 9000.0,
-            "BodyMass": 80.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 5,
-            "freezeColor": true,
-            "index": 15,
-            "isFrozen": false,
-            "orbitColor": [
-                0.47259753942489624,
-                0.9725975394248962,
-                0.5274024605751038,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                349.9999187853689,
-                0.0,
-                0.2350979822396686
-            ],
-            "velocityRelativeToAttractor": [
-                -0.003454501000117747,
-                0.0,
-                4.99999883979099
-            ]
+            "entityId": 16,
+            "orbit": {
+                "AttractorMass": 9000.0,
+                "BodyMass": 80.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 6,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.47259753942489624,
+                    0.9725975394248962,
+                    0.5274024605751038,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    349.99999949690664,
+                    -0.0,
+                    -0.0185035918082923
+                ],
+                "velocityRelativeToAttractor": [
+                    0.0002718894868267342,
+                    0.0,
+                    4.999999992812955
+                ]
+            }
         },
         {
-            "AttractorMass": 100.0,
-            "BodyMass": 1.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 6,
-            "freezeColor": true,
-            "index": 16,
-            "isFrozen": false,
-            "orbitColor": [
-                0.5,
-                1.0,
-                0.5,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                24.99982313278582,
-                0.0,
-                0.09403897823422748
-            ],
-            "velocityRelativeToAttractor": [
-                -0.00752311825865382,
-                0.0,
-                1.999985850622865
-            ]
+            "entityId": 17,
+            "orbit": {
+                "AttractorMass": 100.0,
+                "BodyMass": 1.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 7,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.5,
+                    1.0,
+                    0.5,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    24.99999890437465,
+                    0.0,
+                    -0.007401436790524825
+                ],
+                "velocityRelativeToAttractor": [
+                    0.0005921149433263627,
+                    0.0,
+                    1.9999999123499717
+                ]
+            }
         },
         {
-            "AttractorMass": 150.0,
-            "BodyMass": 1.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 7,
-            "freezeColor": true,
-            "index": 17,
-            "isFrozen": false,
-            "orbitColor": [
-                0.6832159757614136,
-                0.8167840242385864,
-                0.3167840242385864,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                34.999864642409406,
-                0.04701953938029149,
-                0.09403907876058298
-            ],
-            "velocityRelativeToAttractor": [
-                -0.005757490907237415,
-                0.999996132642762,
-                1.999992265285524
-            ]
+            "entityId": 18,
+            "orbit": {
+                "AttractorMass": 150.0,
+                "BodyMass": 1.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 8,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.6832159757614136,
+                    0.8167840242385864,
+                    0.3167840242385864,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    34.999999161511205,
+                    -0.0037007184260286906,
+                    -0.007401436852057381
+                ],
+                "velocityRelativeToAttractor": [
+                    0.000453149192608258,
+                    0.9999999760431776,
+                    1.9999999520863552
+                ]
+            }
         },
         {
-            "AttractorMass": 1000000.0,
-            "BodyMass": 10.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 0,
-            "freezeColor": true,
-            "index": 18,
-            "isFrozen": false,
-            "orbitColor": [
-                1.8804762363433838,
-                -0.3804762363433838,
-                -0.8804762363433838,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                1999.9997236446725,
-                0.7052939682355808,
-                1.1754899470593014
-            ],
-            "velocityRelativeToAttractor": [
-                -0.011754898313066734,
-                14.999997927335235,
-                24.999996545558723
-            ]
+            "entityId": 19,
+            "orbit": {
+                "AttractorMass": 1000000.0,
+                "BodyMass": 10.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 1,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    1.8804762363433838,
+                    -0.3804762363433838,
+                    -0.8804762363433838,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    1999.9999982880854,
+                    -0.05551077606252977,
+                    -0.0925179601042162
+                ],
+                "velocityRelativeToAttractor": [
+                    0.0009251795585560765,
+                    14.999999987160646,
+                    24.99999997860107
+                ]
+            }
         },
         {
-            "AttractorMass": 1000000.0,
-            "BodyMass": 15.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 0,
-            "freezeColor": true,
-            "index": 19,
-            "isFrozen": false,
-            "orbitColor": [
-                0.3360303044319153,
-                0.8360303044319153,
-                0.6639696955680847,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                2199.76467359086,
-                -0.23509799188232705,
-                0.8463527707767753
-            ],
-            "velocityRelativeToAttractor": [
-                -5.009715831547435,
-                -4.999999480814374,
-                17.999998130931747
-            ]
+            "entityId": 20,
+            "orbit": {
+                "AttractorMass": 1000000.0,
+                "BodyMass": 15.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 1,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.3360195755958557,
+                    0.8360195755958557,
+                    0.6639804244041443,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    2200.018502177424,
+                    0.018503592217825826,
+                    -0.06661293198362728
+                ],
+                "velocityRelativeToAttractor": [
+                    -4.99923539518208,
+                    -4.999999996784586,
+                    17.99999998842451
+                ]
+            }
         },
         {
-            "AttractorMass": 1000000.0,
-            "BodyMass": 12.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 0,
-            "freezeColor": true,
-            "index": 20,
-            "isFrozen": false,
-            "orbitColor": [
-                1.2320507764816284,
-                0.2679492235183716,
-                -0.23205077648162842,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                2399.9998080865676,
-                0.7052939827299304,
-                0.9403919769732404
-            ],
-            "velocityRelativeToAttractor": [
-                -0.008163124514197257,
-                14.999998800541114,
-                19.99999840072148
-            ]
+            "entityId": 21,
+            "orbit": {
+                "AttractorMass": 1000000.0,
+                "BodyMass": 12.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 1,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    1.2320507764816284,
+                    0.2679492235183716,
+                    -0.23205077648162842,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    2399.9999988111717,
+                    -0.055510775209383426,
+                    -0.07401436694584462
+                ],
+                "velocityRelativeToAttractor": [
+                    0.0006424857257671759,
+                    14.99999999256982,
+                    19.999999990093094
+                ]
+            }
         },
         {
-            "AttractorMass": 1000000.0,
-            "BodyMass": 20.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 0,
-            "freezeColor": true,
-            "index": 21,
-            "isFrozen": false,
-            "orbitColor": [
-                0.16050416231155396,
-                0.660504162311554,
-                0.839495837688446,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                2699.9998483646873,
-                0.0,
-                0.7052940013036839
-            ],
-            "velocityRelativeToAttractor": [
-                -0.0064498766680719044,
-                0.0,
-                14.999999157581568
-            ]
+            "entityId": 22,
+            "orbit": {
+                "AttractorMass": 1000000.0,
+                "BodyMass": 20.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 1,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.16050416231155396,
+                    0.660504162311554,
+                    0.839495837688446,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    2699.9999990606784,
+                    0.0,
+                    -0.055510762172714334
+                ],
+                "velocityRelativeToAttractor": [
+                    0.0005076429843527702,
+                    0.0,
+                    14.999999994781543
+                ]
+            }
         },
         {
-            "AttractorMass": 1000000.0,
-            "BodyMass": 5.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 0,
-            "freezeColor": true,
-            "index": 22,
-            "isFrozen": false,
-            "orbitColor": [
-                1.4164804220199585,
-                0.0835195779800415,
-                -0.4164804220199585,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                3000.470073188235,
-                0.4701959935855484,
-                0.8463527884532596
-            ],
-            "velocityRelativeToAttractor": [
-                9.99477641883174,
-                9.999999590712992,
-                17.999999263283385
-            ]
+            "entityId": 23,
+            "orbit": {
+                "AttractorMass": 1000000.0,
+                "BodyMass": 5.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 1,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    1.4164992570877075,
+                    0.08350074291229248,
+                    -0.4164992570877075,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    2999.962992054643,
+                    -0.03700718449681517,
+                    -0.066612932094813
+                ],
+                "velocityRelativeToAttractor": [
+                    10.000411196011221,
+                    9.999999997463775,
+                    17.99999999543479
+                ]
+            }
         },
         {
-            "AttractorMass": 1000000.0,
-            "BodyMass": 2.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 0,
-            "freezeColor": true,
-            "index": 23,
-            "isFrozen": false,
-            "orbitColor": [
-                2.4234464168548584,
-                -0.9234464168548584,
-                -1.4234464168548584,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                499.9955783364028,
-                0.47019461398306794,
-                2.774148222500101
-            ],
-            "velocityRelativeToAttractor": [
-                -0.18807653082196715,
-                9.999911567346274,
-                58.99947824734302
-            ]
+            "entityId": 24,
+            "orbit": {
+                "AttractorMass": 1000000.0,
+                "BodyMass": 2.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 1,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    2.4234464168548584,
+                    -0.9234464168548584,
+                    -1.4234464168548584,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    499.9999726093663,
+                    -0.03700718381457598,
+                    -0.21834238450599833
+                ],
+                "velocityRelativeToAttractor": [
+                    0.014802872908934096,
+                    9.999999452187353,
+                    58.999996767905394
+                ]
+            }
         },
         {
-            "AttractorMass": 1000000.0,
-            "BodyMass": 1.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 0,
-            "freezeColor": true,
-            "index": 24,
-            "isFrozen": false,
-            "orbitColor": [
-                0.48578107357025146,
-                0.9857810735702515,
-                0.5142189264297485,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                7999.999982727776,
-                0.0,
-                0.5219176841796033
-            ],
-            "velocityRelativeToAttractor": [
-                -0.0007346815144251953,
-                0.0,
-                11.099999976034798
-            ]
+            "entityId": 25,
+            "orbit": {
+                "AttractorMass": 1000000.0,
+                "BodyMass": 1.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 1,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.48578107357025146,
+                    0.9857810735702515,
+                    0.5142189264297485,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    7999.999999893004,
+                    -0.0,
+                    -0.04107785063545036
+                ],
+                "velocityRelativeToAttractor": [
+                    5.7823528300062624e-05,
+                    0.0,
+                    11.099999999851544
+                ]
+            }
         },
         {
-            "AttractorMass": 1000000.0,
-            "BodyMass": 5.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 0,
-            "freezeColor": true,
-            "index": 25,
-            "isFrozen": false,
-            "orbitColor": [
-                0.5,
-                1.0,
-                0.5,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                6999.999977440384,
-                0.3973881494464941,
-                0.3973881494464941
-            ],
-            "velocityRelativeToAttractor": [
-                -0.0009595836274079087,
-                8.45154252004751,
-                8.45154252004751
-            ]
+            "entityId": 26,
+            "orbit": {
+                "AttractorMass": 1000000.0,
+                "BodyMass": 5.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 1,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.5,
+                    1.0,
+                    0.5,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    6999.999999860253,
+                    -0.031276779537197034,
+                    -0.031276779537197034
+                ],
+                "velocityRelativeToAttractor": [
+                    7.552491140198794e-05,
+                    8.45154254711644,
+                    8.45154254711644
+                ]
+            }
         },
         {
-            "AttractorMass": 1000000.0,
-            "BodyMass": 5.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 0,
-            "freezeColor": true,
-            "index": 26,
-            "isFrozen": false,
-            "orbitColor": [
-                0.5,
-                1.0,
-                0.5,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                7099.999978071388,
-                0.394579717586976,
-                0.394579717586976
-            ],
-            "velocityRelativeToAttractor": [
-                -0.0009327434701231528,
-                8.391813557048463,
-                8.391813557048463
-            ]
+            "entityId": 27,
+            "orbit": {
+                "AttractorMass": 1000000.0,
+                "BodyMass": 5.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 1,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.5,
+                    1.0,
+                    0.5,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    7099.999999864161,
+                    -0.031055739331842584,
+                    -0.031055739331842584
+                ],
+                "velocityRelativeToAttractor": [
+                    7.341241966942742e-05,
+                    8.391813582806337,
+                    8.391813582806337
+                ]
+            }
         },
         {
-            "AttractorMass": 1000000.0,
-            "BodyMass": 5.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 0,
-            "freezeColor": true,
-            "index": 27,
-            "isFrozen": false,
-            "orbitColor": [
-                0.5,
-                1.0,
-                0.5,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                7199.999978676284,
-                0.39182999966535337,
-                0.39182999966535337
-            ],
-            "velocityRelativeToAttractor": [
-                -0.0009070139241531007,
-                8.333333308653106,
-                8.333333308653106
-            ]
+            "entityId": 28,
+            "orbit": {
+                "AttractorMass": 1000000.0,
+                "BodyMass": 5.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 1,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.5,
+                    1.0,
+                    0.5,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    7199.999999867909,
+                    -0.030839320667726006,
+                    -0.030839320667726006
+                ],
+                "velocityRelativeToAttractor": [
+                    7.138728032162183e-05,
+                    8.333333333180446,
+                    8.333333333180446
+                ]
+            }
         },
         {
-            "AttractorMass": 1000000.0,
-            "BodyMass": 5.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 0,
-            "freezeColor": true,
-            "index": 28,
-            "isFrozen": false,
-            "orbitColor": [
-                0.5,
-                1.0,
-                0.5,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                7299.9999792564895,
-                0.38913697817387277,
-                0.38913697817387277
-            ],
-            "velocityRelativeToAttractor": [
-                -0.0008823344866822163,
-                8.27605886250663,
-                8.27605886250663
-            ]
+            "entityId": 29,
+            "orbit": {
+                "AttractorMass": 1000000.0,
+                "BodyMass": 5.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 1,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.5,
+                    1.0,
+                    0.5,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    7299.999999871502,
+                    -0.03062736408593362,
+                    -0.03062736408593362
+                ],
+                "velocityRelativeToAttractor": [
+                    6.944480504248509e-05,
+                    8.276058885878,
+                    8.276058885878
+                ]
+            }
         },
         {
-            "AttractorMass": 1000000.0,
-            "BodyMass": 5.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 0,
-            "freezeColor": true,
-            "index": 29,
-            "isFrozen": false,
-            "orbitColor": [
-                0.5,
-                1.0,
-                0.5,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                7399.999979813341,
-                0.3864987307453763,
-                0.3864987307453763
-            ],
-            "velocityRelativeToAttractor": [
-                -0.0008586486414731307,
-                8.219949342844442,
-                8.219949342844442
-            ]
+            "entityId": 30,
+            "orbit": {
+                "AttractorMass": 1000000.0,
+                "BodyMass": 5.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 1,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.5,
+                    1.0,
+                    0.5,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    7399.999999874952,
+                    -0.030419718356213304,
+                    -0.030419718356213304
+                ],
+                "velocityRelativeToAttractor": [
+                    6.758069394878063e-05,
+                    8.219949365128958,
+                    8.219949365128958
+                ]
+            }
         },
         {
-            "AttractorMass": 15000.0,
-            "BodyMass": 20.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 4,
-            "freezeColor": true,
-            "index": 30,
-            "isFrozen": false,
-            "orbitColor": [
-                0.5117355585098267,
-                0.9882644414901733,
-                0.48826444149017334,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                699.9999661605691,
-                0.023509799641378656,
-                0.21765845049613877
-            ],
-            "velocityRelativeToAttractor": [
-                -0.0014393754996217412,
-                0.4999999758289785,
-                4.62910027508258
-            ]
+            "entityId": 31,
+            "orbit": {
+                "AttractorMass": 15000.0,
+                "BodyMass": 20.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 5,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.5117355585098267,
+                    0.9882644414901733,
+                    0.48826444149017334,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    699.9999997903776,
+                    -0.0018503592047182736,
+                    -0.01713099743527331
+                ],
+                "velocityRelativeToAttractor": [
+                    0.0001132872857595563,
+                    0.49999999985026994,
+                    4.629100497476525
+                ]
+            }
         },
         {
-            "AttractorMass": 15000.0,
-            "BodyMass": 20.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 4,
-            "freezeColor": true,
-            "index": 31,
-            "isFrozen": false,
-            "orbitColor": [
-                0.5142683982849121,
-                0.9857316017150879,
-                0.4857316017150879,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                849.9999770500755,
-                0.023509799567549172,
-                0.19752182468357654
-            ],
-            "velocityRelativeToAttractor": [
-                -0.0009761854487801529,
-                0.49999998650004446,
-                4.200840138661716
-            ]
+            "entityId": 32,
+            "orbit": {
+                "AttractorMass": 15000.0,
+                "BodyMass": 20.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 5,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.5142683982849121,
+                    0.9857316017150879,
+                    0.4857316017150879,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    849.999999857834,
+                    -0.001850359445121258,
+                    -0.015546128875778492
+                ],
+                "velocityRelativeToAttractor": [
+                    7.683155008492386e-05,
+                    0.499999999916373,
+                    4.200840251381422
+                ]
+            }
         },
         {
-            "AttractorMass": 15000.0,
-            "BodyMass": 20.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 4,
-            "freezeColor": true,
-            "index": 32,
-            "isFrozen": false,
-            "orbitColor": [
-                0.5168079137802124,
-                0.9831920862197876,
-                0.4831920862197876,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                999.99998341868,
-                0.023509799567385085,
-                0.18210612439431356
-            ],
-            "velocityRelativeToAttractor": [
-                -0.0007052939756657108,
-                0.4999999917093398,
-                3.87298328198824
-            ]
+            "entityId": 33,
+            "orbit": {
+                "AttractorMass": 15000.0,
+                "BodyMass": 20.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 5,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.5168079137802124,
+                    0.9831920862197876,
+                    0.4831920862197876,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    999.9999998972847,
+                    -0.0018503595274853054,
+                    -0.01433282326889363
+                ],
+                "velocityRelativeToAttractor": [
+                    5.55108046334173e-05,
+                    0.4999999999486426,
+                    3.872983345809605
+                ]
+            }
         },
         {
-            "AttractorMass": 15000.0,
-            "BodyMass": 20.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 4,
-            "freezeColor": true,
-            "index": 33,
-            "isFrozen": false,
-            "orbitColor": [
-                0.5193538665771484,
-                0.9806461334228516,
-                0.48064613342285156,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                1149.9999874621392,
-                0.02350979942948471,
-                0.16981483561163083
-            ],
-            "velocityRelativeToAttractor": [
-                -0.0005333035944689629,
-                0.49999999454875643,
-                3.6115755531979197
-            ]
+            "entityId": 34,
+            "orbit": {
+                "AttractorMass": 15000.0,
+                "BodyMass": 20.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 5,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.5193538665771484,
+                    0.9806461334228516,
+                    0.48064613342285156,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    1149.9999999223328,
+                    -0.0018503597094628194,
+                    -0.013365427928353055
+                ],
+                "velocityRelativeToAttractor": [
+                    4.1974095064466595e-05,
+                    0.4999999999662318,
+                    3.6115755923291633
+                ]
+            }
         },
         {
-            "AttractorMass": 15000.0,
-            "BodyMass": 20.0,
-            "GravConst": 1.0,
-            "ParentOrbitIndex": 4,
-            "freezeColor": true,
-            "index": 34,
-            "isFrozen": false,
-            "orbitColor": [
-                0.5219066143035889,
-                0.9780933856964111,
-                0.47809338569641113,
-                1.0
-            ],
-            "positionRelativeToAttractor": [
-                1299.9999901885685,
-                0.023509798188945236,
-                0.15971762740030143
-            ],
-            "velocityRelativeToAttractor": [
-                -0.00041733371254331676,
-                0.4999999962263726,
-                3.3968310767970373
-            ]
+            "entityId": 35,
+            "orbit": {
+                "AttractorMass": 15000.0,
+                "BodyMass": 20.0,
+                "GravConst": 1.0,
+                "ParentEntityId": 5,
+                "freezeColor": false,
+                "isFrozen": false,
+                "orbitColor": [
+                    0.5219066143035889,
+                    0.9780933856964111,
+                    0.47809338569641113,
+                    1.0
+                ],
+                "positionRelativeToAttractor": [
+                    1299.9999999392223,
+                    -0.0018503609756672999,
+                    -0.012570727425752824
+                ],
+                "velocityRelativeToAttractor": [
+                    3.284661857351782e-05,
+                    0.49999999997662375,
+                    3.3968311022749775
+                ]
+            }
         }
     ],
     "version": 1

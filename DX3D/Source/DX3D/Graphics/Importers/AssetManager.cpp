@@ -9,13 +9,6 @@
 
 namespace dx3d
 {
-    static std::string toLowerAscii(std::string s)
-    {
-        for (char& c : s)
-            c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-        return s;
-    }
-
     AssetManager::AssetManager(const AssetManagerDesc& desc)
         : Base(desc.base)
         , m_device(desc.graphicsDevice)
@@ -105,12 +98,10 @@ namespace dx3d
 
         {
             std::shared_lock rlock(m_cacheMutex);
-            if (auto it = m_materialCache.find(mtlKey); it != m_materialCache.end())
+            if (auto fit = m_materialFileCache.find(mtlKey); fit != m_materialFileCache.end())
             {
                 DX3D_LOG_INFO("Using cached materials from '{}'", mtlPath.string());
-                if (auto sp = it->second.lock())
-                    materials.push_back(*sp);
-                return materials;
+                return fit->second;
             }
         }
 
@@ -119,8 +110,7 @@ namespace dx3d
 
         {
             std::unique_lock wlock(m_cacheMutex);
-            auto marker = std::make_shared<Material>();
-            m_materialCache[mtlKey] = marker;
+            m_materialFileCache[mtlKey] = materials;
 
             for (auto& m : materials)
             {
@@ -239,6 +229,7 @@ namespace dx3d
         m_modelCache.clear();
         m_materialCache.clear();
         m_textureCache.clear();
+        m_materialFileCache.clear();
         DX3D_LOG_INFO("AssetManager: Cleared all caches");
     }
 
@@ -256,7 +247,7 @@ namespace dx3d
         std::error_code ec;
         std::filesystem::path canon = std::filesystem::weakly_canonical(p, ec);
         if (ec) canon = p.lexically_normal();
-        return toLowerAscii(canon.generic_string());
+        return canon.generic_string();
     }
 
     void AssetManager::preloadModel(std::string_view relativePath)

@@ -13,18 +13,16 @@ namespace dx3d
     public:
         Simulator::OrbitVisualizer visualizer;
         bool isVisible = true;
-    
+
     public:
-        OrbitComponent(Simulator::OrbitSystem* system, int orbitIndex)
-            : m_system(system), m_orbitIndex(orbitIndex) {
+        OrbitComponent(OrbitSystem* system, Entity entity)
+            : m_system(system), m_entity(entity) {
         }
 
         Simulator::OrbitData& getOrbit() const
         {
-            return m_system->GetOrbit(m_orbitIndex);
+            return m_system->getOrbit(m_entity);
         }
-
-        int getOrbitIndex() const { return m_orbitIndex; }
 
         void onInspectorGUI() override
         {
@@ -39,11 +37,10 @@ namespace dx3d
                 physicsChanged |= ImGui::DragScalarN("Rel Velocity", ImGuiDataType_Double, &orbit.velocityRelativeToAttractor.x, 3, 0.05f);
 
                 ImGui::Separator();
-
                 ImGui::TextDisabled("Physics Parameters");
 
                 if (ImGui::Checkbox("Freeze Body (Pause Physics)", &orbit.isFrozen)) {
-                    if (!orbit.isFrozen) orbit.isPathDirty = true;
+                    if (!orbit.isFrozen) orbit.elementsDirty = true;
                 }
 
                 double const minMass = 0.001;
@@ -51,11 +48,10 @@ namespace dx3d
                 ImGui::Text("Attractor Mass: %.2f", orbit.AttractorMass);
 
                 if (physicsChanged) {
-                    orbit.isPathDirty = true;
+                    orbit.elementsDirty = true;
                 }
 
                 ImGui::Separator();
-
                 ImGui::TextDisabled("Orbital Elements (Read-Only)");
                 ImGui::Text("Eccentricity: %.4f", orbit.Eccentricity);
                 ImGui::Text("Semi-Major Axis: %.2f", orbit.SemiMajorAxis);
@@ -64,13 +60,12 @@ namespace dx3d
                 ImGui::Text("Period: %.2f Days", orbit.Period);
 
                 ImGui::Separator();
-
                 ImGui::TextDisabled("Rendering");
                 ImGui::Checkbox("Show Orbit Line", &isVisible);
                 ImGui::Checkbox("Freeze Color", &orbit.freezeColor);
                 if (orbit.freezeColor) {
                     ImGui::ColorEdit4("Orbit Color", &orbit.orbitColor.x);
-                    orbit.isPathDirty = true;
+                    orbit.visualDirty = true;
                 }
             }
         }
@@ -79,20 +74,16 @@ namespace dx3d
 
         nlohmann::json serialize() const override
         {
-            return nlohmann::json{
-                {"orbitIndex", m_orbitIndex},
-                {"isVisible", isVisible}
-            };
+            return nlohmann::json{{"isVisible", isVisible}};
         }
 
         void deserialize(const nlohmann::json& j) override
         {
-            if (j.contains("orbitIndex")) m_orbitIndex = j.at("orbitIndex").get<int>();
             if (j.contains("isVisible")) isVisible = j.at("isVisible").get<bool>();
         }
 
     private:
-        Simulator::OrbitSystem* m_system;
-        int m_orbitIndex;
+        OrbitSystem* m_system;
+        Entity m_entity;
     };
 }

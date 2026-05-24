@@ -16,7 +16,7 @@ namespace dx3d
 	class KeplerEditor
 	{
 	public:
-		KeplerEditor(SceneManager& scene, Simulator::OrbitSystem& orbitSystem,
+		KeplerEditor(SceneManager& scene, OrbitSystem& orbitSystem,
 			Simulator::TimeController& timeController, Camera& camera,
 			AssetManager& assets, Display* display, GraphicsEngine& graphicsEngine);
 		~KeplerEditor();
@@ -40,7 +40,7 @@ namespace dx3d
 		UIManager m_uiManager;
 
 		SceneManager& m_scene;
-		Simulator::OrbitSystem& m_orbitSystem;
+		OrbitSystem& m_orbitSystem;
 		Simulator::TimeController& m_timeController;
 		Camera& m_camera;
 		AssetManager& m_assets;

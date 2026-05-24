@@ -6,7 +6,7 @@
 #include <DX3D/Graphics/Resources/ModelGPU.h>
 #include <DX3D/Graphics/Resources/Material.h>
 #include <DX3D/Graphics/Resources/Texture2D.h>
-
+#include <vector>
 #include <filesystem>
 #include <shared_mutex>
 #include <unordered_map>
@@ -61,5 +61,6 @@ namespace dx3d
         std::unordered_map<std::string, std::weak_ptr<ModelGPU>>    m_modelCache;
         std::unordered_map<std::string, std::weak_ptr<Material>>    m_materialCache;
         std::unordered_map<std::string, std::weak_ptr<Texture2D>>   m_textureCache;
+        std::unordered_map<std::string, std::vector<Material>>      m_materialFileCache;
     };
 }

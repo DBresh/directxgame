@@ -31,11 +31,10 @@ namespace dx3d {
 
         std::shared_ptr<GameObject> pickObject(const Vec3d& rayOrigin, const DirectX::XMVECTOR& rayDir, const dx3d::Vec3d& cameraPos, float* outDistance = nullptr) const;
 
-
-
     private:
         std::vector<std::shared_ptr<GameObject>> m_objects;
         std::unordered_map<std::string, std::shared_ptr<GameObject>> m_objectMap;
+        uint32_t m_nextEntityIndex = 0;
     };
 
 }

@@ -9,6 +9,7 @@ namespace dx3d {
     std::shared_ptr<GameObject> SceneManager::createObject(const std::string& name) {
         auto object = std::make_shared<GameObject>();
         object->name = name;
+        object->entity = Entity(m_nextEntityIndex++, 0);
 
         m_objects.push_back(object);
         if (!name.empty()) {
@@ -46,6 +47,7 @@ namespace dx3d {
     void SceneManager::clear() {
         m_objects.clear();
         m_objectMap.clear();
+        m_nextEntityIndex = 0;
     }
 
     void SceneManager::update(float deltaTime) {
@@ -143,6 +145,7 @@ namespace dx3d {
         if (!jArray.is_array()) return;
 
         std::unordered_map<int, std::shared_ptr<GameObject>> tempMap;
+        uint32_t maxEntityIndex = 0;
 
         for (const auto& jObj : jArray)
         {
@@ -150,6 +153,12 @@ namespace dx3d {
             if (id == -1) continue;
 
             auto obj = createObject(jObj.value("name", "Unnamed"));
+            if (jObj.contains("entityId")) {
+                uint32_t rawEntityId = jObj.value("entityId", obj->entity.id);
+                obj->entity = Entity(rawEntityId);
+                maxEntityIndex = std::max(maxEntityIndex, obj->entity.getIndex());
+            }
+
             obj->tag = jObj.value("tag", "");
             obj->modelName = jObj.value("modelName", "");
 
@@ -174,6 +183,8 @@ namespace dx3d {
 
             tempMap[id] = obj;
         }
+
+        m_nextEntityIndex = maxEntityIndex + 1;
 
         for (const auto& jObj : jArray)
         {

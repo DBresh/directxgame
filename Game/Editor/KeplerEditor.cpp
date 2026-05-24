@@ -10,7 +10,7 @@
 
 namespace dx3d
 {
-    KeplerEditor::KeplerEditor(SceneManager& scene, Simulator::OrbitSystem& orbitSystem,
+    KeplerEditor::KeplerEditor(SceneManager& scene, OrbitSystem& orbitSystem,
         Simulator::TimeController& timeController, Camera& camera,
         AssetManager& assets, Display* display, GraphicsEngine& graphicsEngine)
         : m_scene(scene), m_orbitSystem(orbitSystem), m_timeController(timeController),
@@ -190,7 +190,7 @@ namespace dx3d
             if (orbitComp && orbitComp->isVisible)
             {
                 Simulator::OrbitData& orbit = orbitComp->getOrbit();
-                if (orbit.ParentOrbitIndex != -1)
+                if (orbit.ParentEntity != dx3d::Entity::Null)
                 {
                     orbitComp->visualizer.draw(ctx, view, proj, orbit, m_camera.getPosition());
                 }
