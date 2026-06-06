@@ -4,6 +4,7 @@
 #include <DX3D/Game/HierarchyComponent.h>
 #include <DirectXMath.h>
 #include <vector>
+#include <algorithm>
 #include <cassert>
 
 namespace dx3d {
@@ -28,6 +29,7 @@ namespace dx3d {
             m_entities.push_back(e);
 
             m_isDirty = true;
+            markTransformDirty(e);
         }
 
         void setParent(Entity child, Entity parent) {
@@ -37,6 +39,7 @@ namespace dx3d {
 
             if (parent == Entity::Null) {
                 m_isDirty = true;
+                markTransformDirty(child);
                 return;
             }
 
@@ -56,6 +59,7 @@ namespace dx3d {
             m_hierarchy[parentIdx].firstChild = child;
 
             m_isDirty = true;
+            markTransformDirty(child);
         }
 
         void removeTransform(Entity e) {
@@ -84,6 +88,7 @@ namespace dx3d {
             m_entities.pop_back();
 
             m_isDirty = true;
+            m_structuralDirty = true;
         }
 
         void updateWorldTransforms() {
@@ -154,6 +159,24 @@ namespace dx3d {
         Transform& getLocal(Entity e) { return m_local[m_sparse[e.getIndex()]]; }
         const Transform& getLocal(Entity e) const { return m_local[m_sparse[e.getIndex()]]; }
 
+        void setTransform(Entity e, const Transform& localTransform) {
+            assert(hasTransform(e) && "Entity does not have a Transform!");
+            m_local[m_sparse[e.getIndex()]] = localTransform;
+            markTransformDirty(e);
+        }
+
+        void markTransformDirty(Entity e) {
+            assert(hasTransform(e) && "Entity does not have a Transform!");
+            if (std::find(m_dirtyEntities.begin(), m_dirtyEntities.end(), e) == m_dirtyEntities.end()) {
+                m_dirtyEntities.push_back(e);
+            }
+        }
+
+        bool hasDirtyTransforms() const { return m_structuralDirty || !m_dirtyEntities.empty(); }
+        bool hasStructuralChanges() const { return m_structuralDirty; }
+        const std::vector<Entity>& getDirtyEntities() const { return m_dirtyEntities; }
+        void clearDirtyTracking() { m_dirtyEntities.clear(); m_structuralDirty = false; }
+
         const WorldTransform& getWorld(Entity e) const { return m_world[m_sparse[e.getIndex()]]; }
         HierarchyComponent& getHierarchy(Entity e) { return m_hierarchy[m_sparse[e.getIndex()]]; }
 
@@ -175,7 +198,9 @@ namespace dx3d {
         void clear() {
             m_local.clear(); m_world.clear(); m_hierarchy.clear();
             m_entities.clear(); m_sparse.clear(); m_topologicalOrder.clear();
+            m_dirtyEntities.clear();
             m_isDirty = true;
+            m_structuralDirty = true;
         }
 
     private:
@@ -188,7 +213,9 @@ namespace dx3d {
         std::vector<Entity> m_entities;
 
         std::vector<Entity> m_topologicalOrder;
+        std::vector<Entity> m_dirtyEntities;
         bool m_isDirty = true;
+        bool m_structuralDirty = true;
 
         void unlink(Entity e) {
             size_t idx = m_sparse[e.getIndex()];

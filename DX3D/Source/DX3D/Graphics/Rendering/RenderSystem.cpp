@@ -9,6 +9,7 @@
 #include <DirectXMath.h>
 #include <cstring>
 #include <ranges>
+#include <unordered_map>
 
 namespace dx3d
 {
@@ -30,6 +31,7 @@ namespace dx3d
 		m_instancedDepthVS = m_device->createVertexShaderFromFile("DX3D/Assets/Shaders/ShadowDepthInstancedVS.hlsl", "VSMain");
 		m_cameraBuffer = m_device->createConstantBuffer({ nullptr, sizeof(CameraData) });
 		m_instancedTransformCB = m_device->createConstantBuffer({ nullptr, sizeof(TransformData) });
+		m_singleDrawTransformCB = m_device->createConstantBuffer({ nullptr, sizeof(TransformData) });
 		m_lightManager = std::make_unique<LightManager>(m_device);
 		m_lightManager->initShadowArray(m_lightManager->getShadowMapSize(), 4);
 
@@ -220,13 +222,13 @@ namespace dx3d
 
 		std::unordered_map<ModelGPU*, std::vector<DirectX::XMFLOAT4X4>> lightBatchesMap;
 
-		for (const auto& proxy : m_sceneProxies)
+		for (const auto& proxy : m_shadowProxies)
 		{
-			AABB worldBounds = proxy.localBounds.transform(proxy.worldMatrix);
+			AABB worldBounds = proxy.bounds;
 
 			if (lightFrustum.checkAABB(worldBounds))
 			{
-				lightBatchesMap[proxy.model].push_back(proxy.worldMatrix);
+				lightBatchesMap[proxy.model].push_back(proxy.world);
 			}
 		}
 
@@ -410,80 +412,40 @@ namespace dx3d
 		swapChain.present(vsync);
 	}
 
-	void RenderSystem::buildBatches(RuntimeWorld& world, const Camera& camera)
+	void RenderSystem::buildBatches(const std::vector<RenderProxy>& visibleProxies, const std::vector<RenderProxy>& shadowProxies)
 	{
 		m_singleDrawObjects.clear();
 		m_instancedDraws.clear();
 		m_instancedTransforms.clear();
-		m_sceneProxies.clear();
+		m_shadowProxies = shadowProxies;
 
-		Frustum frustum;
-		frustum.constructFromViewProj(camera.getViewMatrix(), camera.getProjectionMatrix());
+		std::unordered_map<ModelGPU*, std::vector<DirectX::XMFLOAT4X4>> modelGroups;
 
-		// Grouping by Model, caching the Entity alongside its pre-computed relative matrix
-		std::unordered_map<ModelGPU*, std::vector<std::pair<Entity, DirectX::XMFLOAT4X4>>> modelGroups;
-		dx3d::Vec3d camPos = camera.getPosition();
-
-		const auto& entities = world.renderables.getRawEntities();
-		const auto& renderData = world.renderables.getRawData();
-
-		// Culling and Matrix Construction
-		for (size_t i = 0; i < entities.size(); ++i)
+		for (const auto& proxy : visibleProxies)
 		{
-			Entity e = entities[i];
-			const RenderComponent& rc = renderData[i];
-
-			if (!rc.model || !rc.visible) continue;
-			if (!world.transforms.has(e)) continue;
-
-			// Retrieve the pre-computed flat ECS World Transform
-			const WorldTransform& wt = world.transforms.getWorld(e);
-			dx3d::Vec3d relPos = wt.position - camPos;
-
-			DirectX::XMMATRIX S = DirectX::XMMatrixScaling(wt.scale.x, wt.scale.y, wt.scale.z);
-			DirectX::XMMATRIX R = DirectX::XMMatrixRotationQuaternion(DirectX::XMLoadFloat4(&wt.rotation));
-			DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(static_cast<float>(relPos.x), static_cast<float>(relPos.y), static_cast<float>(relPos.z));
-
-			DirectX::XMFLOAT4X4 relWorld;
-			DirectX::XMStoreFloat4x4(&relWorld, S * R * T);
-
-			// Push to shadow queue
-			if (rc.castsShadow) {
-				m_sceneProxies.push_back({ rc.model, relWorld, rc.model->boundingBox });
-			}
-
-			AABB worldBounds = rc.model->boundingBox.transform(relWorld);
-
-			// Frustum Cull
-			if (frustum.checkAABB(worldBounds)) {
-				modelGroups[rc.model].push_back({ e, relWorld });
-			}
+			if (!proxy.model) continue;
+			modelGroups[proxy.model].push_back(proxy.world);
 		}
 
-		for (auto& [model, groupItems] : modelGroups)
+		for (auto& [model, worldMatrices] : modelGroups)
 		{
-			if (groupItems.size() == 1)
+			if (worldMatrices.size() == 1)
 			{
-				Entity e = groupItems[0].first;
-				const DirectX::XMFLOAT4X4& relWorld = groupItems[0].second;
-				const RenderComponent& rc = world.renderables.get(e);
-
 				SingleDrawItem item{};
-				item.model = rc.model;
-				item.objectCB = rc.objectCB;
-				item.worldMatrix = relWorld; // Pass cached matrix directly
+				item.model = model;
+				item.objectCB = m_singleDrawTransformCB.get();
+				item.worldMatrix = worldMatrices[0];
 				m_singleDrawObjects.push_back(item);
 			}
-			else if (groupItems.size() > 1)
+			else if (worldMatrices.size() > 1)
 			{
 				InstancedDrawItem batch;
 				batch.model = model;
 				batch.transformStartIndex = static_cast<uint32_t>(m_instancedTransforms.size());
-				batch.instanceCount = static_cast<uint32_t>(groupItems.size());
+				batch.instanceCount = static_cast<uint32_t>(worldMatrices.size());
 
-				for (const auto& item : groupItems) {
-					// Pass cached matrix directly into the instance buffer payload
-					m_instancedTransforms.push_back(item.second);
+				for (const auto& world : worldMatrices) {
+					m_instancedTransforms.push_back(world);
 				}
 
 				m_instancedDraws.push_back(batch);

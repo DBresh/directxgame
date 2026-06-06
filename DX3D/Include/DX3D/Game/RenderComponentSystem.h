@@ -2,6 +2,7 @@
 #include <DX3D/Game/Entity.h>
 #include <DX3D/Game/RenderComponent.h>
 #include <vector>
+#include <algorithm>
 #include <cassert>
 
 namespace dx3d {
@@ -24,6 +25,8 @@ namespace dx3d {
 
             m_denseData.push_back(r);
             m_denseEntities.push_back(e);
+            markDirty(e);
+            m_structuralDirty = true;
         }
 
         void remove(Entity e) {
@@ -43,12 +46,32 @@ namespace dx3d {
             m_sparse[entityIndex] = INVALID_INDEX;
             m_denseData.pop_back();
             m_denseEntities.pop_back();
+            m_dirtyEntities.clear();
+            m_structuralDirty = true;
         }
 
         RenderComponent& get(Entity e) {
             assert(has(e) && "Entity does not have a RenderComponent!");
+            markDirty(e);
             return m_denseData[m_sparse[e.getIndex()]];
         }
+
+        void set(Entity e, const RenderComponent& r) {
+            assert(has(e) && "Entity does not have a RenderComponent!");
+            m_denseData[m_sparse[e.getIndex()]] = r;
+            markDirty(e);
+        }
+
+        void markDirty(Entity e) {
+            if (std::find(m_dirtyEntities.begin(), m_dirtyEntities.end(), e) == m_dirtyEntities.end()) {
+                m_dirtyEntities.push_back(e);
+            }
+        }
+
+        bool hasDirtyComponents() const { return m_structuralDirty || !m_dirtyEntities.empty(); }
+        bool hasStructuralChanges() const { return m_structuralDirty; }
+        const std::vector<Entity>& getDirtyEntities() const { return m_dirtyEntities; }
+        void clearDirtyTracking() { m_dirtyEntities.clear(); m_structuralDirty = false; }
 
         const RenderComponent& get(Entity e) const {
             assert(has(e) && "Entity does not have a RenderComponent!");
@@ -69,6 +92,8 @@ namespace dx3d {
             m_denseData.clear();
             m_denseEntities.clear();
             m_sparse.clear();
+            m_dirtyEntities.clear();
+            m_structuralDirty = true;
         }
 
     private:
@@ -77,5 +102,7 @@ namespace dx3d {
         std::vector<size_t> m_sparse;
         std::vector<RenderComponent> m_denseData;
         std::vector<Entity> m_denseEntities;
+        std::vector<Entity> m_dirtyEntities;
+        bool m_structuralDirty = true;
     };
 }

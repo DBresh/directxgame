@@ -31,7 +31,7 @@ namespace dx3d
 
 		m_scene.assignTransform = [this](Entity e, const Transform& t) {
 			if (m_world.transforms.hasTransform(e)) {
-				m_world.transforms.getTransform(e) = t;
+				m_world.transforms.setTransform(e, t);
 			}
 			else {
 				m_world.transforms.assignTransform(e, t);
@@ -114,12 +114,14 @@ namespace dx3d
 		m_world.orbitSystem.forEach([this](Entity e, Simulator::OrbitData& orbit) {
 			if (m_world.transforms.hasTransform(e)) {
 				m_world.transforms.getTransform(e).setPosition(orbit.absoluteWorldPosition);
+				m_world.transforms.markTransformDirty(e);
 			}
 			auto it = m_orbitVisualizers.find(e.id);
 			if (it != m_orbitVisualizers.end()) {
 				it->second.update(m_graphicsEngine->getGraphicsDevice(), orbit);
 			}
 			});
+
 		auto simEnd = std::chrono::high_resolution_clock::now();
 		m_metrics.simulationTimeMs = std::chrono::duration<double, std::milli>(simEnd - simStart).count();
 

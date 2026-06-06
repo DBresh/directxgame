@@ -18,7 +18,7 @@
 #include <DX3D/InputSystem/Camera.h>
 #include <DX3D/Game/RenderComponentSystem.h>
 #include <DX3D/Game/TransformSystem.h>
-#include <DX3D/Game/RuntimeWorld.h>
+#include <DX3D/Game/VisibilitySystem.h>
 
 namespace dx3d
 {
@@ -46,13 +46,6 @@ namespace dx3d
 			ModelGPU* model = nullptr;
 			uint32_t transformStartIndex = 0;
 			uint32_t instanceCount = 0;
-		};
-
-		struct SceneRenderProxy
-		{
-			ModelGPU* model = nullptr;
-			DirectX::XMFLOAT4X4 worldMatrix{};
-			AABB localBounds{};
 		};
 
 		RenderSystem(std::shared_ptr<GraphicsDevice> device,
@@ -83,7 +76,7 @@ namespace dx3d
 		void drawInstancedBatches(DeviceContext& context, InstanceBuffer& instanceBuffer);
 
 		void renderShadows(InstanceBuffer& instanceBuffer, const Camera& camera);
-		void buildBatches(RuntimeWorld& world, const Camera& camera);
+		void buildBatches(const std::vector<RenderProxy>& visibleProxies, const std::vector<RenderProxy>& shadowProxies);
 
 		const std::vector<SingleDrawItem>& getSingleDrawObjects() const noexcept { return m_singleDrawObjects; }
 
@@ -119,8 +112,9 @@ namespace dx3d
 		std::vector<SingleDrawItem> m_singleDrawObjects;
 		std::vector<InstancedDrawItem> m_instancedDraws;
 		std::vector<DirectX::XMFLOAT4X4> m_instancedTransforms;
-		std::vector<SceneRenderProxy> m_sceneProxies;
+		std::vector<RenderProxy> m_shadowProxies;
 		ConstantBufferPtr m_instancedTransformCB;
+		ConstantBufferPtr m_singleDrawTransformCB;
 
 		struct TransformData
 		{

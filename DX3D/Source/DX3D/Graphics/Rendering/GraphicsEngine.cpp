@@ -81,7 +81,8 @@ namespace dx3d
 		const XMFLOAT4X4& proj = camera.getProjectionMatrix();
 
 		m_renderSystem->setCameraMatrices(view, proj);
-		m_renderSystem->buildBatches(world, camera);
+		world.visibility.update(world.transforms, world.renderables, camera);
+		m_renderSystem->buildBatches(world.visibility.getVisibleProxies(), world.visibility.getShadowProxies());
 		m_renderSystem->renderShadows(*m_instanceBuffer, camera);
 
 		m_renderSystem->beginFrame(swapChain, { 0.2f, 0.2f, 0.2f, 1.0f }, camera);
