@@ -6,11 +6,11 @@
 #include <DX3D/Graphics/Rendering/RenderSystem.h>
 #include <DX3D/InputSystem/Camera.h>
 #include <DX3D/Graphics/Importers/AssetManager.h>
-#include <DX3D/Game/SceneManager.h>
 #include <DirectXMath.h>
 #include <DX3D/InputSystem/InputSystem.h>
 #include <DX3D/Graphics/Buffers/InstanceBuffer.h>
 #include <DX3D/Core/Common.h>
+#include <DX3D/Game/RuntimeWorld.h>
 
 #include <functional>
 #include <vector>
@@ -29,7 +29,7 @@ namespace dx3d
         LightManager* getLightManager() const noexcept { return m_renderSystem->getLightManager(); }
         RenderSystem& getRenderSystem() const noexcept { return *m_renderSystem; }
 
-        void render(SceneManager& scene, Camera& camera, SwapChain& swapChain,
+        void render(RuntimeWorld& world, Camera& camera, SwapChain& swapChain,
             const std::function<void()>& onGUI,
             const std::function<void(DeviceContext&, const DirectX::XMFLOAT4X4&, const DirectX::XMFLOAT4X4&)>& onDrawDebug = nullptr);
         

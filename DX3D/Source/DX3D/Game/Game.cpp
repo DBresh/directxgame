@@ -64,7 +64,7 @@ namespace dx3d
 
 		onUpdate(dt, fdt);
 
-		m_graphicsEngine->render(m_scene, *m_camera, m_display->getSwapChain(),
+		m_graphicsEngine->render(m_world, *m_camera, m_display->getSwapChain(),
 			[&]() { this->onGUI(); },
 			[&](DeviceContext& ctx, const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj) {
 				this->onDrawDebug(ctx, view, proj);

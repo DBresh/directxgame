@@ -4,7 +4,6 @@
 #include <Game/Editor/TimelinePanel.h>
 #include <Game/Editor/AssetBrowserPanel.h>
 #include <DX3D/Core/Logger.h>
-#include <Game/Components/OrbitComponent.h>
 
 #include <imgui.h>
 
@@ -23,7 +22,13 @@ namespace dx3d
     void KeplerEditor::init()
     {
         m_uiManager.addPanel(std::make_shared<HierarchyPanel>(m_scene, m_selectedObject, m_camera));
-        m_uiManager.addPanel(std::make_shared<InspectorPanel>(m_selectedObject));
+        m_uiManager.addPanel(std::make_shared<InspectorPanel>(
+            m_selectedObject,
+            &m_orbitSystem,
+            m_scene.resolveTransform,
+            m_scene.assignTransform,
+            [this](Entity e, const Transform& t) { return m_scene.applyTransformToEntity(e, t); }
+        ));
         m_uiManager.addPanel(std::make_shared<TimelinePanel>(m_timeController, m_camera));
         m_uiManager.addPanel(std::make_shared<AssetBrowserPanel>());
     }
@@ -144,12 +149,12 @@ namespace dx3d
                         if (!m_dragPreviewObject) {
                             m_dragPreviewObject = std::make_shared<GameObject>("DragPreview");
                             m_dragPreviewObject->model = m_assets.getModel(assetStr);
-                            m_dragPreviewObject->transform.setScale(DirectX::XMFLOAT3(scaleSize, scaleSize, scaleSize));
+                            m_dragPreviewObject->cachedEditorTransform.setScale(DirectX::XMFLOAT3(scaleSize, scaleSize, scaleSize));
 
                             GraphicsDevice& gd = m_graphicsEngine.getGraphicsDevice();
                             m_dragPreviewObject->constantBuffer = gd.createConstantBuffer({ nullptr, sizeof(DirectX::XMFLOAT4X4) * 3 });
                         }
-                        m_dragPreviewObject->transform.setPosition(finalAbsolutePos);
+                        m_dragPreviewObject->cachedEditorTransform.setPosition(finalAbsolutePos);
 
                         if (payload->IsDelivery())
                         {
@@ -157,8 +162,9 @@ namespace dx3d
                             auto newObj = m_scene.createObject(entityName);
                             newObj->modelName = assetStr;
                             newObj->model = m_dragPreviewObject->model;
-                            newObj->transform.setScale(DirectX::XMFLOAT3(scaleSize, scaleSize, scaleSize));
-                            newObj->transform.setPosition(finalAbsolutePos);
+                            newObj->cachedEditorTransform.setScale(DirectX::XMFLOAT3(scaleSize, scaleSize, scaleSize));
+                            newObj->cachedEditorTransform.setPosition(finalAbsolutePos);
+                            m_scene.applyTransformToEntity(newObj->entity, newObj->cachedEditorTransform);
 
                             if (m_scene.onObjectCreated) {
                                 m_scene.onObjectCreated(newObj);
@@ -184,22 +190,9 @@ namespace dx3d
 
     void KeplerEditor::onDrawDebug(DeviceContext& ctx, const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj)
     {
-        for (const auto& obj : m_scene.getAllObjects())
-        {
-            auto orbitComp = obj->getComponent<OrbitComponent>();
-            if (orbitComp && orbitComp->isVisible)
-            {
-                Simulator::OrbitData& orbit = orbitComp->getOrbit();
-                if (orbit.ParentEntity != dx3d::Entity::Null)
-                {
-                    orbitComp->visualizer.draw(ctx, view, proj, orbit, m_camera.getPosition());
-                }
-            }
-        }
-
         if (m_dragPreviewObject && m_isDraggingAsset && m_dragPreviewObject->model)
         {
-            DirectX::XMFLOAT4X4 worldMatrix = m_dragPreviewObject->transform.getWorldMatrixRelative(m_camera.getPosition());
+            DirectX::XMFLOAT4X4 worldMatrix = m_dragPreviewObject->cachedEditorTransform.getWorldMatrixRelative(m_camera.getPosition());
             m_graphicsEngine.getRenderSystem().drawModel(
                 ctx,
                 *m_dragPreviewObject->model,

@@ -6,6 +6,7 @@
 #include <DX3D/Game/SceneManager.h>
 #include <DX3D/Game/GameObject.h>
 #include <DX3D/Graphics/Importers/AssetManager.h>
+#include <DX3D/Game/RuntimeWorld.h>
 
 namespace dx3d
 {
@@ -33,6 +34,8 @@ namespace dx3d
     protected:
         std::unique_ptr<GraphicsEngine> m_graphicsEngine{};
         std::unique_ptr<Display> m_display{};
+
+        RuntimeWorld m_world;
 
         SceneManager m_scene;
         std::unique_ptr<Camera> m_camera;

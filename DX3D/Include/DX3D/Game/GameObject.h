@@ -6,7 +6,6 @@
 #include <DX3D/Graphics/Resources/ModelData.h>
 #include <DX3D/Graphics/Resources/ModelGPU.h>
 #include <DX3D/Game/Entity.h>
-#include <DX3D/Game/Component.h>
 #include <memory>
 #include <string>
 #include <vector>
@@ -25,10 +24,15 @@ namespace dx3d {
         bool inheritRotation = true;
         bool inheritScale = true;
 
-        Transform transform{};
+        Transform cachedEditorTransform{};
         std::shared_ptr<ModelGPU> model;
         ConstantBufferPtr constantBuffer;
 
+        // ====================================================================
+        // EDITOR-ONLY METADATA
+        // Do NOT use these methods during the runtime simulation loop.
+        // Runtime hierarchy is strictly owned by TransformSystem::setParent().
+        // ====================================================================
         std::weak_ptr<GameObject> parent;
         std::vector<std::shared_ptr<GameObject>> children;
 
@@ -38,7 +42,7 @@ namespace dx3d {
         void addChild(const std::shared_ptr<GameObject>& child);
         void removeChild(const std::shared_ptr<GameObject>& child);
 
-        Transform getWorldTransform() const;
+        Transform getEditorWorldTransform() const;
 
         bool hasMesh() const { return model != nullptr; }
         bool hasParent() const { return !parent.expired(); }
@@ -50,6 +54,7 @@ namespace dx3d {
             }
             return false;
         }
+        // ====================================================================
 
         std::shared_ptr<GameObject> getParent() const {
             return parent.lock();
@@ -58,33 +63,9 @@ namespace dx3d {
         AABB getRelativeAABB(const dx3d::Vec3d& cameraPos) const
         {
             if (model) {
-                return model->boundingBox.transform(getWorldTransform().getWorldMatrixRelative(cameraPos));
+                return model->boundingBox.transform(getEditorWorldTransform().getWorldMatrixRelative(cameraPos));
             }
             return AABB{};
-        }
-
-        std::vector<std::shared_ptr<Component>> components;
-
-        template<typename T, typename... Args>
-        std::shared_ptr<T> addComponent(Args&&... args)
-        {
-            auto comp = std::make_shared<T>(std::forward<Args>(args)...);
-            comp->gameObject = this;
-            components.push_back(comp);
-            return comp;
-        }
-
-        template<typename T>
-        std::shared_ptr<T> getComponent() const
-        {
-            for (auto& comp : components)
-            {
-                if (auto casted = std::dynamic_pointer_cast<T>(comp))
-                {
-                    return casted;
-                }
-            }
-            return nullptr;
         }
 
     private:

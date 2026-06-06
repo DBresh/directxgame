@@ -16,7 +16,9 @@
 #include <DX3D/Graphics/Rendering/LightManager.h>
 #include <DX3D/Graphics/Buffers/StructuredBuffer.h>
 #include <DX3D/InputSystem/Camera.h>
-#include <DX3D/Game/SceneManager.h>
+#include <DX3D/Game/RenderComponentSystem.h>
+#include <DX3D/Game/TransformSystem.h>
+#include <DX3D/Game/RuntimeWorld.h>
 
 namespace dx3d
 {
@@ -33,6 +35,26 @@ namespace dx3d
 	class RenderSystem
 	{
 	public:
+		struct SingleDrawItem
+		{
+			ModelGPU* model = nullptr;
+			const ConstantBuffer* objectCB = nullptr;
+			DirectX::XMFLOAT4X4 worldMatrix{};
+		};
+		struct InstancedDrawItem
+		{
+			ModelGPU* model = nullptr;
+			uint32_t transformStartIndex = 0;
+			uint32_t instanceCount = 0;
+		};
+
+		struct SceneRenderProxy
+		{
+			ModelGPU* model = nullptr;
+			DirectX::XMFLOAT4X4 worldMatrix{};
+			AABB localBounds{};
+		};
+
 		RenderSystem(std::shared_ptr<GraphicsDevice> device,
 			DeviceContextPtr context);
 
@@ -60,13 +82,13 @@ namespace dx3d
 		void setInstancedPipeline(GraphicsPipelineStatePtr pipeline) noexcept;
 		void drawInstancedBatches(DeviceContext& context, InstanceBuffer& instanceBuffer);
 
-		void renderShadows(SceneManager& scene, InstanceBuffer& instanceBuffer, const Camera& camera);
+		void renderShadows(InstanceBuffer& instanceBuffer, const Camera& camera);
+		void buildBatches(RuntimeWorld& world, const Camera& camera);
 
-		void buildBatches(SceneManager& scene, const Camera& camera);
-		const std::vector<GameObject*>& getSingleDrawObjects() const noexcept { return m_singleDrawObjects; }
+		const std::vector<SingleDrawItem>& getSingleDrawObjects() const noexcept { return m_singleDrawObjects; }
 
 	private:
-		void renderSingleLightShadows(const Light& light, int shadowIndex, SceneManager& scene, InstanceBuffer& instanceBuffer, const Camera& camera);
+		void renderSingleLightShadows(const Light& light, int shadowIndex, InstanceBuffer& instanceBuffer, const Camera& camera);
 
 	private:
 		std::shared_ptr<GraphicsDevice> m_device;
@@ -94,8 +116,10 @@ namespace dx3d
 		GraphicsPipelineStatePtr m_instancedPipeline;
 		Microsoft::WRL::ComPtr<ID3D11VertexShader> m_instancedDepthVS;
 
-		std::vector<GameObject*> m_singleDrawObjects;
-		std::vector<InstancedBatch> m_instancedBatches;
+		std::vector<SingleDrawItem> m_singleDrawObjects;
+		std::vector<InstancedDrawItem> m_instancedDraws;
+		std::vector<DirectX::XMFLOAT4X4> m_instancedTransforms;
+		std::vector<SceneRenderProxy> m_sceneProxies;
 		ConstantBufferPtr m_instancedTransformCB;
 
 		struct TransformData

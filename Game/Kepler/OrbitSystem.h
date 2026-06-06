@@ -16,6 +16,7 @@ namespace dx3d {
         ~OrbitSystem() = default;
 
         void assignOrbitToEntity(Entity e, const Simulator::OrbitData& data) {
+            assert(!e.isNull() && "CRITICAL: Attempted to assign orbit to a Null Entity!");
             uint32_t entityIndex = e.getIndex();
 
             if (entityIndex >= m_sparse.size()) {
@@ -55,11 +56,13 @@ namespace dx3d {
         }
 
         Simulator::OrbitData& getOrbit(Entity e) {
+            assert(!e.isNull() && "CRITICAL: Attempted to get orbit for a Null Entity!");
             assert(hasOrbit(e) && "Entity does not have an Orbit!");
             return m_denseData[m_sparse[e.getIndex()]];
         }
 
         const Simulator::OrbitData& getOrbit(Entity e) const {
+            assert(!e.isNull() && "CRITICAL: Attempted to get orbit for a Null Entity!");
             assert(hasOrbit(e) && "Entity does not have an Orbit!");
             return m_denseData[m_sparse[e.getIndex()]];
         }
@@ -82,6 +85,20 @@ namespace dx3d {
         size_t getSparseIndex(Entity e) const {
             assert(hasOrbit(e) && "CRITICAL: Requested Sparse Index of Entity without an Orbit component!");
             return m_sparse[e.getIndex()];
+        }
+
+        template<typename Fn>
+        void forEach(Fn&& fn) {
+            for (size_t i = 0; i < m_denseEntities.size(); ++i) {
+                fn(m_denseEntities[i], m_denseData[i]);
+            }
+        }
+
+        template<typename Fn>
+        void forEach(Fn&& fn) const {
+            for (size_t i = 0; i < m_denseEntities.size(); ++i) {
+                fn(m_denseEntities[i], m_denseData[i]);
+            }
         }
 
         std::vector<Simulator::OrbitData>& getRawData() { return m_denseData; }

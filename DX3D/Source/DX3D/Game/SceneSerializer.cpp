@@ -1,25 +1,23 @@
 #include <DX3D/Game/SceneSerializer.h>
 #include <Game/Kepler/OrbitData.h>
+#include <DX3D/Core/Logger.h>
 #include <fstream>
 #include <algorithm>
 #include <vector>
 
 namespace dx3d {
 
-	SceneSerializer::SceneSerializer(Registry& registry, TransformSystem& tSys, OrbitSystem& oSys)
-		: m_registry(registry), m_transformSystem(tSys), m_orbitSystem(oSys) {
+	SceneSerializer::SceneSerializer(Registry& registry, TransformSystem& tSys, OrbitSystem& oSys, SceneManager& sMan, AssetManager& aMan)
+		: m_registry(registry), m_transformSystem(tSys), m_orbitSystem(oSys), m_sceneManager(sMan), m_assetManager(aMan) {
 	}
 
 	int SceneSerializer::CalculateSimDepth(Entity entity) const {
 		int depth = 0;
 		Entity current = entity;
 
-
 		while (m_orbitSystem.hasOrbit(current)) {
 			const auto& orbit = m_orbitSystem.getOrbit(current);
-			if (orbit.ParentEntity == Entity::Null) {
-				break;
-			}
+			if (orbit.ParentEntity == Entity::Null) break;
 			++depth;
 			current = orbit.ParentEntity;
 		}
@@ -32,7 +30,13 @@ namespace dx3d {
 
 	bool SceneSerializer::Serialize(const std::string& filepath) {
 		nlohmann::json sceneRoot;
-		sceneRoot["entities"] = nlohmann::json::array();
+		sceneRoot["version"] = 2;
+
+		sceneRoot["runtime"] = nlohmann::json::object();
+		sceneRoot["runtime"]["entities"] = nlohmann::json::array();
+
+		sceneRoot["editor"] = nlohmann::json::object();
+		sceneRoot["editor"]["objects"] = nlohmann::json::array();
 
 		struct NodeWrapper {
 			Entity entity;
@@ -51,54 +55,48 @@ namespace dx3d {
 			node.simDepth = 0;
 
 			node.jsonPayload["fileId"] = e.id;
-			bool hasOrbit = m_orbitSystem.hasOrbit(e);
+			const bool hasOrbit = m_orbitSystem.hasOrbit(e);
 			node.jsonPayload["hasOrbit"] = hasOrbit;
 
+			const auto& transform = denseTransforms[i];
+			Vec3d p = transform.getPosition();
+			Vec3d s = transform.getScale();
+			node.jsonPayload["transform"] = {
+				{"position", {p.x, p.y, p.z}},
+				{"rotation", {transform.getQuaternion().x, transform.getQuaternion().y, transform.getQuaternion().z, transform.getQuaternion().w}},
+				{"scale", {s.x, s.y, s.z}}
+			};
+
 			if (hasOrbit) {
-				size_t orbitIndex = m_orbitSystem.getSparseIndex(e);
 				node.simDepth = CalculateSimDepth(e);
 				const Simulator::OrbitData& orbit = m_orbitSystem.getOrbit(e);
-
-				// Populate 100% of spatial variables, bases, masses, and state arrays
 				node.jsonPayload["orbit"] = {
-					// Masses and Constants
 					{"attractorMass", orbit.AttractorMass},
 					{"bodyMass", orbit.BodyMass},
 					{"gravConst", orbit.GravConst},
 					{"mg", orbit.MG},
-
-					// Primary Orbital Elements
 					{"semiMajorAxis", orbit.SemiMajorAxis},
 					{"semiMinorAxis", orbit.SemiMinorAxis},
 					{"eccentricity", orbit.Eccentricity},
 					{"focalParameter", orbit.FocalParameter},
-
-					// Anomalies and Time
 					{"period", orbit.Period},
 					{"meanMotion", orbit.MeanMotion},
 					{"trueAnomaly", orbit.TrueAnomaly},
-					{"meanAnomalyEpoch", orbit.MeanAnomaly}, // Mapped to MeanAnomaly per spec
+					{"meanAnomalyEpoch", orbit.MeanAnomaly},
 					{"eccentricAnomaly", orbit.EccentricAnomaly},
-
-					// Spatial Geometric Bases
 					{"centerPoint", {orbit.CenterPoint.x, orbit.CenterPoint.y, orbit.CenterPoint.z}},
 					{"orbitNormal", {orbit.OrbitNormal.x, orbit.OrbitNormal.y, orbit.OrbitNormal.z}},
 					{"semiMajorAxisBasis", {orbit.SemiMajorAxisBasis.x, orbit.SemiMajorAxisBasis.y, orbit.SemiMajorAxisBasis.z}},
 					{"semiMinorAxisBasis", {orbit.SemiMinorAxisBasis.x, orbit.SemiMinorAxisBasis.y, orbit.SemiMinorAxisBasis.z}},
-
 					{"periapsis", {orbit.Periapsis.x, orbit.Periapsis.y, orbit.Periapsis.z}},
 					{"apoapsis", {orbit.Apoapsis.x, orbit.Apoapsis.y, orbit.Apoapsis.z}},
 					{"periapsisDistance", orbit.PeriapsisDistance},
 					{"apoapsisDistance", orbit.ApoapsisDistance},
-
-					// State Vectors & Hierarchies
 					{"parentFileId", GetEntityIdFromOrbitEntity(orbit.ParentEntity)},
 					{"positionRelativeToAttractor", {orbit.positionRelativeToAttractor.x, orbit.positionRelativeToAttractor.y, orbit.positionRelativeToAttractor.z}},
 					{"absoluteWorldPosition", {orbit.absoluteWorldPosition.x, orbit.absoluteWorldPosition.y, orbit.absoluteWorldPosition.z}},
 					{"orbitalVelocity", {orbit.velocityRelativeToAttractor.x, orbit.velocityRelativeToAttractor.y, orbit.velocityRelativeToAttractor.z}},
 					{"attractorDistance", orbit.AttractorDistance},
-
-					// Auxiliary State & Rendering Configuration Parameters
 					{"orbitCompressionRatio", orbit.OrbitCompressionRatio},
 					{"orbitNormalDotEclipticNormal", orbit.OrbitNormalDotEclipticNormal},
 					{"sphereOfInfluenceRadius", orbit.SphereOfInfluenceRadius},
@@ -107,70 +105,84 @@ namespace dx3d {
 					{"orbitColor", {orbit.orbitColor.x, orbit.orbitColor.y, orbit.orbitColor.z, orbit.orbitColor.w}}
 				};
 			}
-			else {
-				// If hasOrbit is false, fall back to writing explicit absolute transform definitions
-				Vec3d p = denseTransforms[i].getPosition();
-				Vec3d s = denseTransforms[i].getScale();
-				node.jsonPayload["transform"] = {
-					{"position", {p.x, p.y, p.z}},
-					// FIXME
-					{"rotation", {denseTransforms[i].getQuaternion().x, denseTransforms[i].getQuaternion().y, denseTransforms[i].getQuaternion().z, denseTransforms[i].getQuaternion().w}},
-					{"scale", {s.x, s.y, s.z}}
-				};
-			}
 			sortingPayload.push_back(node);
 		}
+
 		std::sort(sortingPayload.begin(), sortingPayload.end(), [](const NodeWrapper& a, const NodeWrapper& b) {
 			return a.simDepth < b.simDepth;
 			});
 
 		for (const auto& node : sortingPayload) {
-			sceneRoot["entities"].push_back(node.jsonPayload);
+			sceneRoot["runtime"]["entities"].push_back(node.jsonPayload);
+		}
+
+		for (const auto& obj : m_sceneManager.getAllObjects()) {
+			nlohmann::json jObj;
+			jObj["fileId"] = obj->entity.id;
+			jObj["name"] = obj->name;
+			jObj["tag"] = obj->tag;
+			jObj["modelName"] = obj->modelName;
+
+			jObj["inheritFlags"] = {
+				{"position", obj->inheritPosition},
+				{"rotation", obj->inheritRotation},
+				{"scale", obj->inheritScale}
+			};
+
+			if (obj->hasParent()) {
+				jObj["parentFileId"] = obj->getParent()->entity.id;
+			}
+			else {
+				jObj["parentFileId"] = static_cast<uint32_t>(-1);
+			}
+
+			sceneRoot["editor"]["objects"].push_back(jObj);
 		}
 
 		std::ofstream outFile(filepath);
 		if (!outFile.is_open()) return false;
-
 		outFile << sceneRoot.dump(4);
 		return true;
 	}
 
 	bool SceneSerializer::Deserialize(const std::string& filepath) {
 		std::ifstream inFile(filepath);
-		if (!inFile.is_open()) return false;
+		if (!inFile.is_open()) return 0;
 
 		nlohmann::json sceneRoot;
 		inFile >> sceneRoot;
 
+		int version = sceneRoot.value("version", 1);
+
 		m_registry.clear();
 		m_transformSystem.clear();
 		m_orbitSystem.clear();
+		m_sceneManager.clear();
 
 		std::unordered_map<uint32_t, Entity> fileToRuntimeMap;
+		const nlohmann::json& runtimeEntities = sceneRoot["runtime"]["entities"];
 
-		for (const auto& jEnt : sceneRoot["entities"]) {
+		for (const auto& jEnt : runtimeEntities) {
 			Entity liveEntity = m_registry.create();
 			uint32_t fileId = jEnt["fileId"];
 			fileToRuntimeMap[fileId] = liveEntity;
 
 			Transform t;
-			Vec3d tPos;
-			Vec3d tRot;
-			double w;
-			Vec3d tScale;
-			if (!jEnt["hasOrbit"]) {
-				tPos.x = jEnt["transform"]["position"][0];
-				tPos.y = jEnt["transform"]["position"][1];
-				tPos.z = jEnt["transform"]["position"][2];
-
-				tRot.x = jEnt["transform"]["rotation"][0];
-				tRot.y = jEnt["transform"]["rotation"][1];
-				tRot.z = jEnt["transform"]["rotation"][2];
-				w = jEnt["transform"]["rotation"][3];
-
-				tScale.x = jEnt["transform"]["scale"][0];
-				tScale.y = jEnt["transform"]["scale"][1];
-				tScale.z = jEnt["transform"]["scale"][2];
+			Vec3d tPos{ 0.0, 0.0, 0.0 };
+			Vec3d tRot{ 0.0, 0.0, 0.0 };
+			double w = 1.0;
+			Vec3d tScale{ 1.0, 1.0, 1.0 };
+			if (jEnt.contains("transform")) {
+				const auto& jTransform = jEnt["transform"];
+				if (jTransform.contains("position")) {
+					tPos.x = jTransform["position"][0]; tPos.y = jTransform["position"][1]; tPos.z = jTransform["position"][2];
+				}
+				if (jTransform.contains("rotation")) {
+					tRot.x = jTransform["rotation"][0]; tRot.y = jTransform["rotation"][1]; tRot.z = jTransform["rotation"][2]; w = jTransform["rotation"][3];
+				}
+				if (jTransform.contains("scale")) {
+					tScale.x = jTransform["scale"][0]; tScale.y = jTransform["scale"][1]; tScale.z = jTransform["scale"][2];
+				}
 			}
 			t.setPosition(tPos);
 			t.setQuaternion(tRot.x, tRot.y, tRot.z, w);
@@ -178,106 +190,142 @@ namespace dx3d {
 			m_transformSystem.assignTransform(liveEntity, t);
 		}
 
-		// --- PASS 2: Component & Mathematical Reconstruction ---
-		for (const auto& jEnt : sceneRoot["entities"]) {
-			if (jEnt["hasOrbit"]) {
-				uint32_t fileId = jEnt["fileId"];
+		auto getDouble = [](const nlohmann::json& j, const std::string& key) -> double {
+			if (j.contains(key) && j[key].is_number()) return j[key].get<double>();
+			return 0.0;
+			};
+		auto getVec3 = [](const nlohmann::json& j, const std::string& key) -> Vec3d {
+			Vec3d v{ 0.0, 0.0, 0.0 };
+			if (j.contains(key) && j[key].is_array()) {
+				if (j[key][0].is_number()) v.x = j[key][0].get<double>();
+				if (j[key][1].is_number()) v.y = j[key][1].get<double>();
+				if (j[key][2].is_number()) v.z = j[key][2].get<double>();
+			}
+			return v;
+			};
+
+		for (const auto& jEnt : runtimeEntities) {
+			if (!jEnt.value("hasOrbit", false)) continue;
+
+			uint32_t fileId = jEnt["fileId"];
+			Entity liveEntity = fileToRuntimeMap[fileId];
+			const auto& jOrb = jEnt["orbit"];
+
+			Simulator::OrbitData loadedOrbit;
+
+			// Masses and Constants
+			loadedOrbit.AttractorMass = getDouble(jOrb, "attractorMass");
+			loadedOrbit.BodyMass = getDouble(jOrb, "bodyMass");
+			loadedOrbit.GravConst = getDouble(jOrb, "gravConst");
+			loadedOrbit.MG = getDouble(jOrb, "mg");
+
+			// Primary Orbital Elements
+			loadedOrbit.SemiMajorAxis = getDouble(jOrb, "semiMajorAxis");
+			loadedOrbit.SemiMinorAxis = getDouble(jOrb, "semiMinorAxis");
+			loadedOrbit.Eccentricity = getDouble(jOrb, "eccentricity");
+			loadedOrbit.FocalParameter = getDouble(jOrb, "focalParameter");
+
+			// Anomalies and Time
+			loadedOrbit.Period = getDouble(jOrb, "period");
+			loadedOrbit.MeanMotion = getDouble(jOrb, "meanMotion");
+			loadedOrbit.TrueAnomaly = getDouble(jOrb, "trueAnomaly");
+			loadedOrbit.MeanAnomaly = getDouble(jOrb, "meanAnomalyEpoch");
+			loadedOrbit.EccentricAnomaly = getDouble(jOrb, "eccentricAnomaly");
+
+			// Spatial Geometric Bases
+			loadedOrbit.CenterPoint = getVec3(jOrb, "centerPoint");
+			loadedOrbit.OrbitNormal = getVec3(jOrb, "orbitNormal");
+			loadedOrbit.SemiMajorAxisBasis = getVec3(jOrb, "semiMajorAxisBasis");
+			loadedOrbit.SemiMinorAxisBasis = getVec3(jOrb, "semiMinorAxisBasis");
+			loadedOrbit.Periapsis = getVec3(jOrb, "periapsis");
+			loadedOrbit.Apoapsis = getVec3(jOrb, "apoapsis");
+
+			loadedOrbit.PeriapsisDistance = getDouble(jOrb, "periapsisDistance");
+			loadedOrbit.ApoapsisDistance = getDouble(jOrb, "apoapsisDistance");
+
+			// State Vectors
+			loadedOrbit.positionRelativeToAttractor = getVec3(jOrb, "positionRelativeToAttractor");
+			loadedOrbit.absoluteWorldPosition = getVec3(jOrb, "absoluteWorldPosition");
+			loadedOrbit.velocityRelativeToAttractor = getVec3(jOrb, "orbitalVelocity");
+			loadedOrbit.AttractorDistance = getDouble(jOrb, "attractorDistance");
+
+			// Auxiliary State & Rendering Configuration
+			loadedOrbit.OrbitCompressionRatio = getDouble(jOrb, "orbitCompressionRatio");
+			loadedOrbit.OrbitNormalDotEclipticNormal = getDouble(jOrb, "orbitNormalDotEclipticNormal");
+			loadedOrbit.SphereOfInfluenceRadius = getDouble(jOrb, "sphereOfInfluenceRadius");
+
+			loadedOrbit.isFrozen = jOrb.value("isFrozen", false);
+			loadedOrbit.freezeColor = jOrb.value("freezeColor", false);
+
+			if (jOrb.contains("orbitColor") && jOrb["orbitColor"].is_array()) {
+				loadedOrbit.orbitColor.x = jOrb["orbitColor"][0].is_number() ? jOrb["orbitColor"][0].get<float>() : 1.0f;
+				loadedOrbit.orbitColor.y = jOrb["orbitColor"][1].is_number() ? jOrb["orbitColor"][1].get<float>() : 1.0f;
+				loadedOrbit.orbitColor.z = jOrb["orbitColor"][2].is_number() ? jOrb["orbitColor"][2].get<float>() : 1.0f;
+				loadedOrbit.orbitColor.w = jOrb["orbitColor"][3].is_number() ? jOrb["orbitColor"][3].get<float>() : 1.0f;
+			}
+
+			loadedOrbit.visualDirty = true;
+
+			uint32_t parentFileId = jOrb.value("parentFileId", static_cast<uint32_t>(-1));
+			if (parentFileId != static_cast<uint32_t>(-1) && fileToRuntimeMap.count(parentFileId)) {
+				loadedOrbit.ParentEntity = fileToRuntimeMap[parentFileId];
+			}
+			else {
+				loadedOrbit.ParentEntity = Entity::Null;
+			}
+
+			m_orbitSystem.assignOrbitToEntity(liveEntity, loadedOrbit);
+
+			if (m_transformSystem.hasTransform(liveEntity)) {
+				m_transformSystem.getTransform(liveEntity).setPosition(loadedOrbit.absoluteWorldPosition);
+			}
+		}
+
+		if (sceneRoot.contains("editor") && sceneRoot["editor"].contains("objects")) {
+			for (const auto& jObj : sceneRoot["editor"]["objects"]) {
+				uint32_t fileId = jObj["fileId"];
+				if (fileToRuntimeMap.find(fileId) == fileToRuntimeMap.end()) continue;
+
 				Entity liveEntity = fileToRuntimeMap[fileId];
 
-				Simulator::OrbitData loadedOrbit;
+				auto obj = m_sceneManager.bindEditorObject(liveEntity, jObj.value("name", "Unnamed"));
+				obj->tag = jObj.value("tag", "");
+				obj->modelName = jObj.value("modelName", "");
 
-				// Masses and Constants
-				loadedOrbit.AttractorMass = jEnt["orbit"]["attractorMass"];
-				loadedOrbit.BodyMass = jEnt["orbit"]["bodyMass"];
-				loadedOrbit.GravConst = jEnt["orbit"]["gravConst"];
-				loadedOrbit.MG = jEnt["orbit"]["mg"];
-
-				// Primary Orbital Elements
-				loadedOrbit.SemiMajorAxis = jEnt["orbit"]["semiMajorAxis"];
-				loadedOrbit.SemiMinorAxis = jEnt["orbit"]["semiMinorAxis"];
-				loadedOrbit.Eccentricity = jEnt["orbit"]["eccentricity"];
-				loadedOrbit.FocalParameter = jEnt["orbit"]["focalParameter"];
-
-				// Anomalies and Time
-				loadedOrbit.Period = jEnt["orbit"]["period"];
-				loadedOrbit.MeanMotion = jEnt["orbit"]["meanMotion"];
-				loadedOrbit.TrueAnomaly = jEnt["orbit"]["trueAnomaly"];
-				loadedOrbit.MeanAnomaly = jEnt["orbit"]["meanAnomalyEpoch"];
-				loadedOrbit.EccentricAnomaly = jEnt["orbit"]["eccentricAnomaly"];
-
-				// Spatial Geometric Bases (Parsed directly out of JSON arrays)
-				loadedOrbit.CenterPoint.x = jEnt["orbit"]["centerPoint"][0];
-				loadedOrbit.CenterPoint.y = jEnt["orbit"]["centerPoint"][1];
-				loadedOrbit.CenterPoint.z = jEnt["orbit"]["centerPoint"][2];
-
-				loadedOrbit.OrbitNormal.x = jEnt["orbit"]["orbitNormal"][0];
-				loadedOrbit.OrbitNormal.y = jEnt["orbit"]["orbitNormal"][1];
-				loadedOrbit.OrbitNormal.z = jEnt["orbit"]["orbitNormal"][2];
-
-				loadedOrbit.SemiMajorAxisBasis.x = jEnt["orbit"]["semiMajorAxisBasis"][0];
-				loadedOrbit.SemiMajorAxisBasis.y = jEnt["orbit"]["semiMajorAxisBasis"][1];
-				loadedOrbit.SemiMajorAxisBasis.z = jEnt["orbit"]["semiMajorAxisBasis"][2];
-
-				loadedOrbit.SemiMinorAxisBasis.x = jEnt["orbit"]["semiMinorAxisBasis"][0];
-				loadedOrbit.SemiMinorAxisBasis.y = jEnt["orbit"]["semiMinorAxisBasis"][1];
-				loadedOrbit.SemiMinorAxisBasis.z = jEnt["orbit"]["semiMinorAxisBasis"][2];
-
-				loadedOrbit.Periapsis.x = jEnt["orbit"]["periapsis"][0];
-				loadedOrbit.Periapsis.y = jEnt["orbit"]["periapsis"][1];
-				loadedOrbit.Periapsis.z = jEnt["orbit"]["periapsis"][2];
-
-				loadedOrbit.Apoapsis.x = jEnt["orbit"]["apoapsis"][0];
-				loadedOrbit.Apoapsis.y = jEnt["orbit"]["apoapsis"][1];
-				loadedOrbit.Apoapsis.z = jEnt["orbit"]["apoapsis"][2];
-
-				loadedOrbit.PeriapsisDistance = jEnt["orbit"]["periapsisDistance"];
-				loadedOrbit.ApoapsisDistance = jEnt["orbit"]["apoapsisDistance"];
-
-				// State Vectors
-				loadedOrbit.positionRelativeToAttractor.x = jEnt["orbit"]["positionRelativeToAttractor"][0];
-				loadedOrbit.positionRelativeToAttractor.y = jEnt["orbit"]["positionRelativeToAttractor"][1];
-				loadedOrbit.positionRelativeToAttractor.z = jEnt["orbit"]["positionRelativeToAttractor"][2];
-
-				loadedOrbit.absoluteWorldPosition.x = jEnt["orbit"]["absoluteWorldPosition"][0];
-				loadedOrbit.absoluteWorldPosition.y = jEnt["orbit"]["absoluteWorldPosition"][1];
-				loadedOrbit.absoluteWorldPosition.z = jEnt["orbit"]["absoluteWorldPosition"][2];
-
-				loadedOrbit.velocityRelativeToAttractor.x = jEnt["orbit"]["orbitalVelocity"][0]; // Maps from "orbitalVelocity"
-				loadedOrbit.velocityRelativeToAttractor.y = jEnt["orbit"]["orbitalVelocity"][1];
-				loadedOrbit.velocityRelativeToAttractor.z = jEnt["orbit"]["orbitalVelocity"][2];
-
-				loadedOrbit.AttractorDistance = jEnt["orbit"]["attractorDistance"];
-
-				// Auxiliary State & Rendering Configuration Parameters
-				loadedOrbit.OrbitCompressionRatio = jEnt["orbit"]["orbitCompressionRatio"];
-				loadedOrbit.OrbitNormalDotEclipticNormal = jEnt["orbit"]["orbitNormalDotEclipticNormal"];
-				loadedOrbit.SphereOfInfluenceRadius = jEnt["orbit"]["sphereOfInfluenceRadius"];
-				loadedOrbit.isFrozen = jEnt["orbit"]["isFrozen"];
-				loadedOrbit.freezeColor = jEnt["orbit"]["freezeColor"];
-
-				loadedOrbit.orbitColor.x = jEnt["orbit"]["orbitColor"][0];
-				loadedOrbit.orbitColor.y = jEnt["orbit"]["orbitColor"][1];
-				loadedOrbit.orbitColor.z = jEnt["orbit"]["orbitColor"][2];
-				loadedOrbit.orbitColor.w = jEnt["orbit"]["orbitColor"][3];
-
-				// Force a line rendering path update on layout recovery
-				loadedOrbit.visualDirty = true;
-
-				// Parent relational allocation (ParentOrbitIndex will be patched afterwards via tracking maps)
-				uint32_t parentFileId = jEnt["orbit"]["parentFileId"];
-				if (parentFileId != static_cast<uint32_t>(-1) && fileToRuntimeMap.count(parentFileId)) {
-					Entity liveParentEntity = fileToRuntimeMap[parentFileId];
-					loadedOrbit.ParentEntity = liveParentEntity;
-				}
-				else {
-					loadedOrbit.ParentEntity = Entity::Null; // Fallback back to local master frame root
+				if (jObj.contains("inheritFlags")) {
+					auto flags = jObj["inheritFlags"];
+					obj->inheritPosition = flags.value("position", true);
+					obj->inheritRotation = flags.value("rotation", true);
+					obj->inheritScale = flags.value("scale", true);
 				}
 
-				m_orbitSystem.assignOrbitToEntity(liveEntity, loadedOrbit);
+				if (!obj->modelName.empty()) {
+					obj->model = m_assetManager.getModel(obj->modelName);
+				}
 
-				// Coordinate sync immediately copies analytical position parameters onto spatial coordinates
 				if (m_transformSystem.hasTransform(liveEntity)) {
-					m_transformSystem.getTransform(liveEntity).setPosition(loadedOrbit.absoluteWorldPosition);
+					obj->cachedEditorTransform = m_transformSystem.getTransform(liveEntity);
+				}
+
+				if (m_sceneManager.onObjectCreated) {
+					m_sceneManager.onObjectCreated(obj);
+				}
+			}
+
+			for (const auto& jObj : sceneRoot["editor"]["objects"]) {
+				uint32_t fileId = jObj["fileId"];
+				uint32_t parentFileId = jObj.value("parentFileId", static_cast<uint32_t>(-1));
+
+				if (parentFileId != static_cast<uint32_t>(-1) && fileToRuntimeMap.count(parentFileId)) {
+					Entity childEnt = fileToRuntimeMap[fileId];
+					Entity parentEnt = fileToRuntimeMap[parentFileId];
+
+					auto childObj = m_sceneManager.findObjectByEntity(childEnt);
+					auto parentObj = m_sceneManager.findObjectByEntity(parentEnt);
+
+					if (childObj && parentObj) {
+						childObj->setParent(parentObj);
+					}
 				}
 			}
 		}

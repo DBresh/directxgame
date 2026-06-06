@@ -39,19 +39,19 @@ namespace dx3d
             parent.reset();
     }
 
-    Transform GameObject::getWorldTransform() const
+    Transform GameObject::getEditorWorldTransform() const
     {
-        Transform result = transform;
+        Transform result = cachedEditorTransform;
 
         auto parentPtr = parent.lock();
         if (!parentPtr)
             return result;
 
-        Transform parentWorld = parentPtr->getWorldTransform();
+        Transform parentWorld = parentPtr->getEditorWorldTransform();
 
-        dx3d::Vec3d localPos = transform.getPosition();
-        XMFLOAT3 localScale = transform.getScale();
-        XMFLOAT4 localQuat = transform.getQuaternion();
+        dx3d::Vec3d localPos = cachedEditorTransform.getPosition();
+        XMFLOAT3 localScale = cachedEditorTransform.getScale();
+        XMFLOAT4 localQuat = cachedEditorTransform.getQuaternion();
 
         dx3d::Vec3d parentPos = parentWorld.getPosition();
         XMFLOAT3 parentScale = parentWorld.getScale();

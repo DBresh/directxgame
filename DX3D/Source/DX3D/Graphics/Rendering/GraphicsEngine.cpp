@@ -61,7 +61,7 @@ namespace dx3d
 	}
 
 	void GraphicsEngine::render(
-		SceneManager& scene,
+		RuntimeWorld& world,
 		Camera& camera,
 		SwapChain& swapChain,
 		const std::function<void()>& onGUI,
@@ -81,8 +81,8 @@ namespace dx3d
 		const XMFLOAT4X4& proj = camera.getProjectionMatrix();
 
 		m_renderSystem->setCameraMatrices(view, proj);
-		m_renderSystem->buildBatches(scene, camera);
-		m_renderSystem->renderShadows(scene, *m_instanceBuffer, camera);
+		m_renderSystem->buildBatches(world, camera);
+		m_renderSystem->renderShadows(*m_instanceBuffer, camera);
 
 		m_renderSystem->beginFrame(swapChain, { 0.2f, 0.2f, 0.2f, 1.0f }, camera);
 
@@ -117,17 +117,17 @@ namespace dx3d
 			m_deviceContext->setRenderTarget(swapChain);
 			m_renderSystem->setFrameResources(*m_deviceContext);
 
-			for (auto* obj : singleDrawObjects)
-			{
-				if (obj->model) {
-					m_renderSystem->drawModel(
-						*m_deviceContext,
-						*obj->model,
-						*obj->constantBuffer,
-						obj->getWorldTransform().getWorldMatrixRelative(camera.getPosition())
-					);
+				for (const auto& item : singleDrawObjects)
+				{
+					if (item.model && item.objectCB) {
+						m_renderSystem->drawModel(
+							*m_deviceContext,
+							*item.model,
+							*item.objectCB,
+							item.worldMatrix
+						);
+					}
 				}
-			}
 			return;
 		}
 
@@ -146,14 +146,13 @@ namespace dx3d
 
 				for (uint32_t i = 0; i < count; ++i)
 				{
-					auto* obj = singleDrawObjects[args.jobIndex + i];
-
-					if (obj->model) {
+					const auto& item = singleDrawObjects[args.jobIndex + i];
+					if (item.model && item.objectCB) {
 						m_renderSystem->drawModel(
 							ctx,
-							*obj->model,
-							*obj->constantBuffer,
-							obj->getWorldTransform().getWorldMatrixRelative(camera.getPosition())
+							*item.model,
+							*item.objectCB,
+							item.worldMatrix
 						);
 					}
 				}

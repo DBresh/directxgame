@@ -4,9 +4,11 @@
 #include <DX3D/Graphics/Buffers/StructuredBuffer.h>
 #include <DX3D/Graphics/Buffers/InstanceBuffer.h>
 #include <DX3D/Math/Frustrum.h>
+#include <DX3D/Game/ECSView.h>
 
 #include <DirectXMath.h>
 #include <cstring>
+#include <ranges>
 
 namespace dx3d
 {
@@ -70,26 +72,26 @@ namespace dx3d
 
 	void RenderSystem::setFrameResources(DeviceContext& context)
 	{
-		// 1. Bind Camera (Slot 1)
+		// Bind Camera (Slot 1)
 		context.setVSConstantBuffer(*m_cameraBuffer, 1);
 		context.setPSConstantBuffer(*m_cameraBuffer, 1);
 
-		// 2. Bind Lights (Slot 2)
+		// Bind Lights (Slot 2)
 		context.setVSConstantBuffer(*m_lightMatrixBuffer, 2);
 		context.setPSConstantBuffer(*m_lightMatrixBuffer, 2);
 
-		// 3. Bind Samplers
+		// Bind Samplers
 		if (m_psSampler)
 			context.setPSSampler(m_psSampler.Get(), 0);
 		if (m_shadowSampler)
 			context.setPSSampler(m_shadowSampler.Get(), 1);
 
-		// 4. Bind Shadow Map Texture
+		// Bind Shadow Map Texture
 		if (m_lightManager && m_lightManager->getShadowSRV()) {
 			context.setPSTexture(m_lightManager->getShadowSRV(), 2);
 		}
 
-		// 5. Bind Light Data (Structured Buffers)
+		// Bind Light Data (Structured Buffers)
 		if (m_lightManager) {
 			m_lightManager->bind(context, 1);
 		}
@@ -138,7 +140,6 @@ namespace dx3d
 				}
 			}
 
-			// Update Constant Buffers
 			m_context->updateConstantBuffer(
 				*m_lightMatrixBuffer,
 				lightMatrices,
@@ -162,7 +163,7 @@ namespace dx3d
 		m_context->setPSConstantBuffer(*m_cameraBuffer, 1);
 	}
 
-	void RenderSystem::renderShadows(SceneManager& scene, InstanceBuffer& instanceBuffer, const Camera& camera)
+	void RenderSystem::renderShadows(InstanceBuffer& instanceBuffer, const Camera& camera)
 	{
 		m_context->m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		m_context->m_context->RSSetState(m_shadowRasterizer.Get());
@@ -190,7 +191,7 @@ namespace dx3d
 			const auto& light = lights[i];
 			if (!light.castShadows || !light.shadow) continue;
 
-			renderSingleLightShadows(light, shadowIndex, scene, instanceBuffer, camera);
+			renderSingleLightShadows(light, shadowIndex, instanceBuffer, camera);
 			shadowIndex++;
 		}
 
@@ -202,7 +203,7 @@ namespace dx3d
 		m_context->setVSConstantBuffer(*m_lightMatrixBuffer, 2);
 	}
 
-	void RenderSystem::renderSingleLightShadows(const Light& light, int shadowIndex, SceneManager& scene, InstanceBuffer& instanceBuffer, const Camera& camera)
+	void RenderSystem::renderSingleLightShadows(const Light& light, int shadowIndex, InstanceBuffer& instanceBuffer, const Camera& camera)
 	{
 		ID3D11DepthStencilView* dsv = m_lightManager->getShadowDSV(shadowIndex);
 		if (!dsv) return;
@@ -219,17 +220,13 @@ namespace dx3d
 
 		std::unordered_map<ModelGPU*, std::vector<DirectX::XMFLOAT4X4>> lightBatchesMap;
 
-		dx3d::Vec3d camPos = camera.getPosition();
-		for (auto& objPtr : scene.getAllObjects())
+		for (const auto& proxy : m_sceneProxies)
 		{
-			const auto& model = objPtr->model;
-			if (!model || !model->mesh) continue;
+			AABB worldBounds = proxy.localBounds.transform(proxy.worldMatrix);
 
-			AABB localBounds = objPtr->getRelativeAABB(camPos);
-
-			if (lightFrustum.checkAABB(localBounds))
+			if (lightFrustum.checkAABB(worldBounds))
 			{
-				lightBatchesMap[model.get()].push_back(objPtr->getWorldTransform().getWorldMatrixRelative(camPos));
+				lightBatchesMap[proxy.model].push_back(proxy.worldMatrix);
 			}
 		}
 
@@ -413,51 +410,90 @@ namespace dx3d
 		swapChain.present(vsync);
 	}
 
-	void RenderSystem::buildBatches(SceneManager& scene, const Camera& camera)
+	void RenderSystem::buildBatches(RuntimeWorld& world, const Camera& camera)
 	{
 		m_singleDrawObjects.clear();
-		m_instancedBatches.clear();
+		m_instancedDraws.clear();
+		m_instancedTransforms.clear();
+		m_sceneProxies.clear();
 
 		Frustum frustum;
 		frustum.constructFromViewProj(camera.getViewMatrix(), camera.getProjectionMatrix());
 
-		auto& allObjects = scene.getAllObjects();
-		std::unordered_map<ModelGPU*, std::vector<GameObject*>> modelGroups;
-		
+		// Grouping by Model, caching the Entity alongside its pre-computed relative matrix
+		std::unordered_map<ModelGPU*, std::vector<std::pair<Entity, DirectX::XMFLOAT4X4>>> modelGroups;
 		dx3d::Vec3d camPos = camera.getPosition();
-		for (auto& objPtr : allObjects)
-		{
-			if (objPtr->model) {
-				AABB worldBounds = objPtr->getRelativeAABB(camPos);
 
-				if (frustum.checkAABB(worldBounds)) {
-					modelGroups[objPtr->model.get()].push_back(objPtr.get());
-				}
+		const auto& entities = world.renderables.getRawEntities();
+		const auto& renderData = world.renderables.getRawData();
+
+		// Culling and Matrix Construction
+		for (size_t i = 0; i < entities.size(); ++i)
+		{
+			Entity e = entities[i];
+			const RenderComponent& rc = renderData[i];
+
+			if (!rc.model || !rc.visible) continue;
+			if (!world.transforms.has(e)) continue;
+
+			// Retrieve the pre-computed flat ECS World Transform
+			const WorldTransform& wt = world.transforms.getWorld(e);
+			dx3d::Vec3d relPos = wt.position - camPos;
+
+			DirectX::XMMATRIX S = DirectX::XMMatrixScaling(wt.scale.x, wt.scale.y, wt.scale.z);
+			DirectX::XMMATRIX R = DirectX::XMMatrixRotationQuaternion(DirectX::XMLoadFloat4(&wt.rotation));
+			DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(static_cast<float>(relPos.x), static_cast<float>(relPos.y), static_cast<float>(relPos.z));
+
+			DirectX::XMFLOAT4X4 relWorld;
+			DirectX::XMStoreFloat4x4(&relWorld, S * R * T);
+
+			// Push to shadow queue
+			if (rc.castsShadow) {
+				m_sceneProxies.push_back({ rc.model, relWorld, rc.model->boundingBox });
+			}
+
+			AABB worldBounds = rc.model->boundingBox.transform(relWorld);
+
+			// Frustum Cull
+			if (frustum.checkAABB(worldBounds)) {
+				modelGroups[rc.model].push_back({ e, relWorld });
 			}
 		}
 
-		for (auto& [model, objects] : modelGroups)
+		for (auto& [model, groupItems] : modelGroups)
 		{
-			if (objects.size() == 1)
+			if (groupItems.size() == 1)
 			{
-				m_singleDrawObjects.push_back(objects[0]);
+				Entity e = groupItems[0].first;
+				const DirectX::XMFLOAT4X4& relWorld = groupItems[0].second;
+				const RenderComponent& rc = world.renderables.get(e);
+
+				SingleDrawItem item{};
+				item.model = rc.model;
+				item.objectCB = rc.objectCB;
+				item.worldMatrix = relWorld; // Pass cached matrix directly
+				m_singleDrawObjects.push_back(item);
 			}
-			else if (objects.size() > 1)
+			else if (groupItems.size() > 1)
 			{
-				InstancedBatch batch;
+				InstancedDrawItem batch;
 				batch.model = model;
-				batch.matrices.reserve(objects.size());
-				for (auto* obj : objects) {
-					batch.matrices.push_back(obj->getWorldTransform().getWorldMatrixRelative(camPos));
+				batch.transformStartIndex = static_cast<uint32_t>(m_instancedTransforms.size());
+				batch.instanceCount = static_cast<uint32_t>(groupItems.size());
+
+				for (const auto& item : groupItems) {
+					// Pass cached matrix directly into the instance buffer payload
+					m_instancedTransforms.push_back(item.second);
 				}
-				m_instancedBatches.push_back(std::move(batch));
+
+				m_instancedDraws.push_back(batch);
 			}
 		}
 	}
 
 	void RenderSystem::drawInstancedBatches(DeviceContext& context, InstanceBuffer& instanceBuffer)
 	{
-		if (m_instancedBatches.empty()) return;
+		if (m_instancedDraws.empty()) return;
 
 		context.setGraphicsPipelineState(*m_instancedPipeline);
 		context.getD3D11Context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -471,15 +507,15 @@ namespace dx3d
 		context.updateConstantBuffer(*m_instancedTransformCB, &cbData, sizeof(cbData));
 		context.setVSConstantBuffer(*m_instancedTransformCB, 0);
 
-		for (const auto& batch : m_instancedBatches)
+		for (const auto& batch : m_instancedDraws)
 		{
-			instanceBuffer.resize((unsigned int)batch.matrices.size());
+			instanceBuffer.resize(batch.instanceCount);
 
 			auto mapped = context.mapBuffer(instanceBuffer.getBuffer());
-			memcpy(mapped.pData, batch.matrices.data(), batch.matrices.size() * sizeof(XMFLOAT4X4));
+			memcpy(mapped.pData, &m_instancedTransforms[batch.transformStartIndex], batch.instanceCount * sizeof(XMFLOAT4X4));
 			context.unmapBuffer(instanceBuffer.getBuffer());
 
-			drawModelInstanced(context, *batch.model, instanceBuffer, (unsigned int)batch.matrices.size());
+			drawModelInstanced(context, *batch.model, instanceBuffer, batch.instanceCount);
 		}
 	}
 
