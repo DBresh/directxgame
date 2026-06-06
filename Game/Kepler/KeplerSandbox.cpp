@@ -62,7 +62,7 @@ namespace dx3d
 		lights->clear();
 		lights->addDirectional(DirectX::XMFLOAT3(0.f, -1.f, 0.2f), DirectX::XMFLOAT3(1.f, 1.f, 1.f), 1.2f, true);
 
-		m_editor = std::make_unique<KeplerEditor>(m_scene, m_world.orbitSystem, m_timeController, *m_camera, *m_assets, m_display.get(), *m_graphicsEngine);
+		m_editor = std::make_unique<KeplerEditor>(m_scene, m_world.transforms, m_world.renderables, m_world.orbitSystem, m_timeController, *m_camera, *m_assets, m_display.get(), *m_graphicsEngine);
 		m_editor->init();
 	}
 
@@ -182,19 +182,13 @@ namespace dx3d
 	}
 
 	void KeplerSandbox::syncCameraOrbitTarget() {
-		auto m_selectedObject = m_editor->getSelectedObject();
-		if (m_selectedObject && m_camera->isOrbiting()) {
-
-			if (m_world.orbitSystem.hasOrbit(m_selectedObject->entity)) {
-				m_camera->setOrbitTarget(m_world.transforms.getWorld(m_selectedObject->entity).position);
+		Entity selectedEntity = m_editor->getSelectedEntity();
+		if (!selectedEntity.isNull() && m_camera->isOrbiting()) {
+			if (m_world.orbitSystem.hasOrbit(selectedEntity) && m_world.transforms.hasTransform(selectedEntity)) {
+				m_camera->setOrbitTarget(m_world.transforms.getWorld(selectedEntity).position);
 			}
-			else {
-				if (m_world.transforms.hasTransform(m_selectedObject->entity)) {
-					m_camera->setOrbitTarget(m_world.transforms.getTransform(m_selectedObject->entity).getPosition());
-				}
-				else {
-					m_camera->setOrbitTarget(m_selectedObject->cachedEditorTransform.getPosition());
-				}
+			else if (m_world.transforms.hasTransform(selectedEntity)) {
+				m_camera->setOrbitTarget(m_world.transforms.getTransform(selectedEntity).getPosition());
 			}
 		}
 	}
@@ -215,7 +209,7 @@ namespace dx3d
 
 			std::shared_ptr<GameObject> pick = m_scene.pickObject(origin, dir, m_camera->getPosition());
 
-			m_editor->setSelectedObject(pick);
+			m_editor->setSelectedEntity(pick ? pick->entity : Entity::Null);
 		}
 	}
 
@@ -223,8 +217,8 @@ namespace dx3d
 	{
 		if (key == 'F')
 		{
-			auto m_selectedObject = m_editor->getSelectedObject();
-			if (m_selectedObject)
+			Entity selectedEntity = m_editor->getSelectedEntity();
+			if (!selectedEntity.isNull())
 			{
 				bool isOrbiting = !m_camera->isOrbiting();
 				m_camera->setOrbitMode(isOrbiting);

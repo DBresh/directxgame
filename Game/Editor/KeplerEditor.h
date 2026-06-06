@@ -2,10 +2,15 @@
 #include <memory>
 #include <string>
 #include <DX3D/Game/SceneManager.h>
+#include <DX3D/Game/TransformSystem.h>
+#include <DX3D/Game/RenderComponentSystem.h>
 #include <DX3D/InputSystem/Camera.h>
 #include <DX3D/Graphics/Importers/AssetManager.h>
 #include <DX3D/Game/Display.h>
 #include <DX3D/Graphics/Core/DeviceContext.h>
+#include <DX3D/Graphics/Resources/ModelGPU.h>
+#include <DX3D/Graphics/Buffers/ConstantBuffer.h>
+#include <DX3D/Math/Transform.h>
 #include <Game/Kepler/OrbitSystem.h>
 #include <Game/Kepler/TimeController.h>
 #include <Game/Editor/UIManager.h>
@@ -16,7 +21,7 @@ namespace dx3d
 	class KeplerEditor
 	{
 	public:
-		KeplerEditor(SceneManager& scene, OrbitSystem& orbitSystem,
+		KeplerEditor(SceneManager& scene, TransformSystem& transforms, RenderComponentSystem& renderables, OrbitSystem& orbitSystem,
 			Simulator::TimeController& timeController, Camera& camera,
 			AssetManager& assets, Display* display, GraphicsEngine& graphicsEngine);
 		~KeplerEditor();
@@ -29,8 +34,8 @@ namespace dx3d
 
 		void onWindowResized(int width, int height);
 
-		std::shared_ptr<GameObject> getSelectedObject() const { return m_selectedObject; }
-		void setSelectedObject(std::shared_ptr<GameObject> obj) { m_selectedObject = obj; }
+		Entity getSelectedEntity() const { return m_selectedEntity; }
+		void setSelectedEntity(Entity entity) { m_selectedEntity = entity; }
 
 	private:
 		void handleMouseWrapping();
@@ -40,6 +45,8 @@ namespace dx3d
 		UIManager m_uiManager;
 
 		SceneManager& m_scene;
+		TransformSystem& m_transforms;
+		RenderComponentSystem& m_renderables;
 		OrbitSystem& m_orbitSystem;
 		Simulator::TimeController& m_timeController;
 		Camera& m_camera;
@@ -47,8 +54,10 @@ namespace dx3d
 		Display* m_display;
 		GraphicsEngine& m_graphicsEngine;
 
-		std::shared_ptr<GameObject> m_selectedObject{ nullptr };
-		std::shared_ptr<GameObject> m_dragPreviewObject{ nullptr };
+		Entity m_selectedEntity{ Entity::Null };
+		std::shared_ptr<ModelGPU> m_dragPreviewModel{ nullptr };
+		ConstantBufferPtr m_dragPreviewConstantBuffer{ nullptr };
+		Transform m_dragPreviewTransform{};
 		bool m_isDraggingAsset = false;
 	};
 }

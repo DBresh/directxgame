@@ -123,18 +123,25 @@ namespace dx3d {
 			jObj["tag"] = obj->tag;
 			jObj["modelName"] = obj->modelName;
 
+			Entity parent = Entity::Null;
+			bool inheritPosition = true;
+			bool inheritRotation = true;
+			bool inheritScale = true;
+			if (m_transformSystem.hasTransform(obj->entity)) {
+				const auto& hierarchy = m_transformSystem.getHierarchy(obj->entity);
+				parent = hierarchy.parent;
+				inheritPosition = hierarchy.inheritPosition;
+				inheritRotation = hierarchy.inheritRotation;
+				inheritScale = hierarchy.inheritScale;
+			}
+
 			jObj["inheritFlags"] = {
-				{"position", obj->inheritPosition},
-				{"rotation", obj->inheritRotation},
-				{"scale", obj->inheritScale}
+				{"position", inheritPosition},
+				{"rotation", inheritRotation},
+				{"scale", inheritScale}
 			};
 
-			if (obj->hasParent()) {
-				jObj["parentFileId"] = obj->getParent()->entity.id;
-			}
-			else {
-				jObj["parentFileId"] = static_cast<uint32_t>(-1);
-			}
+			jObj["parentFileId"] = parent.isNull() ? static_cast<uint32_t>(-1) : parent.id;
 
 			sceneRoot["editor"]["objects"].push_back(jObj);
 		}
@@ -292,11 +299,16 @@ namespace dx3d {
 				obj->tag = jObj.value("tag", "");
 				obj->modelName = jObj.value("modelName", "");
 
-				if (jObj.contains("inheritFlags")) {
+				if (jObj.contains("inheritFlags") && m_transformSystem.hasTransform(liveEntity)) {
 					auto flags = jObj["inheritFlags"];
-					obj->inheritPosition = flags.value("position", true);
-					obj->inheritRotation = flags.value("rotation", true);
-					obj->inheritScale = flags.value("scale", true);
+					auto& hierarchy = m_transformSystem.getHierarchy(liveEntity);
+					hierarchy.inheritPosition = flags.value("position", true);
+					hierarchy.inheritRotation = flags.value("rotation", true);
+					hierarchy.inheritScale = flags.value("scale", true);
+
+					obj->inheritPosition = hierarchy.inheritPosition;
+					obj->inheritRotation = hierarchy.inheritRotation;
+					obj->inheritScale = hierarchy.inheritScale;
 				}
 
 				if (!obj->modelName.empty()) {
@@ -315,17 +327,22 @@ namespace dx3d {
 			for (const auto& jObj : sceneRoot["editor"]["objects"]) {
 				uint32_t fileId = jObj["fileId"];
 				uint32_t parentFileId = jObj.value("parentFileId", static_cast<uint32_t>(-1));
+				if (!fileToRuntimeMap.count(fileId)) continue;
 
+				Entity childEnt = fileToRuntimeMap[fileId];
+				Entity parentEnt = Entity::Null;
 				if (parentFileId != static_cast<uint32_t>(-1) && fileToRuntimeMap.count(parentFileId)) {
-					Entity childEnt = fileToRuntimeMap[fileId];
-					Entity parentEnt = fileToRuntimeMap[parentFileId];
+					parentEnt = fileToRuntimeMap[parentFileId];
+				}
 
-					auto childObj = m_sceneManager.findObjectByEntity(childEnt);
-					auto parentObj = m_sceneManager.findObjectByEntity(parentEnt);
+				if (m_transformSystem.hasTransform(childEnt)) {
+					m_transformSystem.setParent(childEnt, parentEnt);
+				}
 
-					if (childObj && parentObj) {
-						childObj->setParent(parentObj);
-					}
+				auto childObj = m_sceneManager.findObjectByEntity(childEnt);
+				auto parentObj = parentEnt.isNull() ? nullptr : m_sceneManager.findObjectByEntity(parentEnt);
+				if (childObj) {
+					childObj->setParent(parentObj);
 				}
 			}
 		}

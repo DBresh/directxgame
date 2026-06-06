@@ -2,13 +2,15 @@
 #include <DX3D/InputSystem/Camera.h>
 #include <DX3D/Math/Frustrum.h>
 #include <imgui.h>
+#include <cstdint>
 #include <functional>
+#include <string>
 #include <unordered_set>
 
 namespace dx3d
 {
-    HierarchyPanel::HierarchyPanel(SceneManager& scene, std::shared_ptr<GameObject>& selectedObject, Camera& camera)
-        : UIPanel("Scene Hierarchy"), m_scene(scene), m_selectedObject(selectedObject), m_camera(camera)
+    HierarchyPanel::HierarchyPanel(SceneManager& scene, TransformSystem& transforms, RenderComponentSystem& renderables, Entity& selectedEntity, Camera& camera)
+        : UIPanel("Scene Hierarchy"), m_scene(scene), m_transforms(transforms), m_renderables(renderables), m_selectedEntity(selectedEntity), m_camera(camera)
     {
         this->alignment = PanelAlignment::Left;
         this->width = 250.0f;
@@ -27,75 +29,104 @@ namespace dx3d
         frustum.constructFromViewProj(m_camera.getViewMatrix(), m_camera.getProjectionMatrix());
 
         size_t visibleCount = 0;
-        const auto& objects = m_scene.getAllObjects();
-        for (const auto& obj : objects)
+        const auto& renderEntities = m_renderables.getRawEntities();
+        for (Entity entity : renderEntities)
         {
-            if (obj->hasMesh()) {
-                AABB bounds = obj->getRelativeAABB(m_camera.getPosition());
+            if (!m_renderables.has(entity) || !m_transforms.hasTransform(entity)) {
+                continue;
+            }
 
-                if (frustum.checkAABB(bounds)) {
-                    visibleCount++;
-                }
+            const auto& renderable = static_cast<const RenderComponentSystem&>(m_renderables).get(entity);
+            if (!renderable.model) {
+                continue;
+            }
+
+            const auto& world = m_transforms.getWorld(entity);
+            Transform worldTransform;
+            worldTransform.setPosition(world.position);
+            worldTransform.setQuaternion(world.rotation);
+            worldTransform.setScale(world.scale);
+
+            AABB bounds = renderable.model->boundingBox.transform(worldTransform.getWorldMatrixRelative(m_camera.getPosition()));
+            if (frustum.checkAABB(bounds)) {
+                visibleCount++;
             }
         }
 
         ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "Visible: %zu", visibleCount);
         ImGui::Separator();
 
-        bool selectionChanged = (m_lastSelectedObject != m_selectedObject);
-        m_lastSelectedObject = m_selectedObject;
+        bool selectionChanged = (m_lastSelectedEntity != m_selectedEntity);
+        m_lastSelectedEntity = m_selectedEntity;
 
-        std::unordered_set<GameObject*> ancestorsToExpand;
-        if (selectionChanged && m_selectedObject)
+        std::unordered_set<uint32_t> ancestorsToExpand;
+        if (selectionChanged && !m_selectedEntity.isNull() && m_transforms.hasTransform(m_selectedEntity))
         {
-            auto curr = m_selectedObject->getParent();
-            while (curr)
+            Entity curr = m_transforms.getHierarchy(m_selectedEntity).parent;
+            while (!curr.isNull() && m_transforms.hasTransform(curr))
             {
-                ancestorsToExpand.insert(curr.get());
-                curr = curr->getParent();
+                ancestorsToExpand.insert(curr.id);
+                curr = m_transforms.getHierarchy(curr).parent;
             }
         }
 
-        std::function<void(const std::shared_ptr<GameObject>&)> drawNode;
-        drawNode = [&](const std::shared_ptr<GameObject>& obj)
+        std::function<void(Entity)> drawNode;
+        drawNode = [&](Entity entity)
             {
+                if (!m_transforms.hasTransform(entity)) {
+                    return;
+                }
+
+                const auto& hierarchy = m_transforms.getHierarchy(entity);
                 ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
 
-                // Expand all by default at startup
                 flags |= ImGuiTreeNodeFlags_DefaultOpen;
 
-                if (m_selectedObject == obj) {
+                if (m_selectedEntity == entity) {
                     flags |= ImGuiTreeNodeFlags_Selected;
                 }
 
-                if (obj->children.empty()) {
+                if (hierarchy.firstChild.isNull()) {
                     flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
                 }
 
-                if (ancestorsToExpand.count(obj.get())) {
+                if (ancestorsToExpand.count(entity.id)) {
                     ImGui::SetNextItemOpen(true, ImGuiCond_Always);
                 }
 
-                bool nodeOpen = ImGui::TreeNodeEx((void*)obj.get(), flags, "%s", obj->name.c_str());
-
-                if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
-                    m_selectedObject = obj;
-                    m_lastSelectedObject = obj;
+                std::string displayName = "Entity " + std::to_string(entity.id);
+                if (auto obj = m_scene.findObjectByEntity(entity)) {
+                    displayName = obj->name;
                 }
 
-                if (nodeOpen && !obj->children.empty()) {
-                    for (auto& child : obj->children) {
+                bool nodeOpen = ImGui::TreeNodeEx(reinterpret_cast<void*>(static_cast<uintptr_t>(entity.id) + 1u), flags, "%s", displayName.c_str());
+
+                if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
+                    m_selectedEntity = entity;
+                    m_lastSelectedEntity = entity;
+                }
+
+                if (nodeOpen && !hierarchy.firstChild.isNull()) {
+                    Entity child = hierarchy.firstChild;
+                    while (!child.isNull() && m_transforms.hasTransform(child)) {
+                        Entity nextSibling = m_transforms.getHierarchy(child).nextSibling;
                         drawNode(child);
+                        child = nextSibling;
                     }
                     ImGui::TreePop();
                 }
             };
 
-        for (auto& obj : objects)
+        const auto& entities = m_transforms.getRawEntities();
+        for (Entity entity : entities)
         {
-            if (!obj->hasParent())
+            if (!m_transforms.hasTransform(entity)) {
+                continue;
+            }
+
+            if (m_transforms.getHierarchy(entity).parent.isNull())
             {
-                drawNode(obj);
+                drawNode(entity);
             }
         }
     }

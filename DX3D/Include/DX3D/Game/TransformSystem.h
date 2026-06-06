@@ -181,6 +181,8 @@ namespace dx3d {
         HierarchyComponent& getHierarchy(Entity e) { return m_hierarchy[m_sparse[e.getIndex()]]; }
 
         Transform& getTransform(Entity e) { return getLocal(e); }
+        const HierarchyComponent& getHierarchy(Entity e) const { return m_hierarchy[m_sparse[e.getIndex()]]; }
+
         const Transform& getTransform(Entity e) const { return getLocal(e); }
         bool has(Entity e) const { return hasTransform(e); }
 

@@ -1,20 +1,21 @@
 #include <Game/Editor/InspectorPanel.h>
 #include <imgui.h>
+#include <cstring>
 
 namespace dx3d
 {
     InspectorPanel::InspectorPanel(
-        std::shared_ptr<GameObject>& selectedObject,
-        OrbitSystem* orbitSystem,
-        std::function<const Transform* (Entity)> resolveTransform,
-        std::function<void(Entity, const Transform&)> assignTransform,
-        std::function<bool(Entity, const Transform&)> applyTransform)
+        Entity& selectedEntity,
+        SceneManager& scene,
+        TransformSystem& transforms,
+        RenderComponentSystem& renderables,
+        OrbitSystem* orbitSystem)
         : UIPanel("Inspector"),
-        m_selectedObject(selectedObject),
-        m_orbitSystem(orbitSystem),
-        m_resolveTransform(std::move(resolveTransform)),
-        m_assignTransform(std::move(assignTransform)),
-        m_applyTransform(std::move(applyTransform))
+        m_selectedEntity(selectedEntity),
+        m_scene(scene),
+        m_transforms(transforms),
+        m_renderables(renderables),
+        m_orbitSystem(orbitSystem)
     {
         this->alignment = PanelAlignment::Right;
         this->width = 300.0f;
@@ -24,29 +25,36 @@ namespace dx3d
 
     void InspectorPanel::updateContent()
     {
-        if (m_selectedObject)
+        if (!m_selectedEntity.isNull() && m_transforms.hasTransform(m_selectedEntity))
         {
-            ImGui::Text("Name: %s", m_selectedObject->name.c_str());
+            auto metadataObject = m_scene.findObjectByEntity(m_selectedEntity);
+            const char* selectedName = metadataObject ? metadataObject->name.c_str() : "Unnamed Entity";
+
+            ImGui::Text("Name: %s", selectedName);
             ImGui::Separator();
 
             if (ImGui::CollapsingHeader("General", ImGuiTreeNodeFlags_DefaultOpen))
             {
-                char nameBuf[128];
-                strncpy_s(nameBuf, m_selectedObject->name.c_str(), sizeof(nameBuf));
-                if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf))) {
-                    m_selectedObject->name = nameBuf;
+                if (metadataObject) {
+                    char nameBuf[128];
+                    strncpy_s(nameBuf, metadataObject->name.c_str(), sizeof(nameBuf));
+                    if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf))) {
+                        metadataObject->name = nameBuf;
+                    }
+                }
+                else {
+                    ImGui::TextDisabled("No editor metadata is bound for this entity.");
                 }
 
-                ImGui::Checkbox("Inherit Position", &m_selectedObject->inheritPosition);
-                ImGui::Checkbox("Inherit Rotation", &m_selectedObject->inheritRotation);
-                ImGui::Checkbox("Inherit Scale", &m_selectedObject->inheritScale);
+                auto& hierarchy = m_transforms.getHierarchy(m_selectedEntity);
+                ImGui::Checkbox("Inherit Position", &hierarchy.inheritPosition);
+                ImGui::Checkbox("Inherit Rotation", &hierarchy.inheritRotation);
+                ImGui::Checkbox("Inherit Scale", &hierarchy.inheritScale);
             }
 
             if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
             {
-                const Transform* runtimeTransform = m_resolveTransform ? m_resolveTransform(m_selectedObject->entity) : nullptr;
-                Transform workingTransform = runtimeTransform ? *runtimeTransform : m_selectedObject->cachedEditorTransform;
-
+                Transform workingTransform = m_transforms.getTransform(m_selectedEntity);
                 bool transformChanged = false;
 
                 dx3d::Vec3d pos = workingTransform.getPosition();
@@ -70,24 +78,31 @@ namespace dx3d
                 }
 
                 if (transformChanged) {
-                    if (m_applyTransform) {
-                        m_applyTransform(m_selectedObject->entity, workingTransform);
-                    }
-                    else {
-                        if (m_assignTransform) {
-                            m_assignTransform(m_selectedObject->entity, workingTransform);
-                        }
-                        m_selectedObject->cachedEditorTransform = workingTransform;
+                    m_transforms.setTransform(m_selectedEntity, workingTransform);
+                    if (metadataObject) {
+                        metadataObject->cachedEditorTransform = workingTransform;
                     }
                 }
             }
 
-            if (m_orbitSystem && m_orbitSystem->hasOrbit(m_selectedObject->entity))
+            if (m_renderables.has(m_selectedEntity))
+            {
+                ImGui::Separator();
+                if (ImGui::CollapsingHeader("Render Component", ImGuiTreeNodeFlags_DefaultOpen))
+                {
+                    auto& renderable = m_renderables.get(m_selectedEntity);
+                    ImGui::Checkbox("Visible", &renderable.visible);
+                    ImGui::Checkbox("Casts Shadow", &renderable.castsShadow);
+                    ImGui::Text("Model: %s", renderable.model ? "Assigned" : "None");
+                }
+            }
+
+            if (m_orbitSystem && m_orbitSystem->hasOrbit(m_selectedEntity))
             {
                 ImGui::Separator();
                 if (ImGui::CollapsingHeader("Orbit Dynamics", ImGuiTreeNodeFlags_DefaultOpen))
                 {
-                    auto& orbit = m_orbitSystem->getOrbit(m_selectedObject->entity);
+                    auto& orbit = m_orbitSystem->getOrbit(m_selectedEntity);
                     bool physicsChanged = false;
 
                     ImGui::TextDisabled("Relative State Vectors");
@@ -126,7 +141,7 @@ namespace dx3d
         }
         else
         {
-            ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "Select an object in the Hierarchy.");
+            ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "Select an entity in the Hierarchy.");
         }
     }
 }

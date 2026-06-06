@@ -428,5 +428,8 @@
     <ClInclude Include="DX3D\Include\DX3D\Game\VisibilitySystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DX3D\Include\DX3D\Game\CoreComponents.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

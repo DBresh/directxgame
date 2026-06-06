@@ -9,10 +9,10 @@
 
 namespace dx3d
 {
-    KeplerEditor::KeplerEditor(SceneManager& scene, OrbitSystem& orbitSystem,
+    KeplerEditor::KeplerEditor(SceneManager& scene, TransformSystem& transforms, RenderComponentSystem& renderables, OrbitSystem& orbitSystem,
         Simulator::TimeController& timeController, Camera& camera,
         AssetManager& assets, Display* display, GraphicsEngine& graphicsEngine)
-        : m_scene(scene), m_orbitSystem(orbitSystem), m_timeController(timeController),
+        : m_scene(scene), m_transforms(transforms), m_renderables(renderables), m_orbitSystem(orbitSystem), m_timeController(timeController),
         m_camera(camera), m_assets(assets), m_display(display), m_graphicsEngine(graphicsEngine)
     {
     }
@@ -21,13 +21,13 @@ namespace dx3d
 
     void KeplerEditor::init()
     {
-        m_uiManager.addPanel(std::make_shared<HierarchyPanel>(m_scene, m_selectedObject, m_camera));
+        m_uiManager.addPanel(std::make_shared<HierarchyPanel>(m_scene, m_transforms, m_renderables, m_selectedEntity, m_camera));
         m_uiManager.addPanel(std::make_shared<InspectorPanel>(
-            m_selectedObject,
-            &m_orbitSystem,
-            m_scene.resolveTransform,
-            m_scene.assignTransform,
-            [this](Entity e, const Transform& t) { return m_scene.applyTransformToEntity(e, t); }
+            m_selectedEntity,
+            m_scene,
+            m_transforms,
+            m_renderables,
+            &m_orbitSystem
         ));
         m_uiManager.addPanel(std::make_shared<TimelinePanel>(m_timeController, m_camera));
         m_uiManager.addPanel(std::make_shared<AssetBrowserPanel>());
@@ -146,22 +146,21 @@ namespace dx3d
                             camPos.z + DirectX::XMVectorGetZ(relativeOffset)
                         );
 
-                        if (!m_dragPreviewObject) {
-                            m_dragPreviewObject = std::make_shared<GameObject>("DragPreview");
-                            m_dragPreviewObject->model = m_assets.getModel(assetStr);
-                            m_dragPreviewObject->cachedEditorTransform.setScale(DirectX::XMFLOAT3(scaleSize, scaleSize, scaleSize));
+                        if (!m_dragPreviewModel) {
+                            m_dragPreviewModel = m_assets.getModel(assetStr);
+                            m_dragPreviewTransform.setScale(DirectX::XMFLOAT3(scaleSize, scaleSize, scaleSize));
 
                             GraphicsDevice& gd = m_graphicsEngine.getGraphicsDevice();
-                            m_dragPreviewObject->constantBuffer = gd.createConstantBuffer({ nullptr, sizeof(DirectX::XMFLOAT4X4) * 3 });
+                            m_dragPreviewConstantBuffer = gd.createConstantBuffer({ nullptr, sizeof(DirectX::XMFLOAT4X4) * 3 });
                         }
-                        m_dragPreviewObject->cachedEditorTransform.setPosition(finalAbsolutePos);
+                        m_dragPreviewTransform.setPosition(finalAbsolutePos);
 
                         if (payload->IsDelivery())
                         {
                             std::string entityName = assetStr.substr(0, assetStr.find_last_of('.'));
                             auto newObj = m_scene.createObject(entityName);
                             newObj->modelName = assetStr;
-                            newObj->model = m_dragPreviewObject->model;
+                            newObj->model = m_dragPreviewModel;
                             newObj->cachedEditorTransform.setScale(DirectX::XMFLOAT3(scaleSize, scaleSize, scaleSize));
                             newObj->cachedEditorTransform.setPosition(finalAbsolutePos);
                             m_scene.applyTransformToEntity(newObj->entity, newObj->cachedEditorTransform);
@@ -172,7 +171,8 @@ namespace dx3d
 
                             DX3D_LOG_INFO("Spawned {} at ({:.2f}, {:.2f}, {:.2f})", entityName, finalAbsolutePos.x, finalAbsolutePos.y, finalAbsolutePos.z);
 
-                            m_dragPreviewObject = nullptr;
+                            m_dragPreviewModel = nullptr;
+                            m_dragPreviewConstantBuffer = nullptr;
                             m_isDraggingAsset = false;
                         }
                     }
@@ -183,20 +183,21 @@ namespace dx3d
         }
 
         if (!isHoveringDropTarget && m_isDraggingAsset) {
-            m_dragPreviewObject = nullptr;
+            m_dragPreviewModel = nullptr;
+            m_dragPreviewConstantBuffer = nullptr;
             m_isDraggingAsset = false;
         }
     }
 
     void KeplerEditor::onDrawDebug(DeviceContext& ctx, const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj)
     {
-        if (m_dragPreviewObject && m_isDraggingAsset && m_dragPreviewObject->model)
+        if (m_dragPreviewModel && m_dragPreviewConstantBuffer && m_isDraggingAsset)
         {
-            DirectX::XMFLOAT4X4 worldMatrix = m_dragPreviewObject->cachedEditorTransform.getWorldMatrixRelative(m_camera.getPosition());
+            DirectX::XMFLOAT4X4 worldMatrix = m_dragPreviewTransform.getWorldMatrixRelative(m_camera.getPosition());
             m_graphicsEngine.getRenderSystem().drawModel(
                 ctx,
-                *m_dragPreviewObject->model,
-                *m_dragPreviewObject->constantBuffer,
+                *m_dragPreviewModel,
+                *m_dragPreviewConstantBuffer,
                 worldMatrix
             );
         }
